@@ -270,20 +270,10 @@ API 데이터에서 확인한 한계: 연령 값은 52.7%, 취업·학력 코드
 
 ## 👥 Team
 
-| [김주완](https://github.com/NFULL07) |
-|:---:|
-| <img src="https://github.com/NFULL07.png" width="120"/> |
-| 기획 · 구조설계 · PO · AI · BE|
-
-| [안준모](https://github.com/NFULL07) |
-|:---:|
-| <img src="https://github.com/NFULL07.png" width="120"/> |
-| 기획 · FE |
-
-| [이해찬](https://github.com/fullofsun9-png) |
-|:---:|
-| <img src="https://github.com/fullofsun9-png" width="120"/> |
-| UI · UX |
+| [김주완](https://github.com/NFULL07) | [안준모](https://github.com/quffh) | [이해찬](https://github.com/fullofsun9-png) |
+|:---:|:---:|:---:|
+| <img src="https://github.com/NFULL07.png" width="120" height="120"/> | <img src="https://github.com/quffh.png" width="120" height="120"/> | <img src="https://github.com/fullofsun9-png.png" width="120" height="120"/> |
+| 기획 · 구조설계 · PO · AI · BE | 기획 · FE | UI · UX |
 
 <!--
 팀원 추가 예시 (열을 늘려 쓰기)
