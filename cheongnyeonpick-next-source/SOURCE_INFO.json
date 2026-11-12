@@ -1,0 +1,53 @@
+{
+  "site_name": "청년픽 NEXT",
+  "saved_version_number": 5,
+  "source_commit": "f5ff2c64e1122226b54ee03b627094ecab4063c9",
+  "site_url": "https://cheongnyeonpick-next-clean.bakedbiscuit.chatgpt.site/#home",
+  "source_files": [
+    {
+      "path": ".openai/hosting.json",
+      "bytes": 106,
+      "sha256": "dcfd4603e44ac77a2b1ddf7fecd77ac765db01e674ce0bfaf228a7657a1eff84"
+    },
+    {
+      "path": "DESIGN_NOTES.md",
+      "bytes": 3825,
+      "sha256": "2dc84a8b774780d5d59f48cae205789813acaf44a203073437295fd563e00572"
+    },
+    {
+      "path": "dist/assets/base.css",
+      "bytes": 39774,
+      "sha256": "a5b60602d74cd9fabaf76654fab961631708d30a1f13c22660cda67c23c99218"
+    },
+    {
+      "path": "dist/assets/base.js",
+      "bytes": 42357,
+      "sha256": "541a7ee1c1d5c70bdf2cb18cd97021338511bea821c02c91de93e7de410a9427"
+    },
+    {
+      "path": "dist/assets/redesign.css",
+      "bytes": 30439,
+      "sha256": "1d71a4a92ef9008f759d11978e8a7ec8b5b82916d799c75a44c4d3c6d1863f01"
+    },
+    {
+      "path": "dist/assets/redesign.js",
+      "bytes": 48832,
+      "sha256": "7a37323e017df8e974acc31f6f682cdce62519799a19910989cb08458f4324e1"
+    },
+    {
+      "path": "dist/index.html",
+      "bytes": 2355,
+      "sha256": "a7ad8b2ccab742365fdaa32b246b4efe8936e1d4dcb05fa6493a4fa9e53ab918"
+    },
+    {
+      "path": "dist/wallet.css",
+      "bytes": 38869,
+      "sha256": "6a2d118fb1c53458824005acf0e3a1f13c26e8f2f1e641773d19794d4015f481"
+    },
+    {
+      "path": "dist/wallet.js",
+      "bytes": 27603,
+      "sha256": "c9eb93d77c8799e390848009f2633ba165304b1d5b49d35bde431e6378ee3c39"
+    }
+  ]
+}
