@@ -130,9 +130,9 @@ export const TopNav: React.FC<TopNavProps> = ({
               <ul className="space-y-2.5 text-[13px] leading-relaxed text-[#333333]">
                 <li className="rounded-xl bg-[#F7F5EE] p-2.5">
                   <strong className="block font-bold text-[#1F2421]">
-                    지금 보이는 정책은 시연 예시예요
+                    모집 중 정책 5건 확인 가능
                   </strong>
-                  <span>금액·일정·모집 상태는 공고 연결 후 확인할 수 있어요.</span>
+                  <span>정책 찾기 우측 필터에서 모집 중 정책만 바로 모아볼 수 있어요.</span>
                 </li>
                 <li className="rounded-xl bg-[#F7F5EE] p-2.5">
                   <strong className="block font-bold text-[#1F2421]">

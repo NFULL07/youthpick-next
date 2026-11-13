@@ -13,7 +13,7 @@ export const POLICY_CATEGORIES: readonly PolicyCategory[] = [
   '참여·기반',
 ] as const;
 
-export type RecruitmentStatus = '모집 중' | '마감' | '공고 연결 후 확인';
+export type RecruitmentStatus = '모집 중' | '마감' | '공고 확인 필요';
 
 export type AcademicWorkStatus =
   | '대학 재학'
@@ -65,8 +65,6 @@ export interface PolicyCriteriaRow {
 
 export interface PolicyItem {
   id: string;
-  /** 실제 공고와 연결되지 않은 시연 예시 정책 */
-  isDemo: boolean;
   pickNumber: string;
   title: string;
   agencyLabel: string;

@@ -64,7 +64,7 @@ export function filterAndSortPolicies(
   if (params.sortBy === 'openFirst') {
     const rank: Record<RecruitmentStatus, number> = {
       '모집 중': 0,
-      '공고 연결 후 확인': 1,
+      '공고 확인 필요': 1,
       마감: 2,
     };
     return [...filtered].sort(
