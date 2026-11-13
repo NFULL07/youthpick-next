@@ -126,7 +126,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
           <div className="card-soft grid grid-cols-1 divide-y divide-[#DCD7C9] rounded-3xl bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <div className="p-5">
               <span className="text-[13px] font-bold text-[#4A4D49]">
-                내 기기 보관 문서
+                파일명 기록 문서
               </span>
               <strong className="font-mono-num mt-1 block text-3xl font-extrabold text-[#1F2421]">
                 {String(uploadedCount).padStart(2, '0')}개
@@ -228,7 +228,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                             : 'border-[#C9C4B6] bg-white text-[#333333]'
                         }`}
                       >
-                        {doc.uploadedFileName ? '보관 완료' : doc.status}
+                        {doc.uploadedFileName ? '파일명 기록' : doc.status}
                       </span>
                     </button>
                   );
@@ -269,7 +269,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                     </div>
                     {selectedDoc.uploadedFileName && (
                       <div className="flex justify-between gap-3">
-                        <dt className="font-semibold text-[#4A4D49]">보관 파일</dt>
+                        <dt className="font-semibold text-[#4A4D49]">기록한 파일 이름</dt>
                         <dd className="font-bold text-[#1F2421]">
                           {selectedDoc.uploadedFileName}
                         </dd>
@@ -290,7 +290,12 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                     }}
                   />
 
-                  <div className="mt-5 space-y-2.5">
+                  <p className="mt-4 text-[13px] leading-relaxed text-[#4A4D49]">
+                    파일 내용은 저장하거나 전송하지 않고, 선택한 파일의 이름만 이
+                    브라우저에 기록해요. 실제 서류는 기기에 따로 보관해 주세요.
+                  </p>
+
+                  <div className="mt-4 space-y-2.5">
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -299,8 +304,8 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                       <Upload className="h-4 w-4" aria-hidden="true" />
                       <span>
                         {selectedDoc.uploadedFileName
-                          ? '다른 파일로 교체'
-                          : '내 기기 문서 연결하기'}
+                          ? '다른 파일 이름으로 바꾸기'
+                          : '파일 이름 기록하기'}
                       </span>
                     </button>
 

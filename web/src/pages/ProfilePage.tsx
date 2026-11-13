@@ -368,7 +368,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="mt-5 grid grid-cols-2 divide-x divide-[#DCD7C9] border-t border-dashed border-[#C7C2B4] pt-4 text-center">
               <div>
                 <span className="block text-[13px] font-semibold text-[#4A4D49]">
-                  내 기기 문서
+                  파일명 기록 문서
                 </span>
                 <strong className="font-mono-num mt-0.5 block text-2xl font-extrabold text-[#1F2421]">
                   {walletDocCount}

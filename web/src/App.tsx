@@ -159,7 +159,7 @@ export default function App() {
         doc.id === docId
           ? {
               ...doc,
-              status: '보관 완료' as const,
+              status: '파일명 기록' as const,
               uploadedFileName: fileName,
               uploadedAt: new Date().toLocaleDateString('ko-KR'),
             }
@@ -168,7 +168,7 @@ export default function App() {
       window.localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(next));
       return next;
     });
-    showToast(`'${fileName}' 문서가 브라우저 전자지갑에 연결되었어요.`);
+    showToast(`'${fileName}' 파일 이름을 이 브라우저에 기록했어요. 파일 내용은 저장하지 않아요.`);
   };
 
   const activePrepPolicy =

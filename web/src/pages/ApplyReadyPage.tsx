@@ -243,7 +243,7 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
               필요한 서류가 있다면
             </h3>
             <p className="mt-1.5 text-[14px] leading-relaxed text-[#333333]">
-              전자지갑에서 발급처와 준비 상태를 한눈에 확인하고 파일을 보관할 수 있어요.
+              전자지갑에서 발급처와 준비 상태를 한눈에 확인하고, 준비한 파일의 이름을 기록해 둘 수 있어요.
             </p>
             <button
               type="button"

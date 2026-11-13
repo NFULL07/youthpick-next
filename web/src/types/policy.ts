@@ -98,7 +98,8 @@ export interface WalletDocument {
   issuer: string;
   linkedPolicyId: string;
   linkedPolicyTitle: string;
-  status: '확인 필요' | '보관 완료';
+  /** '파일명 기록': 선택한 파일의 이름만 브라우저에 기록한 상태. 파일 내용은 저장하지 않는다 */
+  status: '확인 필요' | '파일명 기록';
   previewNote: string;
   uploadedFileName?: string;
   uploadedAt?: string;
