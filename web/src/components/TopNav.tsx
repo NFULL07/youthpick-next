@@ -145,31 +145,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           )}
         </div>
       </div>
-
-      {/* Mobile Nav Strip */}
-      <div className="flex gap-1 overflow-x-auto border-t border-[#E6E2D6] px-4 py-2 md:hidden">
-        {navItems.map((item) => {
-          const active =
-            item.id === 'policies' ? isPoliciesActive : currentRoute === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onNavigate(item.id)}
-              className={`shrink-0 cursor-pointer whitespace-nowrap rounded-lg px-3 py-1.5 text-[13px] font-semibold ${
-                active
-                  ? 'bg-[#1F2421] text-white'
-                  : 'bg-white text-[#333333] border border-[#D7D2C5]'
-              }`}
-            >
-              {item.label}
-              {typeof item.badge === 'number' && item.badge > 0
-                ? ` (${item.badge})`
-                : ''}
-            </button>
-          );
-        })}
-      </div>
+      {/* 모바일 메뉴는 화면 하단 고정 BottomNav가 맡는다 */}
     </header>
   );
 };

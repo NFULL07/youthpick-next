@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AiSherpaDrawer } from './components/AiSherpaDrawer';
+import { BottomNav } from './components/BottomNav';
 import { TopNav } from './components/TopNav';
 import {
   DEFAULT_USER_PROFILE,
@@ -197,7 +198,7 @@ export default function App() {
 
       <main
         id="main"
-        className="mx-auto max-w-[1280px] px-5 py-8 pb-24 md:px-8 md:py-10"
+        className="mx-auto max-w-[1280px] px-5 py-8 pb-40 md:px-8 md:py-10"
       >
         {route === 'home' && (
           <HomeBoardPage
@@ -294,11 +295,17 @@ export default function App() {
         </footer>
       </main>
 
-      {/* Toast Feedback */}
+      <BottomNav
+        currentRoute={route}
+        onNavigate={(r) => handleNavigate(r)}
+        activePrepCount={1}
+      />
+
+      {/* Toast Feedback (모바일은 하단 메뉴와 AI 버튼 위에 표시) */}
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 md:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
         >
           {toastMessage}
         </div>
