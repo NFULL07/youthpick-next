@@ -25,7 +25,7 @@ const BOTTOM_NAV_ITEMS: { id: RouteId; label: string; icon: LucideIcon }[] = [
   { id: 'wallet', label: '전자지갑', icon: Wallet },
 ];
 
-/** 모바일(md 미만) 전용 하단 고정 메뉴. 데스크톱은 TopNav의 주 메뉴를 쓴다. */
+/** 모바일·태블릿(lg 미만) 하단 고정 메뉴. lg 이상은 TopNav의 주 메뉴를 쓴다. */
 export const BottomNav: React.FC<BottomNavProps> = ({
   currentRoute,
   onNavigate,
@@ -34,9 +34,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="하단 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-[#262A27] bg-[#FDFCF5] px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-[#262A27] bg-[#FDFCF5] px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="mx-auto grid max-w-2xl grid-cols-6">
         {BOTTOM_NAV_ITEMS.map((item) => {
           const active =
             item.id === 'policies'
@@ -55,19 +55,19 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 }`}
               >
                 <span
-                  className={`flex h-7 w-10 items-center justify-center rounded-lg border ${
+                  className={`relative flex h-7 w-10 items-center justify-center rounded-lg border ${
                     active ? 'border-[#262A27] bg-[#D8F279]' : 'border-transparent'
                   }`}
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />
+                  {badge !== null && (
+                    <span className="font-mono-num absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-[#262A27] bg-[#D8F279] px-1 text-[10px] font-bold text-[#1F2421]">
+                      {badge}
+                      <span className="sr-only">건 준비 중</span>
+                    </span>
+                  )}
                 </span>
                 <span className="whitespace-nowrap">{item.label}</span>
-                {badge !== null && (
-                  <span className="font-mono-num absolute right-1 top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-[#262A27] bg-[#D8F279] px-1 text-[10px] font-bold text-[#1F2421]">
-                    {badge}
-                    <span className="sr-only">건 준비 중</span>
-                  </span>
-                )}
               </button>
             </li>
           );

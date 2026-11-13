@@ -62,13 +62,14 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
   return (
     <>
       {/* Widened AI Sherpa / Navigator Drawer (560px desktop width: >30% wider than 380px) */}
-      {/* 모바일: 화면 위(8px)부터 하단 메뉴 바로 위까지 채움. 헤더·배너는 덮고 하단 메뉴는 보이게 둔다 */}
+      {/* 모바일(md 미만): 화면 위(8px)부터 하단 메뉴 바로 위까지 채움. 헤더·배너는 덮고 하단 메뉴는 보이게 둔다 */}
+      {/* 태블릿(md~lg): 하단 메뉴와 AI 버튼 위에 560px 패널. 데스크톱(lg 이상): 하단 메뉴 없음 */}
       {isOpen && (
         <aside
           role="dialog"
           aria-label="AI 내비게이터 (AI 셰르파)"
           data-testid="ai-navigator-drawer"
-          className="fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl md:left-auto md:right-6 md:top-auto md:bottom-20 md:z-40 md:h-[min(680px,calc(100vh-7rem))] md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl"
+          className="fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl md:left-auto md:right-6 md:top-auto md:bottom-[calc(9rem+env(safe-area-inset-bottom))] md:z-40 md:h-[min(680px,calc(100vh-14rem))] md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl lg:bottom-20 lg:h-[min(680px,calc(100vh-7rem))]"
         >
           {/* Drawer Header */}
           <div className="flex items-center justify-between border-b border-[#262A27] bg-[#E8E0FC] px-4 py-2.5">
@@ -244,7 +245,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'AI 내비게이터 접기' : 'AI 내비게이터 열기'}
-        className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 md:bottom-4 ${
+        className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 lg:bottom-4 ${
           isOpen ? 'hidden md:flex' : 'flex'
         } cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-4 py-2.5 text-white shadow-xl transition-transform duration-150 hover:-translate-y-0.5 md:right-6`}
       >

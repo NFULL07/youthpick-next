@@ -201,7 +201,7 @@ export default function App() {
 
       <main
         id="main"
-        className="mx-auto max-w-[1280px] px-5 py-8 pb-40 md:px-8 md:py-10"
+        className="mx-auto max-w-[1280px] px-5 pt-8 pb-40 md:px-8 md:pt-10 lg:pb-10"
       >
         {route === 'home' && (
           <HomeBoardPage
@@ -304,11 +304,11 @@ export default function App() {
         activePrepCount={1}
       />
 
-      {/* Toast Feedback (모바일은 하단 메뉴와 AI 버튼 위에 표시) */}
+      {/* Toast Feedback (lg 미만은 하단 메뉴와 AI 버튼 위에 표시) */}
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 md:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
         >
           {toastMessage}
         </div>

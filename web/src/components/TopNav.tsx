@@ -49,10 +49,10 @@ export const TopNav: React.FC<TopNavProps> = ({
           </span>
         </a>
 
-        {/* Zone 2: Navigation links */}
+        {/* Zone 2: Navigation links (lg 이상. 그보다 좁으면 6개 메뉴가 한 줄에 들어가지 않아 BottomNav 사용) */}
         <nav
           aria-label="주 메뉴"
-          className="hidden items-center gap-1.5 md:flex lg:gap-2"
+          className="hidden items-center gap-2 lg:flex"
         >
           {navItems.map((item) => {
             const active =
