@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --canvas-bg: #f7f5ee;
+    --surface-card: #ffffff;
+    --surface-sage: #eef1e3;
+    --surface-lavender: #e8e0fc;
+    --surface-peach: #fbe1d6;
+    --surface-lime: #d8f279;
+    --ink-primary: #1f2421;
+    --ink-secondary: #333333;
+    --ink-tertiary: #4a4d49;
+    --border-crisp: #262a27;
+    --border-subtle: #dcd8cc;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    background-color: var(--canvas-bg);
+    color: var(--ink-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--canvas-bg);
+    color: var(--ink-primary);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 2px solid #1f2421;
+    outline-offset: 2px;
+  }
+}
+
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.card-tactile {
+  border: 1.5px solid #262a27;
+  box-shadow: 0 3px 0 #262a27;
+}
+
+.card-soft {
+  border: 1px solid #d7d2c5;
+}
+
+.btn-primary-brand {
+  background-color: #1f2421;
+  color: #ffffff;
+  font-weight: 700;
+  border: 1.5px solid #1f2421;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease;
+}
+
+.btn-primary-brand:hover {
+  background-color: #303632;
+}
+
+.btn-primary-brand:active {
+  transform: translateY(1px);
+}
+
+.btn-primary-lime {
+  background-color: #d8f279;
+  color: #1f2421;
+  font-weight: 700;
+  border: 1.5px solid #262a27;
+  box-shadow: 0 3px 0 #262a27;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease;
+}
+
+.btn-primary-lime:hover {
+  background-color: #cef058;
+}
+
+.btn-primary-lime:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #262a27;
+}
+
+.btn-secondary-outline {
+  background-color: transparent;
+  color: #333333;
+  font-weight: 600;
+  border: 1.5px solid #b5b0a2;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.btn-secondary-outline:hover {
+  background-color: #efece3;
+  border-color: #555853;
+  color: #1f2421;
+}
