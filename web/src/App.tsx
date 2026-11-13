@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AiSherpaDrawer } from './components/AiSherpaDrawer';
 import { BottomNav } from './components/BottomNav';
+import { DemoDataBanner } from './components/DemoDataBanner';
 import { TopNav } from './components/TopNav';
 import {
   DEFAULT_USER_PROFILE,
@@ -188,6 +189,8 @@ export default function App() {
       >
         본문으로 이동
       </a>
+
+      <DemoDataBanner />
 
       <TopNav
         currentRoute={route}
