@@ -70,16 +70,16 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-[min(680px,calc(100vh-14rem))] w-[min(560px,calc(100vw-2rem))] md:bottom-20 md:h-[min(680px,calc(100vh-7rem))] flex-col overflow-hidden rounded-3xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl md:right-6"
         >
           {/* Drawer Header */}
-          <div className="flex items-center justify-between border-b border-[#262A27] bg-[#E8E0FC] px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421]">
-                <Compass className="h-5 w-5" aria-hidden="true" />
+          <div className="flex items-center justify-between border-b border-[#262A27] bg-[#E8E0FC] px-4 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421]">
+                <Compass className="h-4 w-4" aria-hidden="true" />
               </span>
               <div>
-                <h2 className="text-[17px] font-extrabold text-[#1F2421]">
+                <h2 className="text-[15px] font-extrabold leading-tight text-[#1F2421]">
                   AI 내비게이터 (AI 셰르파)
                 </h2>
-                <p className="text-[13px] font-semibold text-[#333333]">
+                <p className="text-[12px] font-semibold text-[#333333]">
                   내 조건·화면 맥락 기반 규칙형 안내
                 </p>
               </div>
@@ -89,22 +89,22 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
               type="button"
               onClick={onToggle}
               aria-label="AI 내비게이터 닫기"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#262A27]/30 bg-white text-[#1F2421] hover:bg-[#F7F5EE]"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-[#262A27]/30 bg-white text-[#1F2421] hover:bg-[#F7F5EE]"
             >
-              <X className="h-4.5 w-4.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Context Bar */}
-          <div className="flex items-center justify-between border-b border-[#E3DFD3] bg-white px-6 py-2.5 text-[13px] font-semibold text-[#333333]">
-            <span>
+          <div className="flex items-center justify-between gap-2 border-b border-[#E3DFD3] bg-white px-4 py-1.5 text-[12px] font-semibold text-[#333333]">
+            <span className="min-w-0 truncate">
               현재 화면 · <strong className="text-[#1F2421]">{ROUTE_LABELS[route]}</strong>
               {selectedPolicy ? ` (${selectedPolicy.title})` : ''}
             </span>
             <button
               type="button"
               onClick={() => setMessages([])}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[13px] font-semibold text-[#333333] hover:bg-[#EFECE3] hover:text-[#1F2421]"
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-[#333333] hover:bg-[#EFECE3] hover:text-[#1F2421]"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               <span>새로 시작</span>
@@ -112,26 +112,26 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           </div>
 
           {/* Scrollable Conversation Area */}
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+          <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
             {messages.length === 0 ? (
-              <div className="space-y-5">
-                <div className="rounded-2xl border border-[#DCD7C9] bg-white p-5">
-                  <p className="font-mono-num text-xs font-bold tracking-wider text-[#4A4D49]">
+              <div className="space-y-3">
+                <div className="rounded-xl border border-[#DCD7C9] bg-white p-3.5">
+                  <p className="font-mono-num text-[10px] font-bold tracking-wider text-[#4A4D49]">
                     MY NEXT NAVIGATOR
                   </p>
-                  <h3 className="mt-1.5 text-xl font-extrabold leading-snug text-[#1F2421]">
+                  <h3 className="mt-1 text-[16px] font-extrabold leading-snug text-[#1F2421]">
                     다음 한 칸,{' '}
                     <span className="bg-[#D8F279] px-1">같이 찾아볼까요?</span>
                   </h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-[#333333]">
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-[#333333]">
                     어려운 정책 용어 대신 지금 내 조건(만 {profile.age}세 ·{' '}
                     {profile.status} · 거주 {profile.residence || '미입력'})부터
                     차근차근 풀어드려요.
                   </p>
                 </div>
 
-                <div className="space-y-2.5">
-                  <p className="text-[13px] font-bold text-[#333333]">
+                <div className="space-y-1.5">
+                  <p className="text-[12px] font-bold text-[#333333]">
                     자주 묻는 질문 바로 보기
                   </p>
                   {suggestedPrompts.map((prompt) => (
@@ -139,35 +139,35 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                       key={prompt}
                       type="button"
                       onClick={() => handleAsk(prompt)}
-                      className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[#CFCAC0] bg-white px-4 py-3.5 text-left text-[15px] font-semibold text-[#1F2421] transition-colors hover:border-[#262A27] hover:bg-[#EEF1E3]"
+                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-[#CFCAC0] bg-white px-3 py-2 text-left text-[13px] font-semibold text-[#1F2421] transition-colors hover:border-[#262A27] hover:bg-[#EEF1E3]"
                     >
                       <span>{prompt}</span>
-                      <ArrowUpRight className="h-4 w-4 shrink-0 text-[#333333]" aria-hidden="true" />
+                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[#333333]" aria-hidden="true" />
                     </button>
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-1">
+                <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
                     onClick={() => onNavigate('wallet')}
-                    className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1 rounded-xl px-3.5 py-2 text-[13px]"
+                    className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1.5 text-[12px]"
                   >
                     <span>전자지갑 연결</span>
-                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    <ArrowUpRight className="h-3 w-3" />
                   </button>
                   <button
                     type="button"
                     onClick={() => onNavigate('apply')}
-                    className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1 rounded-xl px-3.5 py-2 text-[13px]"
+                    className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1.5 text-[12px]"
                   >
                     <span>신청 준비 노트</span>
-                    <ArrowUpRight className="h-3.5 w-3.5" />
+                    <ArrowUpRight className="h-3 w-3" />
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -176,7 +176,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                     }`}
                   >
                     <div
-                      className={`max-w-[90%] rounded-2xl px-4.5 py-3.5 text-[15px] leading-relaxed whitespace-pre-line ${
+                      className={`max-w-[92%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-line ${
                         msg.sender === 'user'
                           ? 'bg-[#1F2421] font-semibold text-white'
                           : 'border border-[#D5D0C3] bg-white text-[#1F2421]'
@@ -190,10 +190,10 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                         onClick={() => {
                           onNavigate(msg.targetRoute!, msg.targetPolicyId);
                         }}
-                        className="btn-primary-lime mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2 text-[13px]"
+                        className="btn-primary-lime mt-1.5 inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1.5 text-[12px]"
                       >
                         <span>{msg.actionLabel}</span>
-                        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                        <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -208,29 +208,29 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
               e.preventDefault();
               handleAsk(inputValue);
             }}
-            className="border-t border-[#DCD7C9] bg-white px-5 py-3.5"
+            className="border-t border-[#DCD7C9] bg-white px-3 py-2.5"
           >
             <label htmlFor="sherpa-question-input" className="sr-only">
               내비게이터에게 질문하기
             </label>
-            <div className="flex items-center gap-2.5 rounded-2xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] px-3.5 py-2">
+            <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] px-3 py-1.5">
               <input
                 id="sherpa-question-input"
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="주거, 서류, 졸업·이사 비교 등 궁금한 점을 입력하세요"
-                className="flex-1 bg-transparent text-[15px] text-[#1F2421] placeholder:text-[#5C5F5B] focus:outline-none"
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-[#1F2421] placeholder:text-[#5C5F5B] focus:outline-none"
               />
               <button
                 type="submit"
                 aria-label="질문 보내기"
-                className="btn-primary-brand flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl"
+                className="btn-primary-brand flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-3.5 w-3.5" />
               </button>
             </div>
-            <p className="mt-2 text-center text-[12px] font-medium text-[#4A4D49]">
+            <p className="mt-1.5 text-center text-[11px] font-medium text-[#4A4D49]">
               내 입력 조건 기반 규칙형 안내 · 외부 AI API를 호출하지 않습니다
             </p>
           </form>
