@@ -48,7 +48,18 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           <span className="rounded-lg border border-[#262A27]/30 bg-white/85 px-3 py-1">
             {policy.category}
           </span>
-          <span className="rounded-lg border border-[#262A27] bg-[#D8F279] px-3 py-1">
+          {policy.isDemo && (
+            <span className="rounded-lg border border-[#B8860B] bg-[#FFF0CC] px-3 py-1">
+              시연 예시
+            </span>
+          )}
+          <span
+            className={`rounded-lg border px-3 py-1 ${
+              policy.recruitmentStatus === '모집 중'
+                ? 'border-[#262A27] bg-[#D8F279]'
+                : 'border-[#262A27]/30 bg-white/85'
+            }`}
+          >
             {policy.recruitmentStatus}
           </span>
           <span className="text-[#333333]">{policy.agencyLabel}</span>
@@ -60,6 +71,11 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
         <p className="mt-2.5 max-w-3xl text-[16px] leading-relaxed text-[#333333]">
           {policy.shortDescription}
         </p>
+        {policy.isDemo && (
+          <p className="mt-2 max-w-3xl text-[14px] font-semibold text-[#4A4D49]">
+            화면 시연을 위한 예시 정책이에요. 금액·일정·모집 상태는 공고 연결 후 확인할 수 있어요.
+          </p>
+        )}
 
         <div className="mt-6 grid grid-cols-1 gap-4 border-t border-dashed border-[#262A27]/30 pt-5 sm:grid-cols-2">
           <div>

@@ -61,7 +61,7 @@ export function generateDeterministicSherpaReply(
     return {
       id: `ast-${Date.now()}`,
       sender: 'assistant',
-      text: `현재 보고 계신 「${ctx.selectedPolicy.title}」은(는) [${ctx.selectedPolicy.category}] 분야 정책이에요.\n\n• 현재 모집 상태: ${ctx.selectedPolicy.recruitmentStatus} (${ctx.selectedPolicy.deadlineLabel})\n• 내 조건 대비 핵심 확인 사항: ${ctx.selectedPolicy.keyCheckHint}\n• 필요 서류 예시: ${ctx.selectedPolicy.requiredDocs.join(', ')}\n\n내 정보 기준(만 ${ctx.profile.age}세 · ${ctx.profile.status} · 거주 ${residence} / 학교 ${school})과 비교표의 '추가 확인' 항목을 먼저 점검해 보세요.`,
+      text: `현재 보고 계신 「${ctx.selectedPolicy.title}」은(는) [${ctx.selectedPolicy.category}] 분야 정책이에요.\n\n• 현재 모집 상태: ${ctx.selectedPolicy.isDemo ? '시연 예시 정책이라 금액·일정·모집 상태는 공고 연결 후 확인' : `${ctx.selectedPolicy.recruitmentStatus} (${ctx.selectedPolicy.deadlineLabel})`}\n• 내 조건 대비 핵심 확인 사항: ${ctx.selectedPolicy.keyCheckHint}\n• 필요 서류 예시: ${ctx.selectedPolicy.requiredDocs.join(', ')}\n\n내 정보 기준(만 ${ctx.profile.age}세 · ${ctx.profile.status} · 거주 ${residence} / 학교 ${school})과 비교표의 '추가 확인' 항목을 먼저 점검해 보세요.`,
       actionLabel: '신청 준비로 이어가기',
       targetRoute: 'apply',
       targetPolicyId: ctx.selectedPolicy.id,
@@ -102,7 +102,7 @@ export function generateDeterministicSherpaReply(
     return {
       id: `ast-${Date.now()}`,
       sender: 'assistant',
-      text: `청년픽 NEXT는 온통청년 기준 5대 분야(일자리, 주거, 교육·직업훈련, 금융·복지·문화, 참여·기반)로 정책을 분류해요.\n\n현재 등록된 정책 중 즉시 지원 가능한 '모집 중' 상태는 ${openCount}건이에요. <정책 찾기> 목록 상단 우측의 '모집 상태' 필터에서 모집 중 / 마감 / 공고 확인 필요를 바로 골라볼 수 있어요.`,
+      text: `청년픽 NEXT는 온통청년 기준 5대 분야(일자리, 주거, 교육·직업훈련, 금융·복지·문화, 참여·기반)로 정책을 분류해요.\n\n현재 등록된 정책 중 즉시 지원 가능한 '모집 중' 상태는 ${openCount}건이에요. <정책 찾기> 목록 상단 우측의 '모집 상태' 필터에서 모집 중 / 마감 / 공고 연결 후 확인를 바로 골라볼 수 있어요. 지금 보이는 정책은 시연 예시라 모두 '공고 연결 후 확인'로 표시돼요.`,
       actionLabel: '정책 찾기 이동',
       targetRoute: 'policies',
     };

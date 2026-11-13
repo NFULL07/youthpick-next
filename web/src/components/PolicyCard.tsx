@@ -21,7 +21,7 @@ const ACCENT_BG: Record<PolicyItem['accentTheme'], string> = {
 const STATUS_STYLE: Record<PolicyItem['recruitmentStatus'], string> = {
   '모집 중': 'bg-[#D8F279] text-[#1F2421] border-[#262A27]',
   마감: 'bg-[#EAE6DA] text-[#333333] border-[#9E998B]',
-  '공고 확인 필요': 'bg-[#FFF0CC] text-[#1F2421] border-[#B8860B]',
+  '공고 연결 후 확인': 'bg-[#FFF0CC] text-[#1F2421] border-[#B8860B]',
 };
 
 export const PolicyCard: React.FC<PolicyCardProps> = ({
@@ -46,6 +46,11 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           <span className="font-mono-num text-[13px] font-bold text-[#333333]">
             {policy.pickNumber}
           </span>
+          {policy.isDemo && (
+            <span className="rounded-md border border-[#262A27]/40 bg-white/85 px-1.5 py-0.5 text-[11px] font-bold text-[#1F2421]">
+              시연 예시
+            </span>
+          )}
         </div>
 
         <button
@@ -93,9 +98,11 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           >
             {policy.recruitmentStatus}
           </span>
-          <span className="text-[13px] font-semibold text-[#333333]">
-            {policy.deadlineLabel}
-          </span>
+          {policy.deadlineLabel !== policy.recruitmentStatus && (
+            <span className="text-[13px] font-semibold text-[#333333]">
+              {policy.deadlineLabel}
+            </span>
+          )}
         </div>
 
         <div className="flex items-start gap-2 border-t border-[#ECE8DC] pt-3 text-[13px] font-medium text-[#333333]">

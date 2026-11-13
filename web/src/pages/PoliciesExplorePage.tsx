@@ -296,7 +296,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 <option value="전체">전체</option>
                 <option value="모집 중">모집 중</option>
                 <option value="마감">마감</option>
-                <option value="공고 확인 필요">공고 확인 필요</option>
+                <option value="공고 연결 후 확인">공고 연결 후 확인</option>
               </select>
             </div>
 
@@ -425,6 +425,11 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                     {comparedPolicies.map((p) => (
                       <th key={p.id} className="px-6 py-4 font-extrabold">
                         {p.title}
+                        {p.isDemo && (
+                          <span className="ml-2 inline-flex rounded-md border border-[#B8860B] bg-[#FFF0CC] px-1.5 py-0.5 align-middle text-[11px] font-bold text-[#1F2421]">
+                            시연 예시
+                          </span>
+                        )}
                       </th>
                     ))}
                   </tr>
@@ -442,7 +447,9 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                     <td className="px-6 py-4 font-bold text-[#1F2421]">모집 상태</td>
                     {comparedPolicies.map((p) => (
                       <td key={p.id} className="px-6 py-4 font-semibold">
-                        {p.recruitmentStatus} ({p.deadlineLabel})
+                        {p.recruitmentStatus}
+                        {p.deadlineLabel !== p.recruitmentStatus &&
+                          ` (${p.deadlineLabel})`}
                       </td>
                     ))}
                   </tr>

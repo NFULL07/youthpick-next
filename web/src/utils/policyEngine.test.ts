@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_USER_PROFILE, POLICIES_DATA } from '../data/policies';
 import { KOREA_REGIONS, formatSelectedRegion } from '../data/regions';
-import { POLICY_CATEGORIES } from '../types/policy';
+import { POLICY_CATEGORIES, PolicyItem, RecruitmentStatus } from '../types/policy';
 import {
   analyzeLifeChangeImpacts,
   evaluatePolicyCriteria,
@@ -20,8 +20,25 @@ test('Ontong-Youth 5 policy categories are enforced', () => {
   ]);
 });
 
+// 필터 로직 검증용 고정 모집 상태. 실제 공고 상태가 아니다.
+// 시연 예시 데이터는 모두 '공고 연결 후 확인'이라(리뷰 이슈 1), 필터 테스트는 이 입력값을 쓴다.
+const FILTER_FIXTURE_STATUS: Record<string, RecruitmentStatus> = {
+  '1': '모집 중',
+  '2': '모집 중',
+  '3': '공고 연결 후 확인',
+  '4': '모집 중',
+  '5': '모집 중',
+  '6': '마감',
+  '7': '모집 중',
+  '8': '공고 연결 후 확인',
+};
+const FILTER_FIXTURE: PolicyItem[] = POLICIES_DATA.map((p) => ({
+  ...p,
+  recruitmentStatus: FILTER_FIXTURE_STATUS[p.id],
+}));
+
 test('filterAndSortPolicies filters accurately by new 5 categories and recruitment status', () => {
-  const financeOpen = filterAndSortPolicies(POLICIES_DATA, {
+  const financeOpen = filterAndSortPolicies(FILTER_FIXTURE, {
     category: '금융·복지·문화',
     recruitmentStatus: '모집 중',
     searchQuery: '',
@@ -34,7 +51,7 @@ test('filterAndSortPolicies filters accurately by new 5 categories and recruitme
     )
   );
 
-  const closedOnly = filterAndSortPolicies(POLICIES_DATA, {
+  const closedOnly = filterAndSortPolicies(FILTER_FIXTURE, {
     category: '전체',
     recruitmentStatus: '마감',
     searchQuery: '',
@@ -86,4 +103,28 @@ test('deterministic Sherpa engine replies without external AI API calls', () => 
   assert.equal(reply.sender, 'assistant');
   assert.ok(reply.text.includes('천안시'));
   assert.equal(reply.targetRoute, 'switch');
+});
+
+test('example policies are marked as demo and do not state amount, schedule or recruitment status', () => {
+  const amount = /\d[\d,]*\s*(만\s*)?원/;
+  const anyDigit = /\d/;
+  assert.equal(POLICIES_DATA.length, 8);
+  for (const p of POLICIES_DATA) {
+    assert.equal(p.isDemo, true, `${p.id} isDemo`);
+    assert.equal(p.recruitmentStatus, '공고 연결 후 확인', `${p.id} recruitmentStatus`);
+    assert.equal(p.deadlineLabel, '공고 연결 후 확인', `${p.id} deadlineLabel`);
+    assert.ok(!amount.test(p.supportSummary), `${p.id} supportSummary has amount`);
+    assert.ok(!anyDigit.test(p.deadlineLabel), `${p.id} deadlineLabel has date`);
+  }
+});
+
+test('Sherpa does not repeat a fabricated status for a demo policy', () => {
+  const reply = generateDeterministicSherpaReply('이 정책 조건 알려줘', {
+    route: 'detail',
+    profile: DEFAULT_USER_PROFILE,
+    policies: POLICIES_DATA,
+    selectedPolicy: POLICIES_DATA[0],
+  });
+  assert.ok(reply.text.includes('시연 예시'));
+  assert.ok(!reply.text.includes('모집 중'));
 });
