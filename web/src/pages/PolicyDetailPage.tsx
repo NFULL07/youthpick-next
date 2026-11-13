@@ -1,7 +1,13 @@
 import React from 'react';
 import { ArrowLeft, ArrowRight, Bookmark, MessageCircle } from 'lucide-react';
-import { PolicyItem, RouteId, UserProfile } from '../types/policy';
+import { CriteriaResult, PolicyItem, RouteId, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from '../utils/policyEngine';
+
+const CRITERIA_RESULT_STYLE: Record<CriteriaResult, string> = {
+  O: 'border-[#262A27] bg-[#D8F279] text-[#1F2421]',
+  X: 'border-[#A33A1E] bg-[#FBE1D6] text-[#1F2421]',
+  '?': 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]',
+};
 
 interface PolicyDetailPageProps {
   policy: PolicyItem;
@@ -137,16 +143,21 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                     <td className="px-5 py-5 align-top">{row.officialRule}</td>
                     <td className="px-5 py-5 font-semibold text-[#1F2421] align-top">
                       {row.userMatchNote}
+                      {row.result === 'X' && row.reason && (
+                        <span className="mt-1.5 block text-[14px] font-bold text-[#A33A1E]">
+                          <span aria-hidden="true">! </span>
+                          {row.reason}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-5 whitespace-nowrap align-top">
                       <span
-                        className={`inline-flex rounded-lg border px-2.5 py-1 text-[13px] font-bold ${
-                          row.status === '충족 가능'
-                            ? 'border-[#262A27] bg-[#D8F279] text-[#1F2421]'
-                            : 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]'
-                        }`}
+                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-bold ${CRITERIA_RESULT_STYLE[row.result]}`}
                       >
-                        {row.status}
+                        <span aria-hidden="true" className="font-mono-num">
+                          {row.result}
+                        </span>
+                        <span>{row.status}</span>
                       </span>
                     </td>
                     <td className="px-5 py-5 text-[14px] text-[#333333] align-top">

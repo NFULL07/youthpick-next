@@ -1,4 +1,7 @@
+import { KOREA_REGIONS } from '../data/regions';
 import {
+  CriteriaResult,
+  CRITERIA_STATUS_LABEL,
   LifeChangeScenario,
   PolicyCategory,
   PolicyChangeImpact,
@@ -72,65 +75,155 @@ export function filterAndSortPolicies(
   return filtered;
 }
 
-export function matchesRegion(targetRegions: string[], userRegion: string): boolean {
-  if (!userRegion.trim()) return false;
-  if (targetRegions.includes('전국')) return true;
-  const normalizedUser = userRegion.trim();
-  return targetRegions.some(
-    (target) =>
-      target === normalizedUser ||
-      normalizedUser.includes(target) ||
-      target.includes(normalizedUser)
-  );
+/** 지역 비교 결과. unknown은 미입력·시군 미선택·해석할 수 없는 값이라 판단하지 않은 경우 */
+export type RegionMatch = 'match' | 'mismatch' | 'unknown';
+
+export interface ParsedRegion {
+  sido: string;
+  /** null이면 시·도 단위 (시·군·구 미선택) */
+  sigungu: string | null;
 }
+
+/**
+ * '충청남도' 또는 '충청남도 천안시' 형식만 해석한다. 지역 목록(KOREA_REGIONS)과
+ * 정확히 같은 이름일 때만 인정하고, 부분 문자열이나 시·군·구 이름만으로는 추측하지 않는다.
+ */
+export function parseRegion(value: string): ParsedRegion | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  for (const group of KOREA_REGIONS) {
+    if (trimmed === group.sido) {
+      return { sido: group.sido, sigungu: null };
+    }
+    if (trimmed.startsWith(`${group.sido} `)) {
+      const rest = trimmed.slice(group.sido.length + 1).trim();
+      if (!rest.endsWith('전체') && group.sigunguList.includes(rest)) {
+        return { sido: group.sido, sigungu: rest };
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+export function compareRegion(targetRegions: string[], userRegion: string): RegionMatch {
+  const user = parseRegion(userRegion);
+  if (!user) return 'unknown';
+
+  let result: RegionMatch = 'mismatch';
+  for (const raw of targetRegions) {
+    if (raw.trim() === '전국') return 'match';
+    const target = parseRegion(raw);
+    if (!target) {
+      result = 'unknown';
+      continue;
+    }
+    if (target.sido !== user.sido) continue;
+    if (target.sigungu === null) return 'match';
+    if (user.sigungu === null) {
+      result = 'unknown';
+      continue;
+    }
+    if (target.sigungu === user.sigungu) return 'match';
+  }
+  return result;
+}
+
+export function matchesRegion(targetRegions: string[], userRegion: string): boolean {
+  return compareRegion(targetRegions, userRegion) === 'match';
+}
+
+function criteriaRow(
+  row: Omit<PolicyCriteriaRow, 'status'> & { result: CriteriaResult }
+): PolicyCriteriaRow {
+  return { ...row, status: CRITERIA_STATUS_LABEL[row.result] };
+}
+
+const REGION_NOTE: Record<RegionMatch, string> = {
+  match: '일치',
+  mismatch: '불일치',
+  unknown: '확인 필요',
+};
 
 export function evaluatePolicyCriteria(
   policy: PolicyItem,
   profile: UserProfile
 ): PolicyCriteriaRow[] {
-  const ageFits = profile.age >= policy.minAge && profile.age <= policy.maxAge;
-  const residenceFits = matchesRegion(policy.targetRegions, profile.residence);
-  const schoolFits = matchesRegion(policy.targetRegions, profile.schoolRegion);
-  const workFits = matchesRegion(policy.targetRegions, profile.workRegion);
-  const statusFits = policy.targetStatuses.includes(profile.status);
+  // 연령: 값이 없으면 ?, 범위 안이면 O, 범위 밖이면 X
+  const ageKnown = Number.isFinite(profile.age) && profile.age > 0;
+  const ageResult: CriteriaResult = !ageKnown
+    ? '?'
+    : profile.age >= policy.minAge && profile.age <= policy.maxAge
+      ? 'O'
+      : 'X';
 
-  const livingPassText = [
-    profile.residence ? `${profile.residence} 거주` : '거주지 미입력',
-    profile.schoolRegion ? `학교 ${profile.schoolRegion}` : null,
-    profile.workRegion ? `근무 ${profile.workRegion}` : null,
-  ]
-    .filter(Boolean)
+  // 생활권: 하나라도 일치하면 O. 세 기준을 모두 대조했고 모두 불일치일 때만 X.
+  // 미입력·시군 미선택이 하나라도 남아 있으면 X로 단정하지 않고 ?로 둔다.
+  const regionChecks = [
+    { label: '거주', value: profile.residence },
+    { label: '학교', value: profile.schoolRegion },
+    { label: '근무', value: profile.workRegion },
+  ].map((c) => ({ ...c, match: compareRegion(policy.targetRegions, c.value) }));
+  const regionResult: CriteriaResult = regionChecks.some((c) => c.match === 'match')
+    ? 'O'
+    : regionChecks.every((c) => c.match === 'mismatch')
+      ? 'X'
+      : '?';
+  const regionNote = regionChecks
+    .map((c) =>
+      c.value.trim()
+        ? `${c.label} ${c.value.trim()} (${REGION_NOTE[c.match]})`
+        : `${c.label} 미입력`
+    )
     .join(' / ');
 
+  const statusResult: CriteriaResult = !profile.status
+    ? '?'
+    : policy.targetStatuses.includes(profile.status)
+      ? 'O'
+      : 'X';
+
   return [
-    {
+    criteriaRow({
       item: '연령',
       officialRule: `만 ${policy.minAge}세 ~ 만 ${policy.maxAge}세 (공고 기준일 확인)`,
-      userMatchNote: `만 ${profile.age}세`,
-      status: ageFits ? '충족 가능' : '추가 확인',
+      userMatchNote: ageKnown ? `만 ${profile.age}세` : '연령 미입력',
+      result: ageResult,
+      reason:
+        ageResult === 'X'
+          ? `입력한 만 ${profile.age}세가 공고 연령 범위 밖이에요.`
+          : undefined,
       basis: '프로필 입력 연령 기준',
-    },
-    {
+    }),
+    criteriaRow({
       item: '생활권 (거주·재학·근무)',
       officialRule: `인정 범위: ${policy.targetRegions.join(', ')}`,
-      userMatchNote: livingPassText,
-      status: residenceFits || schoolFits || workFits ? '충족 가능' : '추가 확인',
-      basis: '주민등록·재학·근무지 분리 대조',
-    },
-    {
+      userMatchNote: regionNote,
+      result: regionResult,
+      reason:
+        regionResult === 'X'
+          ? '거주·학교·근무 지역이 모두 인정 범위 밖이에요.'
+          : undefined,
+      basis: '주민등록·재학·근무지를 지역 목록 이름으로 정확히 대조',
+    }),
+    criteriaRow({
       item: '학적·취업 상태',
       officialRule: `참여 대상: ${policy.targetStatuses.join(', ')}`,
-      userMatchNote: profile.status,
-      status: statusFits ? '충족 가능' : '추가 확인',
+      userMatchNote: profile.status || '상태 미입력',
+      result: statusResult,
+      reason:
+        statusResult === 'X'
+          ? `'${profile.status}'은(는) 참여 대상 상태에 없어요.`
+          : undefined,
       basis: '현재 학적·근로 상태 기준',
-    },
-    {
+    }),
+    criteriaRow({
       item: '소득·제출 서류',
       officialRule: `필수 확인: ${policy.requiredDocs.join(', ')}`,
       userMatchNote: '전자지갑 연동 전 · 별도 확인',
-      status: '추가 확인',
+      result: '?',
       basis: '공식 공고 및 서류 확인 필요',
-    },
+    }),
   ];
 }
 

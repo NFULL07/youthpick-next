@@ -41,11 +41,25 @@ export interface UserProfile {
   interests: PolicyCategory[];
 }
 
+/** 조건별 판정: O 충족 / X 불일치 / ? 확인 필요(미입력·모름·근거 부족) */
+export type CriteriaResult = 'O' | 'X' | '?';
+
+export type CriteriaStatusLabel = '충족 가능' | '추가 확인' | '조건 불일치';
+
+export const CRITERIA_STATUS_LABEL: Record<CriteriaResult, CriteriaStatusLabel> = {
+  O: '충족 가능',
+  X: '조건 불일치',
+  '?': '추가 확인',
+};
+
 export interface PolicyCriteriaRow {
   item: string;
   officialRule: string;
   userMatchNote: string;
-  status: '충족 가능' | '추가 확인' | '조건 불일치';
+  result: CriteriaResult;
+  status: CriteriaStatusLabel;
+  /** X일 때 불일치 이유 */
+  reason?: string;
   basis: string;
 }
 
