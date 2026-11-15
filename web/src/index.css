@@ -15,10 +15,19 @@
     --border-subtle: #dcd8cc;
   }
 
+  *,
+  *::before,
+  *::after {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
   html {
     font-family: 'Plus Jakarta Sans', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
     background-color: var(--canvas-bg);
     color: var(--ink-primary);
+    word-break: keep-all;
+    overflow-wrap: break-word;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -30,6 +39,8 @@
     color: var(--ink-primary);
     font-size: 15px;
     line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   button:focus-visible,

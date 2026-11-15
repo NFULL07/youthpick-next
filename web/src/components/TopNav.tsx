@@ -29,7 +29,7 @@ export const TopNav: React.FC<TopNavProps> = ({
 
   return (
     <header className="sticky top-0 z-30 border-b border-[#DCD7C9] bg-[#F7F5EE]/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-5 py-3.5 md:px-8">
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-3.5 md:px-8">
         {/* Zone 1: Brand wordmark */}
         <a
           href="#home"
@@ -37,12 +37,12 @@ export const TopNav: React.FC<TopNavProps> = ({
             e.preventDefault();
             onNavigate('home');
           }}
-          className="flex shrink-0 items-center gap-2.5 whitespace-nowrap text-[#1F2421] no-underline"
+          className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[#1F2421] no-underline sm:gap-2.5"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border-[1.5px] border-[#262A27] bg-[#D8F279] text-sm font-extrabold text-[#1F2421]">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-[#262A27] bg-[#D8F279] text-sm font-extrabold text-[#1F2421]">
             N
           </span>
-          <span className="text-lg font-extrabold tracking-tight">청년픽</span>
+          <span className="text-base font-extrabold tracking-tight sm:text-lg">청년픽</span>
           <span className="rounded-md border border-[#262A27] bg-white px-1.5 py-0.5 text-[11px] font-bold tracking-wider text-[#1F2421]">
             NEXT
           </span>
@@ -88,13 +88,13 @@ export const TopNav: React.FC<TopNavProps> = ({
         </nav>
 
         {/* Zone 3: Quick Actions */}
-        <div className="relative flex shrink-0 items-center gap-2.5">
+        <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2.5">
           <button
             type="button"
             onClick={() => setShowAlerts((prev) => !prev)}
             aria-label="모집 일정 및 안내 알림 확인"
             aria-expanded={showAlerts}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-[#C9C4B6] bg-white text-[#222623] transition-colors hover:bg-[#EFECE3]"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#C9C4B6] bg-white text-[#222623] transition-colors hover:bg-[#EFECE3] sm:h-10 sm:w-10"
           >
             <Bell className="h-4.5 w-4.5" aria-hidden="true" />
           </button>
@@ -103,7 +103,8 @@ export const TopNav: React.FC<TopNavProps> = ({
             type="button"
             onClick={() => onNavigate('profile')}
             aria-label="내 정보 열기"
-            className="hidden h-10 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border-[1.5px] border-[#262A27] bg-[#E8E0FC] px-3.5 text-sm font-bold text-[#1F2421] transition-colors hover:bg-[#DDD1FA] lg:flex"
+            aria-current={currentRoute === 'profile' ? 'page' : undefined}
+            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap break-keep rounded-xl border-[1.5px] border-[#262A27] bg-[#E8E0FC] px-3 text-[13px] font-bold text-[#1F2421] transition-colors hover:bg-[#DDD1FA] sm:h-10 sm:px-3.5 sm:text-sm"
           >
             <span>내 정보</span>
           </button>

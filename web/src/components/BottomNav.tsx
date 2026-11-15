@@ -5,7 +5,6 @@ import {
   House,
   LucideIcon,
   Search,
-  User,
   Wallet,
 } from 'lucide-react';
 import { RouteId } from '../types/policy';
@@ -21,7 +20,6 @@ const BOTTOM_NAV_ITEMS: { id: RouteId; label: string; icon: LucideIcon }[] = [
   { id: 'policies', label: '정책 찾기', icon: Search },
   { id: 'switch', label: '생활변화', icon: ArrowLeftRight },
   { id: 'apply', label: '신청 준비', icon: ClipboardCheck },
-  { id: 'profile', label: '내 정보', icon: User },
   { id: 'wallet', label: '전자지갑', icon: Wallet },
 ];
 
@@ -36,7 +34,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       aria-label="하단 메뉴"
       className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-[#262A27] bg-[#FDFCF5] px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
     >
-      <ul className="mx-auto grid max-w-2xl grid-cols-6">
+      <ul className="mx-auto grid max-w-2xl grid-cols-5">
         {BOTTOM_NAV_ITEMS.map((item) => {
           const active =
             item.id === 'policies'

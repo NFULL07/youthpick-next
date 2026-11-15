@@ -152,22 +152,22 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
                 </div>
               </div>
 
-              <p className="text-[13px] font-medium text-[#333333]">
+              <p className="text-[13px] font-medium text-[#333333] break-keep">
                 추천에 사용하는 정보 · 모달 선택으로 정확하게 관리해요
               </p>
             </div>
 
-            <div className="mt-5 flex items-center justify-between border-t border-dashed border-[#262A27]/35 pt-4">
-              <span className="font-mono-num text-xs font-bold tracking-widest text-[#333333]">
+            <div className="mt-5 flex items-center justify-between gap-2 border-t border-dashed border-[#262A27]/35 pt-4 sm:gap-3">
+              <span className="font-mono-num min-w-0 truncate text-[11px] font-bold tracking-wider text-[#333333] sm:text-xs sm:tracking-widest">
                 ||| |||| ||| MY NEXT
               </span>
               <button
                 type="button"
                 onClick={() => onNavigate('profile')}
-                className="btn-primary-brand inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2 text-[14px]"
+                className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap break-keep rounded-xl px-3 py-2 text-[13px] sm:px-4 sm:text-[14px]"
               >
                 <span>내 조건 수정</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
             </div>
           </section>
@@ -207,10 +207,10 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('detail', '1')}
-                className="btn-secondary-outline inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px]"
+                className="btn-secondary-outline inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 self-start whitespace-nowrap break-keep rounded-xl px-4 py-2 text-center text-[14px] sm:self-auto"
               >
                 <span>조건 확인</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
             </div>
 
@@ -233,10 +233,10 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate(activePrepPolicy ? 'apply' : 'policies')}
-                className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px]"
+                className="btn-primary-brand inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 self-start whitespace-nowrap break-keep rounded-xl px-4 py-2 text-center text-[14px] sm:self-auto"
               >
                 <span>{activePrepPolicy ? '이어가기' : '정책 찾기'}</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
             </div>
           </div>

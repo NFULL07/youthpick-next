@@ -37,7 +37,7 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
   onStartPreparation,
 }) => {
   return (
-    <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-white transition-transform duration-150 hover:-translate-y-0.5">
+    <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-white break-keep transition-transform duration-150 hover:-translate-y-0.5">
       {/* Pastel Ticket Top Strip */}
       <div
         className={`flex items-center justify-between border-b border-[#262A27] px-5 py-3.5 ${ACCENT_BG[policy.accentTheme]}`}
@@ -130,12 +130,12 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           <span className="whitespace-nowrap">비교 담기</span>
         </label>
 
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
           {onStartPreparation && (
             <button
               type="button"
               onClick={() => onStartPreparation(policy.id)}
-              className={`cursor-pointer whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-bold transition-colors ${
+              className={`cursor-pointer whitespace-nowrap break-keep rounded-xl px-3 py-2 text-[13px] font-bold transition-colors ${
                 isPrepping
                   ? 'border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421] hover:bg-[#CEF058]'
                   : 'btn-secondary-outline bg-white'
@@ -148,7 +148,7 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenDetail(policy.id)}
-            className="btn-primary-brand inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2 text-[13px]"
+            className="btn-primary-brand inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap break-keep rounded-xl px-3.5 py-2 text-[13px]"
           >
             <span>내 조건 확인</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
