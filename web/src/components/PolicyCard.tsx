@@ -6,9 +6,11 @@ interface PolicyCardProps {
   policy: PolicyItem;
   isSaved: boolean;
   isCompared: boolean;
+  isPrepping?: boolean;
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
   onOpenDetail: (id: string) => void;
+  onStartPreparation?: (id: string) => void;
 }
 
 const ACCENT_BG: Record<PolicyItem['accentTheme'], string> = {
@@ -28,9 +30,11 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
   policy,
   isSaved,
   isCompared,
+  isPrepping = false,
   onToggleSave,
   onToggleCompare,
   onOpenDetail,
+  onStartPreparation,
 }) => {
   return (
     <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-white transition-transform duration-150 hover:-translate-y-0.5">
@@ -105,7 +109,7 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
       </div>
 
       {/* Bottom Action Footer with Ticket Notch Divider */}
-      <div className="relative flex items-center justify-between border-t border-dashed border-[#C7C2B4] bg-[#FAF8F2] px-5 py-3.5">
+      <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[#C7C2B4] bg-[#FAF8F2] px-5 py-3.5">
         <label className="flex cursor-pointer items-center gap-2 text-[14px] font-semibold text-[#333333]">
           <input
             type="checkbox"
@@ -123,17 +127,33 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           >
             {isCompared && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
           </span>
-          <span>비교 담기</span>
+          <span className="whitespace-nowrap">비교 담기</span>
         </label>
 
-        <button
-          type="button"
-          onClick={() => onOpenDetail(policy.id)}
-          className="btn-primary-brand inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px]"
-        >
-          <span>내 조건 확인</span>
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div className="flex items-center gap-2">
+          {onStartPreparation && (
+            <button
+              type="button"
+              onClick={() => onStartPreparation(policy.id)}
+              className={`cursor-pointer whitespace-nowrap rounded-xl px-3 py-2 text-[13px] font-bold transition-colors ${
+                isPrepping
+                  ? 'border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421] hover:bg-[#CEF058]'
+                  : 'btn-secondary-outline bg-white'
+              }`}
+            >
+              준비 이어가기
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => onOpenDetail(policy.id)}
+            className="btn-primary-brand inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2 text-[13px]"
+          >
+            <span>내 조건 확인</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </article>
   );

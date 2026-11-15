@@ -15,13 +15,27 @@ import { PoliciesExplorePage } from './pages/PoliciesExplorePage';
 import { PolicyDetailPage } from './pages/PolicyDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { WalletPage } from './pages/WalletPage';
-import { RouteId, UserProfile, WalletDocument } from './types/policy';
+import { PolicyItem, RouteId, UserProfile, WalletDocument } from './types/policy';
+import {
+  clearCompareIdsForTab,
+  countCheckedPrepPolicies,
+  getComparedPoliciesForTab,
+  getRecommendedPoliciesForProfile,
+} from './utils/policyEngine';
+
+export interface RemovedPrepPolicySnapshot {
+  policyId: string;
+  policyTitle: string;
+  checkedChecklistIds: string[];
+  targetDate: string;
+}
 
 const STORAGE_KEY_PROFILE = 'cheongnyeonpick_profile_v2';
 const STORAGE_KEY_SAVED = 'cheongnyeonpick_saved_v2';
-const STORAGE_KEY_CHECKLIST = 'cheongnyeonpick_checklist_v2';
+const STORAGE_KEY_PREP_POLICIES = 'cheongnyeonpick_prep_policies_v2';
+const STORAGE_KEY_CHECKLIST = 'cheongnyeonpick_checklist_v3';
 const STORAGE_KEY_DOCS = 'cheongnyeonpick_docs_v2';
-const STORAGE_KEY_DATE = 'cheongnyeonpick_target_date_v2';
+const STORAGE_KEY_DATES = 'cheongnyeonpick_target_dates_v2';
 
 function parseHashRoute(): { route: RouteId; policyId: string } {
   const raw = window.location.hash.replace(/^#/, '').trim();
@@ -66,20 +80,39 @@ export default function App() {
   const [savedIds, setSavedIds] = useState<string[]>(() =>
     loadJson<string[]>(STORAGE_KEY_SAVED, ['1'])
   );
-  const [comparedIds, setComparedIds] = useState<string[]>([]);
-  const [activePrepPolicyId, setActivePrepPolicyId] = useState<string>('1');
+  const [comparePolicyIds, setComparePolicyIds] = useState<string[]>([]);
+  const [prepPolicyIds, setPrepPolicyIds] = useState<string[]>(() => {
+    const loaded = loadJson<unknown>(STORAGE_KEY_PREP_POLICIES, []);
+    return Array.isArray(loaded) ? loaded.filter((id): id is string => typeof id === 'string') : [];
+  });
+  const [activePrepPolicyId, setActivePrepPolicyId] = useState<string>(() => {
+    const loaded = loadJson<unknown>(STORAGE_KEY_PREP_POLICIES, []);
+    if (Array.isArray(loaded) && typeof loaded[0] === 'string') {
+      return loaded[0];
+    }
+    return '';
+  });
   const [completedChecklistIds, setCompletedChecklistIds] = useState<string[]>(
-    () => loadJson<string[]>(STORAGE_KEY_CHECKLIST, ['1-c1', '1-c2'])
+    () => {
+      const loaded = loadJson<unknown>(STORAGE_KEY_CHECKLIST, []);
+      return Array.isArray(loaded) ? loaded.filter((id): id is string => typeof id === 'string') : [];
+    }
   );
-  const [targetDate, setTargetDate] = useState<string>(() =>
-    loadJson<string>(STORAGE_KEY_DATE, '')
-  );
+  const [targetDates, setTargetDates] = useState<Record<string, string>>(() => {
+    const loaded = loadJson<unknown>(STORAGE_KEY_DATES, {});
+    if (loaded && typeof loaded === 'object' && !Array.isArray(loaded)) {
+      return loaded as Record<string, string>;
+    }
+    return {};
+  });
   const [walletDocs, setWalletDocs] = useState<WalletDocument[]>(() =>
     loadJson<WalletDocument[]>(STORAGE_KEY_DOCS, INITIAL_WALLET_DOCS)
   );
 
   const [isSherpaOpen, setIsSherpaOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [lastRemovedPolicy, setLastRemovedPolicy] =
+    useState<RemovedPrepPolicySnapshot | null>(null);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -128,9 +161,15 @@ export default function App() {
   };
 
   const handleToggleCompare = (id: string) => {
-    setComparedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    setComparePolicyIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : Array.from(new Set([...prev, id]))
     );
+  };
+
+  const handleClearCompareForPolicies = (tabPolicies: PolicyItem[]) => {
+    setComparePolicyIds((prev) => clearCompareIdsForTab(prev, tabPolicies));
   };
 
   const handleSaveProfile = (next: UserProfile) => {
@@ -149,10 +188,102 @@ export default function App() {
     });
   };
 
-  const handleSaveTargetDate = (date: string) => {
-    setTargetDate(date);
-    window.localStorage.setItem(STORAGE_KEY_DATE, JSON.stringify(date));
+  const handleSaveTargetDate = (policyId: string, date: string) => {
+    setTargetDates((prev) => {
+      const next = { ...prev, [policyId]: date };
+      window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+      return next;
+    });
     showToast('준비 목표일이 저장되었어요.');
+  };
+
+  const handleStartPreparation = (policyId: string) => {
+    const alreadyExists = prepPolicyIds.includes(policyId);
+    if (!alreadyExists) {
+      setPrepPolicyIds((prev) => {
+        if (prev.includes(policyId)) return prev;
+        const next = [...prev, policyId];
+        window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(next));
+        return next;
+      });
+      showToast('신청 준비 목록에 담았어요.');
+    }
+    if (lastRemovedPolicy?.policyId === policyId) {
+      setLastRemovedPolicy(null);
+    }
+    setActivePrepPolicyId(policyId);
+    handleNavigate('apply');
+  };
+
+  const handleRemovePrepPolicy = (policyId: string) => {
+    const removedPolicy = POLICIES_DATA.find((p) => p.id === policyId);
+    if (removedPolicy) {
+      const checklistIdsToRemove = new Set(removedPolicy.checklist.map((c) => c.id));
+      const checkedForPolicy = completedChecklistIds.filter((id) =>
+        checklistIdsToRemove.has(id)
+      );
+      setLastRemovedPolicy({
+        policyId,
+        policyTitle: removedPolicy.title,
+        checkedChecklistIds: checkedForPolicy,
+        targetDate: targetDates[policyId] ?? '',
+      });
+
+      setCompletedChecklistIds((prev) => {
+        const next = prev.filter((id) => !checklistIdsToRemove.has(id));
+        window.localStorage.setItem(STORAGE_KEY_CHECKLIST, JSON.stringify(next));
+        return next;
+      });
+    }
+
+    const nextPrepIds = prepPolicyIds.filter((id) => id !== policyId);
+    setPrepPolicyIds(nextPrepIds);
+    window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(nextPrepIds));
+
+    if (activePrepPolicyId === policyId) {
+      setActivePrepPolicyId(nextPrepIds[0] ?? '');
+    }
+
+    setTargetDates((prev) => {
+      if (!(policyId in prev)) return prev;
+      const next = { ...prev };
+      delete next[policyId];
+      window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+      return next;
+    });
+
+    showToast('준비 목록에서 정책을 뺐어요.');
+  };
+
+  const handleUndoRemovePrepPolicy = () => {
+    if (!lastRemovedPolicy) return;
+    const { policyId, policyTitle, checkedChecklistIds, targetDate } = lastRemovedPolicy;
+
+    setPrepPolicyIds((prev) => {
+      const next = prev.includes(policyId) ? prev : [...prev, policyId];
+      window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(next));
+      return next;
+    });
+
+    if (checkedChecklistIds.length > 0) {
+      setCompletedChecklistIds((prev) => {
+        const merged = Array.from(new Set([...prev, ...checkedChecklistIds]));
+        window.localStorage.setItem(STORAGE_KEY_CHECKLIST, JSON.stringify(merged));
+        return merged;
+      });
+    }
+
+    if (targetDate) {
+      setTargetDates((prev) => {
+        const next = { ...prev, [policyId]: targetDate };
+        window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+        return next;
+      });
+    }
+
+    setActivePrepPolicyId(policyId);
+    setLastRemovedPolicy(null);
+    showToast(`'${policyTitle}' 정책을 준비 목록으로 되돌렸어요.`);
   };
 
   const handleUploadDocFile = (docId: string, fileName: string) => {
@@ -173,13 +304,31 @@ export default function App() {
     showToast(`'${fileName}' 파일 이름을 이 브라우저에 기록했어요. 파일 내용은 저장하지 않아요.`);
   };
 
+  const prepPolicies = POLICIES_DATA.filter((p) => prepPolicyIds.includes(p.id));
   const activePrepPolicy =
-    POLICIES_DATA.find((p) => p.id === activePrepPolicyId) ?? POLICIES_DATA[0];
+    prepPolicies.find((p) => p.id === activePrepPolicyId) ?? prepPolicies[0];
+  const checkedPrepCount = countCheckedPrepPolicies(
+    prepPolicies,
+    completedChecklistIds
+  );
   const detailPolicy =
     POLICIES_DATA.find((p) => p.id === detailPolicyId) ?? POLICIES_DATA[0];
 
   const livingZoneLabel =
     profile.schoolRegion || profile.residence || '생활권 미설정';
+  const boardPolicies = getRecommendedPoliciesForProfile(POLICIES_DATA, profile, 3);
+  const explorePolicies = POLICIES_DATA;
+  const boardComparedPolicies = getComparedPoliciesForTab(
+    boardPolicies,
+    comparePolicyIds
+  );
+  const exploreComparedPolicies = getComparedPoliciesForTab(
+    explorePolicies,
+    comparePolicyIds
+  );
+  const hasCompareBar =
+    (route === 'home' && boardComparedPolicies.length > 0) ||
+    (route === 'policies' && exploreComparedPolicies.length > 0);
 
   return (
     <div className="min-h-screen bg-[#F7F5EE] text-[#1F2421]">
@@ -195,25 +344,30 @@ export default function App() {
       <TopNav
         currentRoute={route}
         onNavigate={(r) => handleNavigate(r)}
-        activePrepCount={1}
+        activePrepCount={checkedPrepCount}
         livingZoneLabel={livingZoneLabel}
       />
 
       <main
         id="main"
-        className="mx-auto max-w-[1280px] px-5 pt-8 pb-40 md:px-8 md:pt-10 lg:pb-10"
+        className={`mx-auto max-w-[1280px] px-5 pt-8 md:px-8 md:pt-10 ${
+          hasCompareBar ? 'pb-52 lg:pb-28' : 'pb-40 lg:pb-10'
+        }`}
       >
         {route === 'home' && (
           <HomeBoardPage
             profile={profile}
             policies={POLICIES_DATA}
             savedIds={savedIds}
-            comparedIds={comparedIds}
+            comparePolicyIds={comparePolicyIds}
+            prepPolicyIds={prepPolicyIds}
             completedChecklistIds={completedChecklistIds}
             activePrepPolicy={activePrepPolicy}
             onNavigate={handleNavigate}
             onToggleSave={handleToggleSave}
             onToggleCompare={handleToggleCompare}
+            onClearCompare={() => handleClearCompareForPolicies(boardPolicies)}
+            onStartPreparation={handleStartPreparation}
           />
         )}
 
@@ -222,11 +376,13 @@ export default function App() {
             profile={profile}
             policies={POLICIES_DATA}
             savedIds={savedIds}
-            comparedIds={comparedIds}
+            comparePolicyIds={comparePolicyIds}
+            prepPolicyIds={prepPolicyIds}
             onNavigate={handleNavigate}
             onToggleSave={handleToggleSave}
             onToggleCompare={handleToggleCompare}
-            onClearCompare={() => setComparedIds([])}
+            onClearCompare={() => handleClearCompareForPolicies(explorePolicies)}
+            onStartPreparation={handleStartPreparation}
             onOpenSherpaWithPrompt={() => setIsSherpaOpen(true)}
           />
         )}
@@ -238,10 +394,7 @@ export default function App() {
             isSaved={savedIds.includes(detailPolicy.id)}
             onToggleSave={handleToggleSave}
             onNavigate={handleNavigate}
-            onStartPreparation={(id) => {
-              setActivePrepPolicyId(id);
-              handleNavigate('apply');
-            }}
+            onStartPreparation={handleStartPreparation}
             onAskSherpaAboutPolicy={() => setIsSherpaOpen(true)}
           />
         )}
@@ -256,11 +409,14 @@ export default function App() {
 
         {route === 'apply' && (
           <ApplyReadyPage
-            policies={POLICIES_DATA}
+            prepPolicies={prepPolicies}
             activePolicy={activePrepPolicy}
             completedChecklistIds={completedChecklistIds}
-            targetDate={targetDate}
+            targetDates={targetDates}
+            lastRemovedPolicy={lastRemovedPolicy}
             onSelectActivePolicy={setActivePrepPolicyId}
+            onRemovePrepPolicy={handleRemovePrepPolicy}
+            onUndoRemovePrepPolicy={handleUndoRemovePrepPolicy}
             onToggleChecklistItem={handleToggleChecklistItem}
             onSaveTargetDate={handleSaveTargetDate}
             onNavigate={handleNavigate}
@@ -283,7 +439,8 @@ export default function App() {
           <WalletPage
             profile={profile}
             documents={walletDocs}
-            activePolicyTitle={activePrepPolicy.title}
+            activePolicyTitle={activePrepPolicy?.title ?? ''}
+            prepPolicyCount={prepPolicies.length}
             onUploadDocFile={handleUploadDocFile}
             onNavigate={handleNavigate}
           />
@@ -301,14 +458,14 @@ export default function App() {
       <BottomNav
         currentRoute={route}
         onNavigate={(r) => handleNavigate(r)}
-        activePrepCount={1}
+        activePrepCount={checkedPrepCount}
       />
 
       {/* Toast Feedback (lg 미만은 하단 메뉴와 AI 버튼 위에 표시) */}
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
         >
           {toastMessage}
         </div>
@@ -322,6 +479,7 @@ export default function App() {
         profile={profile}
         selectedPolicy={route === 'detail' ? detailPolicy : undefined}
         policies={POLICIES_DATA}
+        hasCompareBar={hasCompareBar}
         onNavigate={(nextRoute, pId) => {
           handleNavigate(nextRoute, pId);
         }}

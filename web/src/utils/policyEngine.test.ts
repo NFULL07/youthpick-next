@@ -5,10 +5,14 @@ import { KOREA_REGIONS, formatSelectedRegion } from '../data/regions';
 import { POLICY_CATEGORIES } from '../types/policy';
 import {
   analyzeLifeChangeImpacts,
+  clearCompareIdsForTab,
   compareRegion,
+  countCheckedPrepPolicies,
   evaluatePolicyCriteria,
   filterAndSortPolicies,
+  getComparedPoliciesForTab,
   matchesRegion,
+  paginatePolicies,
   parseRegion,
 } from './policyEngine';
 import { generateDeterministicSherpaReply } from './sherpaEngine';
@@ -71,6 +75,30 @@ test('hierarchical Korean regions include 충청남도 -> 천안시 formatting',
   assert.ok(chungnam.sigunguList.includes('천안시'));
   assert.equal(formatSelectedRegion('충청남도', '천안시'), '충청남도 천안시');
   assert.equal(formatSelectedRegion('경기도', '경기도 전체'), '경기도');
+});
+
+test('전남광주통합특별시 unifies 광주광역시 5구 and 전라남도 22시군', () => {
+  assert.equal(KOREA_REGIONS.find((r) => r.sido === '광주광역시'), undefined);
+  assert.equal(KOREA_REGIONS.find((r) => r.sido === '전라남도'), undefined);
+  const unified = KOREA_REGIONS.find((r) => r.sido === '전남광주통합특별시');
+  assert.ok(unified);
+  const expectedDistricts = [
+    '전남광주통합특별시 전체',
+    '동구', '서구', '남구', '북구', '광산구',
+    '목포시', '여수시', '순천시', '나주시', '광양시',
+    '담양군', '곡성군', '구례군', '고흥군', '보성군',
+    '화순군', '장흥군', '강진군', '해남군', '영암군',
+    '무안군', '함평군', '영광군', '장성군', '완도군',
+    '진도군', '신안군',
+  ];
+  assert.deepEqual(unified.sigunguList, expectedDistricts);
+  assert.deepEqual(parseRegion('전남광주통합특별시 광산구'), {
+    sido: '전남광주통합특별시',
+    sigungu: '광산구',
+  });
+  assert.equal(compareRegion(['전남광주통합특별시'], '전남광주통합특별시 신안군'), 'match');
+  assert.equal(compareRegion(['전남광주통합특별시'], '전라남도 여수시'), 'match');
+  assert.equal(compareRegion(['광주광역시'], '전남광주통합특별시 동구'), 'match');
 });
 
 test('evaluatePolicyCriteria returns 4 structured criteria rows with user match data', () => {
@@ -190,3 +218,86 @@ test('evaluatePolicyCriteria uses all three results and keeps income/docs as ?',
   }
   assert.deepEqual([...seen].sort(), ['?', 'O', 'X']);
 });
+
+test('countCheckedPrepPolicies counts policies with at least 1 checked item', () => {
+  const p1 = POLICIES_DATA[0];
+  const p2 = POLICIES_DATA[1];
+  assert.equal(countCheckedPrepPolicies([], []), 0);
+  assert.equal(countCheckedPrepPolicies([p1, p2], []), 0);
+
+  // 정책 A에서 3개 체크 -> 배지 1
+  const p1All = p1.checklist.map((c) => c.id);
+  assert.equal(countCheckedPrepPolicies([p1, p2], p1All), 1);
+
+  // 정책 A에서 3개 + 정책 B에서 1개 -> 배지 2
+  assert.equal(
+    countCheckedPrepPolicies([p1, p2], [...p1All, p2.checklist[0].id]),
+    2
+  );
+
+  // 정책 A 모두 해제 시 -> 배지 1
+  assert.equal(countCheckedPrepPolicies([p1, p2], [p2.checklist[0].id]), 1);
+
+  // 준비 목록에서 빠진 정책의 체크 ID는 무시
+  assert.equal(countCheckedPrepPolicies([p2], p1All), 0);
+});
+
+test('paginatePolicies slices into 10-item pages and clamps out-of-range pages', () => {
+  const sample = Array.from({ length: 23 }, (_, i) => i + 1);
+  const page1 = paginatePolicies(sample, 1, 10);
+  assert.equal(page1.totalPages, 3);
+  assert.equal(page1.currentPage, 1);
+  assert.deepEqual(page1.items, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+  const page2 = paginatePolicies(sample, 2, 10);
+  assert.equal(page2.currentPage, 2);
+  assert.deepEqual(page2.items, [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
+
+  const page3 = paginatePolicies(sample, 3, 10);
+  assert.equal(page3.currentPage, 3);
+  assert.deepEqual(page3.items, [21, 22, 23]);
+
+  const overflow = paginatePolicies(sample, 99, 10);
+  assert.equal(overflow.currentPage, 3);
+  assert.deepEqual(overflow.items, [21, 22, 23]);
+
+  const empty = paginatePolicies([], 2, 10);
+  assert.equal(empty.totalPages, 1);
+  assert.equal(empty.currentPage, 1);
+  assert.deepEqual(empty.items, []);
+});
+
+test('getComparedPoliciesForTab and clearCompareIdsForTab scope compare bar & clearing to active tab pool', () => {
+  const boardPolicies = POLICIES_DATA.slice(0, 3); // ids 1, 2, 3
+  const explorePolicies = POLICIES_DATA; // ids 1..8
+  const globalIds = ['1', '4', '5'];
+
+  // 보드 탭에는 1만 노출되므로 보드 비교 목록은 [1]
+  const boardMatched = getComparedPoliciesForTab(boardPolicies, globalIds);
+  assert.deepEqual(
+    boardMatched.map((p) => p.id),
+    ['1']
+  );
+
+  // 정책 찾기 탭에는 1, 4, 5 모두 노출되므로 [1, 4, 5]
+  const exploreMatched = getComparedPoliciesForTab(explorePolicies, globalIds);
+  assert.deepEqual(
+    exploreMatched.map((p) => p.id),
+    ['1', '4', '5']
+  );
+
+  // 보드 탭에서 선택 비우기를 누르면 보드 풀(1,2,3)에 속한 '1'만 제거되고 '4', '5'는 유지
+  const afterBoardClear = clearCompareIdsForTab(globalIds, boardPolicies);
+  assert.deepEqual(afterBoardClear, ['4', '5']);
+  assert.equal(getComparedPoliciesForTab(boardPolicies, afterBoardClear).length, 0);
+  assert.deepEqual(
+    getComparedPoliciesForTab(explorePolicies, afterBoardClear).map((p) => p.id),
+    ['4', '5']
+  );
+
+  // 정책 찾기 탭에서 선택 비우기를 누르면 전체 풀 제거
+  const afterExploreClear = clearCompareIdsForTab(afterBoardClear, explorePolicies);
+  assert.deepEqual(afterExploreClear, []);
+});
+
+

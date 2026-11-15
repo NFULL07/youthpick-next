@@ -1,38 +1,48 @@
 import React from 'react';
-import { ArrowRight, Calendar, Check } from 'lucide-react';
+import { ArrowRight, Calendar, Check, ClipboardList, RotateCcw, Trash2 } from 'lucide-react';
+import type { RemovedPrepPolicySnapshot } from '../App';
 import { PolicyItem, RouteId } from '../types/policy';
 
 interface ApplyReadyPageProps {
-  policies: PolicyItem[];
-  activePolicy: PolicyItem;
+  prepPolicies: PolicyItem[];
+  activePolicy?: PolicyItem;
   completedChecklistIds: string[];
-  targetDate: string;
+  targetDates: Record<string, string>;
+  lastRemovedPolicy: RemovedPrepPolicySnapshot | null;
   onSelectActivePolicy: (id: string) => void;
+  onRemovePrepPolicy: (id: string) => void;
+  onUndoRemovePrepPolicy: () => void;
   onToggleChecklistItem: (itemId: string) => void;
-  onSaveTargetDate: (date: string) => void;
+  onSaveTargetDate: (policyId: string, date: string) => void;
   onNavigate: (route: RouteId, policyId?: string) => void;
 }
 
 export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
-  policies,
+  prepPolicies,
   activePolicy,
   completedChecklistIds,
-  targetDate,
+  targetDates,
+  lastRemovedPolicy,
   onSelectActivePolicy,
+  onRemovePrepPolicy,
+  onUndoRemovePrepPolicy,
   onToggleChecklistItem,
   onSaveTargetDate,
   onNavigate,
 }) => {
-  const [dateInput, setDateInput] = React.useState(targetDate);
+  const activePolicyId = activePolicy?.id ?? '';
+  const savedTargetDate = activePolicyId ? (targetDates[activePolicyId] ?? '') : '';
+  const [dateInput, setDateInput] = React.useState(savedTargetDate);
 
   React.useEffect(() => {
-    setDateInput(targetDate);
-  }, [targetDate]);
+    setDateInput(savedTargetDate);
+  }, [activePolicyId, savedTargetDate]);
 
-  const totalCount = activePolicy.checklist.length;
-  const doneCount = activePolicy.checklist.filter((c) =>
-    completedChecklistIds.includes(c.id)
-  ).length;
+  const totalCount = activePolicy ? activePolicy.checklist.length : 0;
+  const doneCount = activePolicy
+    ? activePolicy.checklist.filter((c) => completedChecklistIds.includes(c.id))
+        .length
+    : 0;
   const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
   return (
@@ -63,27 +73,96 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
           </p>
         </div>
 
-        <div>
-          <label
-            htmlFor="prep-policy-select"
-            className="mb-1 block text-[13px] font-bold text-[#333333]"
-          >
-            준비할 정책 전환
-          </label>
-          <select
-            id="prep-policy-select"
-            value={activePolicy.id}
-            onChange={(e) => onSelectActivePolicy(e.target.value)}
-            className="cursor-pointer rounded-xl border-[1.5px] border-[#262A27] bg-white px-4 py-2.5 text-[14px] font-bold text-[#1F2421]"
-          >
-            {policies.slice(0, 5).map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </div>
+        {activePolicy && prepPolicies.length > 0 && (
+          <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-auto">
+            <label
+              htmlFor="prep-policy-select"
+              className="block w-full text-right text-[13px] font-bold text-[#333333]"
+            >
+              준비할 정책 전환 ({prepPolicies.length}개)
+            </label>
+            <div className="flex w-full flex-col items-end gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+              <select
+                id="prep-policy-select"
+                value={activePolicy.id}
+                onChange={(e) => onSelectActivePolicy(e.target.value)}
+                className="max-w-full cursor-pointer rounded-xl border-[1.5px] border-[#262A27] bg-white px-4 py-2.5 text-[14px] font-bold text-[#1F2421] sm:max-w-[260px] lg:max-w-[340px]"
+              >
+                {prepPolicies.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={() => onRemovePrepPolicy(activePolicy.id)}
+                className="btn-secondary-outline inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl bg-white px-3.5 py-2.5 text-[13px] font-bold text-[#A33A1E] hover:border-[#A33A1E] hover:bg-[#FBE1D6]/40"
+              >
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                <span>준비 목록에서 빼기</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {lastRemovedPolicy && (
+        <div
+          role="status"
+          data-testid="undo-remove-banner"
+          className="flex flex-col items-start justify-between gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-[#EEF6CC] px-5 py-3.5 shadow-sm sm:flex-row sm:items-center"
+        >
+          <div className="flex items-center gap-2.5 text-[14px] font-semibold text-[#1F2421]">
+            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#262A27] bg-[#D8F279] text-[#1F2421]">
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+            <span>방금 준비 목록에서 뺀 정책을 다시 되돌릴 수 있어요.</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onUndoRemovePrepPolicy}
+            className="btn-primary-lime inline-flex max-w-full shrink-0 cursor-pointer items-center gap-1.5 self-end rounded-xl px-4 py-2 text-left text-[13px] font-extrabold text-[#1F2421] sm:self-auto"
+          >
+            <span>
+              방금 뺀 &apos;{lastRemovedPolicy.policyTitle}&apos; 다시 되돌리기 ↩
+            </span>
+          </button>
+        </div>
+      )}
+
+      {!activePolicy || prepPolicies.length === 0 ? (
+        <section
+          data-testid="apply-empty-state"
+          className="card-tactile rounded-3xl bg-white px-6 py-12 text-center sm:px-10 sm:py-14"
+        >
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-[1.5px] border-[#262A27] bg-[#EEF1E3] text-[#1F2421]">
+            <ClipboardList className="h-7 w-7" aria-hidden="true" />
+          </div>
+          <p className="font-mono-num mt-4 text-xs font-bold tracking-wider text-[#4A4D49]">
+            READY LIST EMPTY
+          </p>
+          <h2 className="mt-2 text-2xl font-extrabold text-[#1F2421]">
+            아직 신청 준비 목록에 담은 정책이 없어요.
+          </h2>
+          <p className="mx-auto mt-2.5 max-w-lg text-[15px] leading-relaxed text-[#333333]">
+            &lt;정책 찾기&gt;나 공고 상세 화면에서{' '}
+            <strong className="font-bold text-[#1F2421]">준비 이어가기</strong>{' '}
+            버튼을 누르면, 선택한 정책의 체크리스트와 목표일을 이곳에서 관리할 수 있어요.
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate('policies')}
+            className="btn-primary-lime mt-6 inline-flex cursor-pointer items-center gap-2 rounded-2xl px-6 py-3.5 text-[15px]"
+          >
+            <span>정책 찾기로 이동</span>
+            <ArrowRight className="h-4.5 w-4.5" aria-hidden="true" />
+          </button>
+        </section>
+      ) : (
+        <>
 
       {/* Ongoing Pick Progress Banner */}
       <section className="card-tactile flex flex-col justify-between gap-6 rounded-3xl bg-white p-6 sm:flex-row sm:items-center">
@@ -208,7 +287,7 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                onSaveTargetDate(dateInput);
+                onSaveTargetDate(activePolicy.id, dateInput);
               }}
               className="mt-5 flex items-center gap-2"
             >
@@ -233,7 +312,7 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
             <div className="mt-4 flex items-center justify-between border-t border-dashed border-[#262A27]/30 pt-3 text-[14px]">
               <span className="font-semibold text-[#333333]">설정된 목표일</span>
               <strong className="font-mono-num font-extrabold text-[#1F2421]">
-                {targetDate || '미설정'}
+                {savedTargetDate || '미설정'}
               </strong>
             </div>
           </section>
@@ -256,6 +335,8 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
           </section>
         </aside>
       </div>
+        </>
+      )}
     </div>
   );
 };

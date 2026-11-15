@@ -28,6 +28,17 @@ const STATUS_OPTIONS: AcademicWorkStatus[] = [
 
 type AddressFieldKey = 'residence' | 'schoolRegion' | 'workRegion';
 
+const MIN_AGE = 15;
+const MAX_AGE = 49;
+
+function clampAge(raw: string, fallback: number): number {
+  const trimmed = raw.trim();
+  if (!trimmed) return fallback;
+  const parsed = Number(trimmed);
+  if (Number.isNaN(parsed)) return fallback;
+  return Math.max(MIN_AGE, Math.min(MAX_AGE, Math.round(parsed)));
+}
+
 export const ProfilePage: React.FC<ProfilePageProps> = ({
   profile,
   walletDocCount,
@@ -36,10 +47,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigate,
 }) => {
   const [draft, setDraft] = useState<UserProfile>(profile);
+  const [ageInput, setAgeInput] = useState<string>(String(profile.age));
   const [modalField, setModalField] = useState<AddressFieldKey | null>(null);
 
   useEffect(() => {
     setDraft(profile);
+    setAgeInput(String(profile.age));
   }, [profile]);
 
   const toggleInterest = (category: PolicyCategory) => {
@@ -108,7 +121,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSaveProfile(draft);
+            const validAge = clampAge(ageInput, profile.age);
+            const nextProfile: UserProfile = { ...draft, age: validAge };
+            setAgeInput(String(validAge));
+            setDraft(nextProfile);
+            onSaveProfile(nextProfile);
           }}
           className="space-y-6 lg:col-span-8"
         >
@@ -139,15 +156,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   <input
                     id="profile-age"
                     type="number"
-                    min={15}
-                    max={49}
-                    value={draft.age}
-                    onChange={(e) =>
-                      setDraft((prev) => ({
-                        ...prev,
-                        age: Math.max(15, Math.min(49, Number(e.target.value) || 23)),
-                      }))
-                    }
+                    inputMode="numeric"
+                    min={MIN_AGE}
+                    max={MAX_AGE}
+                    value={ageInput}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw !== '' && !/^\d+$/.test(raw)) {
+                        return;
+                      }
+                      setAgeInput(raw);
+                      if (raw !== '') {
+                        const parsed = Number(raw);
+                        if (!Number.isNaN(parsed)) {
+                          setDraft((prev) => ({ ...prev, age: parsed }));
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      const validAge = clampAge(ageInput, profile.age);
+                      setAgeInput(String(validAge));
+                      setDraft((prev) => ({ ...prev, age: validAge }));
+                    }}
                     className="w-full bg-transparent text-[16px] font-bold text-[#1F2421] tabular-nums focus:outline-none"
                   />
                   <span className="shrink-0 text-[14px] font-semibold text-[#4A4D49]">
@@ -327,7 +357,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <div className="flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={() => setDraft(profile)}
+              onClick={() => {
+                setDraft(profile);
+                setAgeInput(String(profile.age));
+              }}
               className="btn-secondary-outline cursor-pointer rounded-2xl px-6 py-3 text-[15px]"
             >
               취소

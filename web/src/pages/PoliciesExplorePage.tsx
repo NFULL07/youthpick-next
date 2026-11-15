@@ -1,13 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   Bookmark,
+  ChevronLeft,
   ChevronRight,
   Search,
   SlidersHorizontal,
   X,
 } from 'lucide-react';
 import { PolicyCard } from '../components/PolicyCard';
+import { PolicyCompareBar } from '../components/PolicyCompareBar';
 import {
   POLICY_CATEGORIES,
   PolicyCategory,
@@ -16,17 +18,25 @@ import {
   RouteId,
   UserProfile,
 } from '../types/policy';
-import { filterAndSortPolicies } from '../utils/policyEngine';
+import {
+  filterAndSortPolicies,
+  getComparedPoliciesForTab,
+  paginatePolicies,
+} from '../utils/policyEngine';
+
+const ITEMS_PER_PAGE = 10;
 
 interface PoliciesExplorePageProps {
   profile: UserProfile;
   policies: PolicyItem[];
   savedIds: string[];
-  comparedIds: string[];
+  comparePolicyIds: string[];
+  prepPolicyIds: string[];
   onNavigate: (route: RouteId, policyId?: string) => void;
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
   onClearCompare: () => void;
+  onStartPreparation: (policyId: string) => void;
   onOpenSherpaWithPrompt: (prompt: string) => void;
 }
 
@@ -42,11 +52,13 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
   profile,
   policies,
   savedIds,
-  comparedIds,
+  comparePolicyIds,
+  prepPolicyIds,
   onNavigate,
   onToggleSave,
   onToggleCompare,
   onClearCompare,
+  onStartPreparation,
   onOpenSherpaWithPrompt,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'전체' | PolicyCategory>(
@@ -60,7 +72,12 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
     'default'
   );
   const [savedOnly, setSavedOnly] = useState(false);
-  const [showCompareModal, setShowCompareModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const listTopRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, recruitmentStatus, searchInput, sortBy, savedOnly]);
 
   const filteredPolicies = useMemo(
     () =>
@@ -75,9 +92,25 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
     [policies, selectedCategory, recruitmentStatus, searchInput, sortBy, savedOnly, savedIds]
   );
 
+  const {
+    items: paginatedPolicies,
+    currentPage: safePage,
+    totalPages,
+  } = useMemo(
+    () => paginatePolicies(filteredPolicies, currentPage, ITEMS_PER_PAGE),
+    [filteredPolicies, currentPage]
+  );
+
+  const handlePageChange = (nextPage: number) => {
+    const clamped = Math.min(Math.max(1, nextPage), totalPages);
+    setCurrentPage(clamped);
+    listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const explorePolicies = policies;
   const comparedPolicies = useMemo(
-    () => policies.filter((p) => comparedIds.includes(p.id)),
-    [policies, comparedIds]
+    () => getComparedPoliciesForTab(explorePolicies, comparePolicyIds),
+    [explorePolicies, comparePolicyIds]
   );
 
   return (
@@ -231,7 +264,10 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
       </div>
 
       {/* Category Tabs (5 Ontong-Youth Categories) & Top-Right Recruitment Status + Sort Controls (NO "조금 더 나에게 맞게" sidebar!) */}
-      <section className="space-y-5 border-t border-[#DCD7C9] pt-6">
+      <section
+        ref={listTopRef}
+        className="scroll-mt-24 space-y-5 border-t border-[#DCD7C9] pt-6"
+      >
         <div
           role="group"
           aria-label="정책 분야"
@@ -326,19 +362,70 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
 
         {/* Policy Card Grid (Full Width without Left Filter Panel) */}
         {filteredPolicies.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredPolicies.map((policy) => (
-              <PolicyCard
-                key={policy.id}
-                policy={policy}
-                isSaved={savedIds.includes(policy.id)}
-                isCompared={comparedIds.includes(policy.id)}
-                onToggleSave={onToggleSave}
-                onToggleCompare={onToggleCompare}
-                onOpenDetail={(id) => onNavigate('detail', id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {paginatedPolicies.map((policy) => (
+                <PolicyCard
+                  key={policy.id}
+                  policy={policy}
+                  isSaved={savedIds.includes(policy.id)}
+                  isCompared={comparePolicyIds.includes(policy.id)}
+                  isPrepping={prepPolicyIds.includes(policy.id)}
+                  onToggleSave={onToggleSave}
+                  onToggleCompare={onToggleCompare}
+                  onOpenDetail={(id) => onNavigate('detail', id)}
+                  onStartPreparation={onStartPreparation}
+                />
+              ))}
+            </div>
+
+            <nav
+              aria-label="정책 목록 페이지네이션"
+              className="flex flex-wrap items-center justify-center gap-2 pt-4"
+            >
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => handlePageChange(safePage - 1)}
+                className="inline-flex h-10 cursor-pointer items-center gap-1 rounded-xl border-[1.5px] border-[#C9C4B6] bg-white px-3.5 text-[14px] font-bold text-[#1F2421] transition-colors hover:border-[#262A27] hover:bg-[#EFECE3] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                <span>이전</span>
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
+                (pageNum) => {
+                  const isActive = pageNum === safePage;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => handlePageChange(pageNum)}
+                      aria-current={isActive ? 'page' : undefined}
+                      aria-label={`${pageNum}페이지`}
+                      className={`font-mono-num inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-xl border-[1.5px] px-3 text-[14px] font-extrabold transition-colors ${
+                        isActive
+                          ? 'border-[#1F2421] bg-[#1F2421] text-[#D8F279]'
+                          : 'border-[#C9C4B6] bg-white text-[#1F2421] hover:border-[#262A27] hover:bg-[#EFECE3]'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }
+              )}
+
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => handlePageChange(safePage + 1)}
+                className="inline-flex h-10 cursor-pointer items-center gap-1 rounded-xl border-[1.5px] border-[#C9C4B6] bg-white px-3.5 text-[14px] font-bold text-[#1F2421] transition-colors hover:border-[#262A27] hover:bg-[#EFECE3] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <span>다음</span>
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </nav>
+          </>
         ) : (
           <div className="rounded-3xl border border-[#DCD7C9] bg-white p-10 text-center">
             <p className="text-lg font-bold text-[#1F2421]">
@@ -354,6 +441,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 setRecruitmentStatus('전체');
                 setSearchInput('');
                 setSavedOnly(false);
+                setCurrentPage(1);
               }}
               className="btn-primary-brand mt-5 cursor-pointer rounded-xl px-5 py-2.5 text-[14px]"
             >
@@ -363,111 +451,10 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
         )}
       </section>
 
-      {/* Floating Comparison Bar when policies are selected */}
-      {comparedPolicies.length > 0 && (
-        <div className="sticky bottom-4 z-30 mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3.5 text-white shadow-xl">
-          <div className="text-[14px] font-semibold">
-            비교 선택한 정책{' '}
-            <strong className="text-[#D8F279] tabular-nums">
-              {comparedPolicies.length}개
-            </strong>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={onClearCompare}
-              className="cursor-pointer rounded-xl border border-white/30 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-white/10"
-            >
-              선택 비우기
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCompareModal(true)}
-              className="btn-primary-lime cursor-pointer rounded-xl px-4 py-2 text-[13px]"
-            >
-              한눈에 표로 비교하기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Side-by-side Policy Comparison Modal with Generous Table Padding */}
-      {showCompareModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1F2421]/50 p-4 backdrop-blur-[2px]"
-          onClick={() => setShowCompareModal(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="선택한 정책 비교표"
-            className="max-h-[85vh] w-full max-w-4xl overflow-auto rounded-3xl border-[1.5px] border-[#262A27] bg-white p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-xl font-extrabold text-[#1F2421]">
-                선택한 정책 조건 한눈에 비교하기
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowCompareModal(false)}
-                className="btn-secondary-outline cursor-pointer rounded-xl px-3.5 py-1.5 text-sm"
-              >
-                닫기
-              </button>
-            </div>
-
-            <div className="overflow-x-auto rounded-2xl border border-[#DCD7C9]">
-              <table className="w-full border-collapse text-left text-[15px]">
-                <thead>
-                  <tr className="border-b border-[#262A27]/20 bg-[#F7F5EE] text-[#1F2421]">
-                    <th className="px-6 py-4 font-bold">비교 항목</th>
-                    {comparedPolicies.map((p) => (
-                      <th key={p.id} className="px-6 py-4 font-extrabold">
-                        {p.title}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#ECE8DC] text-[#333333]">
-                  <tr>
-                    <td className="px-6 py-4 font-bold text-[#1F2421]">분류</td>
-                    {comparedPolicies.map((p) => (
-                      <td key={p.id} className="px-6 py-4">
-                        {p.category}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-bold text-[#1F2421]">모집 상태</td>
-                    {comparedPolicies.map((p) => (
-                      <td key={p.id} className="px-6 py-4 font-semibold">
-                        {p.recruitmentStatus} ({p.deadlineLabel})
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-bold text-[#1F2421]">지원 내용</td>
-                    {comparedPolicies.map((p) => (
-                      <td key={p.id} className="px-6 py-4 leading-relaxed">
-                        {p.supportSummary}
-                      </td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-bold text-[#1F2421]">필수 확인 서류</td>
-                    {comparedPolicies.map((p) => (
-                      <td key={p.id} className="px-6 py-4 leading-relaxed">
-                        {p.requiredDocs.join(', ')}
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      <PolicyCompareBar
+        comparedPolicies={comparedPolicies}
+        onClearCompare={onClearCompare}
+      />
     </div>
   );
 };

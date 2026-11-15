@@ -1,37 +1,53 @@
 import React from 'react';
 import { ArrowRight, ArrowUpRight, Sparkles, Wallet } from 'lucide-react';
 import { PolicyCard } from '../components/PolicyCard';
+import { PolicyCompareBar } from '../components/PolicyCompareBar';
 import { PolicyItem, RouteId, UserProfile } from '../types/policy';
-import { getRecommendedPoliciesForProfile } from '../utils/policyEngine';
+import {
+  getComparedPoliciesForTab,
+  getRecommendedPoliciesForProfile,
+} from '../utils/policyEngine';
 
 interface HomeBoardPageProps {
   profile: UserProfile;
   policies: PolicyItem[];
   savedIds: string[];
-  comparedIds: string[];
+  comparePolicyIds: string[];
+  prepPolicyIds: string[];
   completedChecklistIds: string[];
-  activePrepPolicy: PolicyItem;
+  activePrepPolicy?: PolicyItem;
   onNavigate: (route: RouteId, policyId?: string) => void;
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
+  onClearCompare: () => void;
+  onStartPreparation: (policyId: string) => void;
 }
 
 export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   profile,
   policies,
   savedIds,
-  comparedIds,
+  comparePolicyIds,
+  prepPolicyIds,
   completedChecklistIds,
   activePrepPolicy,
   onNavigate,
   onToggleSave,
   onToggleCompare,
+  onClearCompare,
+  onStartPreparation,
 }) => {
-  const recommended = getRecommendedPoliciesForProfile(policies, profile, 3);
-  const doneCount = activePrepPolicy.checklist.filter((c) =>
-    completedChecklistIds.includes(c.id)
-  ).length;
-  const totalCount = activePrepPolicy.checklist.length;
+  const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
+  const comparedPolicies = getComparedPoliciesForTab(
+    boardPolicies,
+    comparePolicyIds
+  );
+  const doneCount = activePrepPolicy
+    ? activePrepPolicy.checklist.filter((c) =>
+        completedChecklistIds.includes(c.id)
+      ).length
+    : 0;
+  const totalCount = activePrepPolicy ? activePrepPolicy.checklist.length : 0;
 
   return (
     <div className="space-y-12">
@@ -166,7 +182,9 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               오늘의 다음 한 칸
             </h2>
             <span className="rounded-lg border border-[#DCD7C9] bg-[#F7F5EE] px-3 py-1 text-[13px] font-bold text-[#333333] tabular-nums">
-              {Math.max(totalCount - doneCount, 0)}개 남음
+              {activePrepPolicy
+                ? `${Math.max(totalCount - doneCount, 0)}개 남음`
+                : '준비 시작 전'}
             </span>
           </div>
 
@@ -206,16 +224,18 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
                     서류 준비, 이어서 한 칸
                   </strong>
                   <p className="mt-0.5 text-[14px] text-[#333333] tabular-nums">
-                    {activePrepPolicy.title} · {doneCount}/{totalCount} 점검
+                    {activePrepPolicy
+                      ? `${activePrepPolicy.title} · ${doneCount}/${totalCount} 점검`
+                      : '아직 준비 중인 정책이 없어요 · 정책 찾기에서 담아보세요'}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => onNavigate('apply')}
+                onClick={() => onNavigate(activePrepPolicy ? 'apply' : 'policies')}
                 className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px]"
               >
-                <span>이어가기</span>
+                <span>{activePrepPolicy ? '이어가기' : '정책 찾기'}</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -280,15 +300,17 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recommended.map((policy) => (
+          {boardPolicies.map((policy) => (
             <PolicyCard
               key={policy.id}
               policy={policy}
               isSaved={savedIds.includes(policy.id)}
-              isCompared={comparedIds.includes(policy.id)}
+              isCompared={comparePolicyIds.includes(policy.id)}
+              isPrepping={prepPolicyIds.includes(policy.id)}
               onToggleSave={onToggleSave}
               onToggleCompare={onToggleCompare}
               onOpenDetail={(id) => onNavigate('detail', id)}
+              onStartPreparation={onStartPreparation}
             />
           ))}
         </div>
@@ -318,6 +340,11 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
           <ArrowUpRight className="h-4.5 w-4.5" aria-hidden="true" />
         </button>
       </section>
+
+      <PolicyCompareBar
+        comparedPolicies={comparedPolicies}
+        onClearCompare={onClearCompare}
+      />
     </div>
   );
 };

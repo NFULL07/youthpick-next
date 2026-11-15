@@ -6,6 +6,7 @@ interface WalletPageProps {
   profile: UserProfile;
   documents: WalletDocument[];
   activePolicyTitle: string;
+  prepPolicyCount: number;
   onUploadDocFile: (docId: string, fileName: string) => void;
   onNavigate: (route: RouteId, policyId?: string) => void;
 }
@@ -14,6 +15,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
   profile,
   documents,
   activePolicyTitle,
+  prepPolicyCount,
   onUploadDocFile,
   onNavigate,
 }) => {
@@ -151,10 +153,10 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                 준비 중인 정책
               </span>
               <strong className="font-mono-num mt-1 block text-3xl font-extrabold text-[#1F2421]">
-                01건
+                {String(prepPolicyCount).padStart(2, '0')}건
               </strong>
               <span className="mt-1 block truncate text-[13px] text-[#333333]">
-                {activePolicyTitle}
+                {activePolicyTitle || '아직 선택한 정책 없음'}
               </span>
             </div>
           </div>
@@ -249,28 +251,36 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                   </p>
 
                   <dl className="mt-4 space-y-2.5 border-t border-[#DCD7C9] pt-4 text-[14px]">
-                    <div className="flex justify-between gap-3">
-                      <dt className="font-semibold text-[#4A4D49]">종류</dt>
-                      <dd className="font-bold text-[#1F2421]">
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="shrink-0 whitespace-nowrap font-semibold text-[#4A4D49]">
+                        종류
+                      </dt>
+                      <dd className="min-w-0 text-right font-bold text-[#1F2421] break-words">
                         {selectedDoc.category} 증빙서류
                       </dd>
                     </div>
-                    <div className="flex justify-between gap-3">
-                      <dt className="font-semibold text-[#4A4D49]">발급처</dt>
-                      <dd className="font-bold text-[#1F2421]">
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="shrink-0 whitespace-nowrap font-semibold text-[#4A4D49]">
+                        발급처
+                      </dt>
+                      <dd className="min-w-0 text-right font-bold text-[#1F2421] break-words">
                         {selectedDoc.issuer}
                       </dd>
                     </div>
-                    <div className="flex justify-between gap-3">
-                      <dt className="font-semibold text-[#4A4D49]">연결 정책</dt>
-                      <dd className="text-right font-bold text-[#1F2421]">
+                    <div className="flex items-start justify-between gap-4">
+                      <dt className="shrink-0 whitespace-nowrap font-semibold text-[#4A4D49]">
+                        연결 정책
+                      </dt>
+                      <dd className="min-w-0 text-right font-bold text-[#1F2421] break-words">
                         {selectedDoc.linkedPolicyTitle}
                       </dd>
                     </div>
                     {selectedDoc.uploadedFileName && (
-                      <div className="flex justify-between gap-3">
-                        <dt className="font-semibold text-[#4A4D49]">기록한 파일 이름</dt>
-                        <dd className="font-bold text-[#1F2421]">
+                      <div className="flex items-start justify-between gap-4">
+                        <dt className="shrink-0 whitespace-nowrap font-semibold text-[#4A4D49]">
+                          기록한 파일 이름
+                        </dt>
+                        <dd className="min-w-0 text-right font-bold text-[#1F2421] break-all">
                           {selectedDoc.uploadedFileName}
                         </dd>
                       </div>

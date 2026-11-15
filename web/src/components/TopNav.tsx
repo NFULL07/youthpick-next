@@ -22,7 +22,6 @@ export const TopNav: React.FC<TopNavProps> = ({
     { id: 'policies', label: '정책 찾기' },
     { id: 'switch', label: '생활변화 비교' },
     { id: 'apply', label: '신청 준비', badge: activePrepCount },
-    { id: 'profile', label: '내 정보' },
     { id: 'wallet', label: '전자지갑', icon: true },
   ];
 
@@ -104,7 +103,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             type="button"
             onClick={() => onNavigate('profile')}
             aria-label="내 정보 열기"
-            className="flex h-10 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border-[1.5px] border-[#262A27] bg-[#E8E0FC] px-3.5 text-sm font-bold text-[#1F2421] transition-colors hover:bg-[#DDD1FA]"
+            className="hidden h-10 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border-[1.5px] border-[#262A27] bg-[#E8E0FC] px-3.5 text-sm font-bold text-[#1F2421] transition-colors hover:bg-[#DDD1FA] lg:flex"
           >
             <span>내 정보</span>
           </button>

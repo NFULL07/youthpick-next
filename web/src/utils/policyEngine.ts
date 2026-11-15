@@ -1,4 +1,4 @@
-import { KOREA_REGIONS } from '../data/regions';
+import { KOREA_REGIONS, normalizeLegacyRegion } from '../data/regions';
 import {
   CriteriaResult,
   CRITERIA_STATUS_LABEL,
@@ -89,7 +89,7 @@ export interface ParsedRegion {
  * 정확히 같은 이름일 때만 인정하고, 부분 문자열이나 시·군·구 이름만으로는 추측하지 않는다.
  */
 export function parseRegion(value: string): ParsedRegion | null {
-  const trimmed = value.trim();
+  const trimmed = normalizeLegacyRegion(value);
   if (!trimmed) return null;
   for (const group of KOREA_REGIONS) {
     if (trimmed === group.sido) {
@@ -383,3 +383,79 @@ export function getRecommendedPoliciesForProfile(
     .slice(0, limit)
     .map((item) => item.policy);
 }
+
+/**
+ * 체크리스트 항목을 1개 이상 완료한 '준비 중인 정책'의 개수를 계산한다.
+ * 개별 체크 항목 합계가 아니라 정책 단위로 1건씩 센다.
+ */
+export function countCheckedPrepPolicies(
+  prepPolicies: PolicyItem[],
+  completedChecklistIds: string[]
+): number {
+  if (prepPolicies.length === 0 || completedChecklistIds.length === 0) {
+    return 0;
+  }
+  const completedSet = new Set(completedChecklistIds);
+  return prepPolicies.filter((policy) =>
+    policy.checklist.some((item) => completedSet.has(item.id))
+  ).length;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+}
+
+/**
+ * 정책 목록을 itemsPerPage(기본 10개) 단위로 페이지네이션한다.
+ */
+export function paginatePolicies<T>(
+  items: T[],
+  requestedPage: number,
+  itemsPerPage = 10
+): PaginatedResult<T> {
+  const safePerPage = Math.max(1, Math.floor(itemsPerPage));
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / safePerPage));
+  const currentPage = Math.min(Math.max(1, Math.floor(requestedPage)), totalPages);
+  const startIndex = (currentPage - 1) * safePerPage;
+
+  return {
+    items: items.slice(startIndex, startIndex + safePerPage),
+    currentPage,
+    totalPages,
+    totalItems,
+  };
+}
+
+/**
+ * 현재 탭의 정책 풀(tabPolicies)과 전역 비교 선택 목록(comparePolicyIds)의 교집합만 반환한다.
+ */
+export function getComparedPoliciesForTab(
+  tabPolicies: PolicyItem[],
+  comparePolicyIds: string[]
+): PolicyItem[] {
+  if (tabPolicies.length === 0 || comparePolicyIds.length === 0) {
+    return [];
+  }
+  const selectedSet = new Set(comparePolicyIds);
+  return tabPolicies.filter((policy) => selectedSet.has(policy.id));
+}
+
+/**
+ * 현재 탭에 속한 정책 ID들만 전역 비교 선택 목록(comparePolicyIds)에서 제거한다.
+ */
+export function clearCompareIdsForTab(
+  comparePolicyIds: string[],
+  tabPolicies: PolicyItem[]
+): string[] {
+  if (comparePolicyIds.length === 0 || tabPolicies.length === 0) {
+    return comparePolicyIds;
+  }
+  const tabIdSet = new Set(tabPolicies.map((policy) => policy.id));
+  return comparePolicyIds.filter((id) => !tabIdSet.has(id));
+}
+
+

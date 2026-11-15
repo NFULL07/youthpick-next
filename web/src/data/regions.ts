@@ -201,9 +201,38 @@ export const KOREA_REGIONS: RegionGroup[] = [
     sigunguList: ['울산광역시 전체', '남구', '동구', '북구', '중구', '울주군'],
   },
   {
-    sido: '광주광역시',
-    shortName: '광주',
-    sigunguList: ['광주광역시 전체', '광산구', '남구', '동구', '북구', '서구'],
+    sido: '전남광주통합특별시',
+    shortName: '전남광주',
+    sigunguList: [
+      '전남광주통합특별시 전체',
+      '동구',
+      '서구',
+      '남구',
+      '북구',
+      '광산구',
+      '목포시',
+      '여수시',
+      '순천시',
+      '나주시',
+      '광양시',
+      '담양군',
+      '곡성군',
+      '구례군',
+      '고흥군',
+      '보성군',
+      '화순군',
+      '장흥군',
+      '강진군',
+      '해남군',
+      '영암군',
+      '무안군',
+      '함평군',
+      '영광군',
+      '장성군',
+      '완도군',
+      '진도군',
+      '신안군',
+    ],
   },
   {
     sido: '전북특별자치도',
@@ -217,20 +246,6 @@ export const KOREA_REGIONS: RegionGroup[] = [
       '남원시',
       '김제시',
       '완주군',
-    ],
-  },
-  {
-    sido: '전라남도',
-    shortName: '전남',
-    sigunguList: [
-      '전라남도 전체',
-      '목포시',
-      '여수시',
-      '순천시',
-      '나주시',
-      '광양시',
-      '무안군',
-      '담양군',
     ],
   },
   {
@@ -270,6 +285,25 @@ export const KOREA_REGIONS: RegionGroup[] = [
   },
 ];
 
+const LEGACY_SIDO_ALIASES: [string, string][] = [
+  ['광주광역시', '전남광주통합특별시'],
+  ['전라남도', '전남광주통합특별시'],
+];
+
+export function normalizeLegacyRegion(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  for (const [legacySido, unifiedSido] of LEGACY_SIDO_ALIASES) {
+    if (trimmed === legacySido) {
+      return unifiedSido;
+    }
+    if (trimmed.startsWith(`${legacySido} `)) {
+      return `${unifiedSido} ${trimmed.slice(legacySido.length + 1).trim()}`;
+    }
+  }
+  return trimmed;
+}
+
 export function formatSelectedRegion(sido: string, sigungu: string): string {
   if (!sigungu || sigungu.endsWith('전체')) {
     return sido;
@@ -278,9 +312,12 @@ export function formatSelectedRegion(sido: string, sigungu: string): string {
 }
 
 export function findRegionPair(value: string): { sido: string; sigungu: string } {
-  const trimmed = value.trim();
+  const trimmed = normalizeLegacyRegion(value);
   if (!trimmed) {
     return { sido: '충청남도', sigungu: '천안시' };
+  }
+  if (trimmed === '광주' || trimmed === '전남') {
+    return { sido: '전남광주통합특별시', sigungu: '전남광주통합특별시 전체' };
   }
   for (const group of KOREA_REGIONS) {
     if (trimmed === group.sido || trimmed === group.shortName) {

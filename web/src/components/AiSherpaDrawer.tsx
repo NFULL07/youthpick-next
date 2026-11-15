@@ -15,6 +15,7 @@ interface AiSherpaDrawerProps {
   selectedPolicy?: PolicyItem;
   policies: PolicyItem[];
   onNavigate: (route: RouteId, policyId?: string) => void;
+  hasCompareBar?: boolean;
 }
 
 const ROUTE_LABELS: Record<RouteId, string> = {
@@ -35,6 +36,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
   selectedPolicy,
   policies,
   onNavigate,
+  hasCompareBar = false,
 }) => {
   const [messages, setMessages] = useState<SherpaMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -61,15 +63,27 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
 
   return (
     <>
+      {/* Dimmed Backdrop Overlay when AI Sherpa Drawer is open */}
+      {isOpen && (
+        <div
+          aria-hidden="true"
+          data-testid="ai-navigator-backdrop"
+          onClick={onToggle}
+          className="fixed inset-0 z-[45] bg-black/40"
+        />
+      )}
+
       {/* Widened AI Sherpa / Navigator Drawer (560px desktop width: >30% wider than 380px) */}
-      {/* 모바일(md 미만): 화면 위(8px)부터 하단 메뉴 바로 위까지 채움. 헤더·배너는 덮고 하단 메뉴는 보이게 둔다 */}
-      {/* 태블릿(md~lg): 하단 메뉴와 AI 버튼 위에 560px 패널. 데스크톱(lg 이상): 하단 메뉴 없음 */}
       {isOpen && (
         <aside
           role="dialog"
           aria-label="AI 내비게이터 (AI 셰르파)"
           data-testid="ai-navigator-drawer"
-          className="fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl md:left-auto md:right-6 md:top-auto md:bottom-[calc(9rem+env(safe-area-inset-bottom))] md:z-40 md:h-[min(680px,calc(100vh-14rem))] md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl lg:bottom-20 lg:h-[min(680px,calc(100vh-7rem))]"
+          className={`fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl md:left-auto md:right-6 md:top-auto md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl ${
+            hasCompareBar
+              ? 'md:bottom-[calc(13.75rem+env(safe-area-inset-bottom))] md:h-[min(600px,calc(100vh-16rem))] lg:bottom-[10.75rem] lg:h-[min(600px,calc(100vh-12rem))]'
+              : 'md:bottom-[calc(9rem+env(safe-area-inset-bottom))] md:h-[min(680px,calc(100vh-14rem))] lg:bottom-20 lg:h-[min(680px,calc(100vh-7rem))]'
+          }`}
         >
           {/* Drawer Header */}
           <div className="flex items-center justify-between border-b border-[#262A27] bg-[#E8E0FC] px-4 py-2.5">
@@ -239,15 +253,19 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
         </aside>
       )}
 
-      {/* Floating Toggle Pill */}
+      {/* Floating Toggle Pill: 비교 바가 떠 있을 때는 위쪽으로 올려 겹침 방지 */}
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'AI 내비게이터 접기' : 'AI 내비게이터 열기'}
-        className={`fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-40 lg:bottom-4 ${
-          isOpen ? 'hidden md:flex' : 'flex'
-        } cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-4 py-2.5 text-white shadow-xl transition-transform duration-150 hover:-translate-y-0.5 md:right-6`}
+        className={`fixed right-4 md:right-6 ${
+          isOpen ? 'z-50 hidden md:flex' : 'z-40 flex'
+        } ${
+          hasCompareBar
+            ? 'bottom-[calc(11.75rem+env(safe-area-inset-bottom))] sm:bottom-[calc(9.5rem+env(safe-area-inset-bottom))] lg:bottom-[6.25rem]'
+            : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4'
+        } cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-4 py-2.5 text-white shadow-xl transition-[bottom,transform] duration-150 hover:-translate-y-0.5`}
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#D8F279] text-[#1F2421]">
           <Compass className="h-5 w-5" aria-hidden="true" />
