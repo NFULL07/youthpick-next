@@ -62,26 +62,26 @@ export const WalletPage: React.FC<WalletPageProps> = ({
         <aside className="space-y-5 lg:col-span-4">
           <section
             aria-labelledby="wallet-living-title"
-            className="card-tactile rounded-3xl bg-lavender p-6"
+            className="rounded-3xl bg-surface p-6"
           >
-            <h2 id="wallet-living-title" className="text-[13px] font-semibold text-ink-2">
+            <h2 id="wallet-living-title" className="t-card">
               나의 생활권
             </h2>
-            <p className="t-section mt-1">
+            <p className="mt-3 text-[16px] font-bold text-ink">
               {profile.residence || '미입력'} ↔ {profile.schoolRegion || '미입력'}
             </p>
-            <p className="mt-1 text-[14px] font-semibold text-ink-2 tabular-nums">
+            <p className="mt-0.5 text-[14px] font-medium text-ink-3 tabular-nums">
               만 {profile.age}세 · {profile.status}
             </p>
 
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-edge/20 pt-4">
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
               <span className="text-[13px] font-medium text-ink-2">
                 서류 안내에 쓰는 정보예요.
               </span>
               <button
                 type="button"
                 onClick={() => onNavigate('profile')}
-                className="btn-primary-brand shrink-0 cursor-pointer rounded-xl px-3.5 py-2 text-[13px]"
+                className="btn-weak shrink-0 cursor-pointer rounded-xl px-3.5 py-2 text-[13px]"
               >
                 수정
               </button>
@@ -92,7 +92,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
         {/* Right Document Workspace */}
         <div className="space-y-6 lg:col-span-8">
           {/* Summary Bar */}
-          <div className="card-soft grid grid-cols-1 divide-y divide-line-soft rounded-3xl bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="grid grid-cols-1 divide-y divide-line-soft rounded-3xl bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <div className="p-5">
               <span className="text-[13px] font-semibold text-ink-3">
                 파일명 기록 문서
@@ -129,9 +129,9 @@ export const WalletPage: React.FC<WalletPageProps> = ({
           </div>
 
           {/* Search & Category Filter */}
-          <div className="card-soft rounded-3xl bg-surface p-6">
+          <div className="rounded-3xl bg-surface p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="field flex flex-1 items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
+              <div className="field flex flex-1 items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
                 <Search className="h-4 w-4 text-ink-2" aria-hidden="true" />
                 <input
                   type="search"
@@ -170,7 +170,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                       onClick={() => setSelectedDocId(doc.id)}
                       aria-pressed={selected}
                       className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl p-4 text-left transition-colors ${
-                        selected ? 'bg-sage' : 'bg-surface-2 hover:bg-surface-3'
+                        selected ? 'bg-accent' : 'bg-surface-2 hover:bg-surface-3'
                       }`}
                     >
                       <div className="flex items-center gap-3">

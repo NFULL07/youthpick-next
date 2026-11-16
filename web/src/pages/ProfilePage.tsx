@@ -112,7 +112,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           className="space-y-6 lg:col-span-8"
         >
           {/* Basic Info Card */}
-          <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8">
+          <section className="rounded-3xl bg-surface p-6 sm:p-8">
             <h2 className="t-section">기본 정보</h2>
             <p className="mt-1.5 text-[15px] text-ink-2">
               거주지와 재학·근무 지역을 나누어 선택하면 생활권 특례 정책을 놓치지 않아요.
@@ -127,7 +127,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 >
                   연령
                 </label>
-                <div className="field flex min-h-13 items-center gap-2 rounded-2xl px-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
+                <div className="field flex min-h-13 items-center gap-2 rounded-2xl px-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
                   <input
                     id="profile-age"
                     type="number"
@@ -262,7 +262,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           </section>
 
           {/* Interests Card: 5 Categories + [전체 선택] / [전체 해제] Buttons */}
-          <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8">
+          <section className="rounded-3xl bg-surface p-6 sm:p-8">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
                 <h2 className="t-section">관심 분야</h2>
@@ -298,9 +298,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 return (
                   <label
                     key={category}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-bold transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink ${
+                    className={`flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-bold transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary ${
                       checked
-                        ? 'bg-accent text-ink'
+                        ? 'bg-accent text-primary-hover'
                         : 'bg-surface-2 text-ink-2 hover:bg-surface-3'
                     }`}
                   >
@@ -313,7 +313,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                     <span
                       className={`flex h-5 w-5 items-center justify-center rounded-md border-[1.5px] ${
                         checked
-                          ? 'border-ink bg-ink text-white'
+                          ? 'border-primary bg-primary text-white'
                           : 'border-ink-4 bg-surface'
                       }`}
                     >
@@ -349,7 +349,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
         {/* Right Info Sidebar */}
         <aside className="space-y-6 lg:col-span-4">
-          <section className="rounded-3xl bg-sage p-6">
+          <section className="rounded-3xl bg-surface p-6">
             <div className="flex items-start justify-between gap-3">
               <h2 className="t-section">내 서류도, 한 곳에.</h2>
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
@@ -363,7 +363,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               <span className="badge bg-surface">전자지갑 연결 준비</span>
             </p>
 
-            <div className="mt-5 grid grid-cols-2 divide-x divide-edge/15 border-t border-edge/15 pt-4 text-center">
+            <div className="mt-5 grid grid-cols-2 divide-x divide-line border-t border-line pt-4 text-center">
               <div>
                 <span className="block text-[13px] font-semibold text-ink-3">
                   파일명 기록 문서
@@ -385,14 +385,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('wallet')}
-              className="btn-primary-brand mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px]"
+              className="btn-weak mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px]"
             >
               <span>내 전자지갑 열기</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </section>
 
-          <section className="card-soft rounded-3xl bg-surface p-6">
+          <section className="rounded-3xl bg-surface p-6">
             <h2 className="t-card">정보를 입력하기 전에</h2>
             <ul className="mt-2 divide-y divide-line-soft text-[14px] leading-relaxed text-ink-2 [&>li]:py-3 [&>li:last-child]:pb-0">
               <li>

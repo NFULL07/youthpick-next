@@ -44,19 +44,19 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
         <span>정책 목록으로</span>
       </button>
 
-      {/* 정책 머리: 티켓 한 장. 색은 분야를 뜻한다 */}
-      <section
-        className={`card-tactile rounded-3xl p-6 sm:p-8 ${CATEGORY_TINT[policy.category]}`}
-      >
+      {/* 정책 머리: 분야 배지, 이름, 핵심 정보 세 가지 */}
+      <section className="rounded-3xl bg-surface p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px]">
-          <span className="font-bold text-ink">{policy.category}</span>
-          <span className="font-medium text-ink-2">{policy.agencyLabel}</span>
+          <span className={`badge text-ink ${CATEGORY_TINT[policy.category]}`}>
+            {policy.category}
+          </span>
+          <span className="font-medium text-ink-3">{policy.agencyLabel}</span>
         </div>
 
         <h1 className="t-page mt-3">{policy.title}</h1>
         <p className="t-lead mt-2.5 max-w-3xl">{policy.shortDescription}</p>
 
-        <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 border-t border-dashed border-edge/30 pt-5 sm:grid-cols-3">
+        <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 border-t border-line-soft pt-5 sm:grid-cols-3">
           <div>
             <dt className="text-[13px] font-semibold text-ink-3">모집 상태</dt>
             <dd className="mt-1">
@@ -79,7 +79,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
       </section>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8 lg:col-span-8">
+        <section className="rounded-3xl bg-surface p-6 sm:p-8 lg:col-span-8">
           <h2 className="t-section">공고 기준과 나의 조건</h2>
           <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
             학교가 타 지역에 있더라도 모든 정책이 재학 지역을 동일하게 인정하는 것은
@@ -89,7 +89,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           <div className="mt-5 overflow-x-auto">
             <table className="w-full min-w-[680px] border-collapse text-left">
               <thead>
-                <tr className="border-b border-edge/30 text-[13px] font-bold text-ink-3">
+                <tr className="border-b border-line text-[14px] font-semibold text-ink-3">
                   <th className="w-[18%] py-3 pr-4 whitespace-nowrap">항목</th>
                   <th className="w-[27%] px-4 py-3">공고 기준</th>
                   <th className="w-[22%] px-4 py-3">내 정보</th>
@@ -134,7 +134,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
 
         {/* 행동 영역: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}
         <aside className="space-y-5 lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
-          <div className="rounded-3xl bg-sage p-6">
+          <div className="rounded-3xl bg-surface p-6">
             <h2 className="t-section">
               알아본 정책,
               <br />내 준비로 이어가요.
@@ -148,7 +148,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
               <button
                 type="button"
                 onClick={() => onStartPreparation(policy.id)}
-                className="btn-primary-lime flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[15px]"
+                className="btn-primary-lime flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-5 text-[16px]"
               >
                 <span>준비 이어가기</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -158,7 +158,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                 type="button"
                 onClick={() => onToggleSave(policy.id)}
                 aria-pressed={isSaved}
-                className="btn-secondary-outline flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-[14px]"
+                className="btn-secondary-outline flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-5 text-[15px]"
               >
                 <Bookmark
                   className="h-4 w-4"
@@ -171,7 +171,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
             </div>
           </div>
 
-          <div className="card-soft rounded-3xl bg-surface p-6">
+          <div className="rounded-3xl bg-surface p-6">
             <h2 className="t-card">이 조건이 헷갈린다면?</h2>
             <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">
               내비게이터에게 내 생활권과 서류 기준을 쉬운 말로 물어보세요.
@@ -179,7 +179,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
             <button
               type="button"
               onClick={() => onAskSherpaAboutPolicy(policy)}
-              className="btn-primary-brand mt-4 inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[14px]"
+              className="btn-weak mt-4 inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[14px]"
             >
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
               <span>AI에게 물어보기</span>

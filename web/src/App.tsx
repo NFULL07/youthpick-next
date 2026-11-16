@@ -486,7 +486,7 @@ export default function App() {
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl bg-ink px-5 py-3 text-[14px] font-bold text-white shadow-[0_8px_24px_rgb(31_36_33/0.25)]"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl bg-ink px-5 py-3 text-[14px] font-bold text-white shadow-[0_8px_24px_rgb(25_31_40/0.16)]"
         >
           {toastMessage}
         </div>

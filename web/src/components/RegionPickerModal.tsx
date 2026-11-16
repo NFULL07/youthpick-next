@@ -69,11 +69,11 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="region-modal-title"
-        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface-2 shadow-[0_16px_48px_rgb(31_36_33/0.22)]"
+        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface-2 shadow-[0_16px_48px_rgb(25_31_40/0.16)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header (Pinned) */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-lavender px-4 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
             <MapPin className="h-5 w-5 shrink-0 text-ink" aria-hidden="true" />
             <div className="min-w-0">
@@ -122,7 +122,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
                       onClick={() => handleSidoClick(group.sido)}
                       className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-1 rounded-xl px-2.5 py-2 text-left text-[12px] font-semibold leading-snug transition-colors break-keep sm:px-3.5 sm:py-2.5 sm:text-[14px] ${
                         isSelected
-                          ? 'border-[1.5px] border-edge bg-accent font-bold text-ink'
+                          ? 'border border-primary bg-accent font-bold text-primary-hover'
                           : 'border border-transparent bg-surface text-ink-2 hover:border-line-mid hover:bg-surface-3'
                       }`}
                     >
@@ -158,8 +158,8 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
                         isAllOption ? 'col-span-2' : ''
                       } ${
                         isSelected
-                          ? 'border-[1.5px] border-edge bg-ink font-bold text-white'
-                          : 'border border-line-soft bg-surface text-ink-2 hover:border-edge/40 hover:bg-surface-3'
+                          ? 'border border-primary bg-primary font-bold text-white'
+                          : 'border border-line-soft bg-surface text-ink-2 hover:border-line-dim hover:bg-surface-3'
                       }`}
                     >
                       <span className="min-w-0 truncate">{sigungu}</span>
@@ -178,7 +178,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
         <div className="flex shrink-0 flex-col gap-2.5 border-t border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink-2 sm:text-[14px]">
             <span className="shrink-0">선택된 지역:</span>
-            <strong className="badge bg-sage text-ink">
+            <strong className="badge badge-accent">
               {formattedPreview}
             </strong>
           </div>

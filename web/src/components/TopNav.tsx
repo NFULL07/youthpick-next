@@ -28,7 +28,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   const isPoliciesActive = currentRoute === 'policies' || currentRoute === 'detail';
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-canvas/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-5 sm:py-3.5 md:px-8">
         {/* Zone 1: Brand wordmark */}
         <a
@@ -39,12 +39,14 @@ export const TopNav: React.FC<TopNavProps> = ({
           }}
           className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-ink no-underline sm:gap-2.5"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-[1.5px] border-edge bg-accent text-sm font-extrabold text-ink">
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-primary text-[15px] font-extrabold text-white"
+          >
             N
           </span>
-          <span className="text-base font-extrabold tracking-tight sm:text-lg">청년픽</span>
-          <span className="rounded-md border border-edge bg-surface px-1.5 py-0.5 text-[11px] font-bold tracking-wider text-ink">
-            NEXT
+          <span className="text-[18px] font-extrabold tracking-[-0.03em] sm:text-[19px]">
+            청년픽 <span className="text-primary">NEXT</span>
           </span>
         </a>
 
@@ -63,17 +65,18 @@ export const TopNav: React.FC<TopNavProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onNavigate(item.id)}
-                className={`inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 py-2 text-[14px] font-semibold transition-colors ${
+                aria-current={active ? 'page' : undefined}
+                className={`inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-3.5 text-[15px] transition-colors ${
                   active
-                    ? 'bg-ink text-white'
-                    : 'text-ink-2 hover:bg-surface-3 hover:text-ink'
+                    ? 'bg-surface-2 font-bold text-ink'
+                    : 'font-medium text-ink-2 hover:bg-surface-2 hover:text-ink'
                 }`}
               >
                 {item.icon && <Wallet className="h-4 w-4 shrink-0" aria-hidden="true" />}
                 <span>{item.label}</span>
                 {typeof item.badge === 'number' && item.badge > 0 && (
                   <span
-                    className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold tabular-nums text-ink"
+                    className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold tabular-nums text-white"
                   >
                     {item.badge}
                   </span>
@@ -90,7 +93,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             onClick={() => setShowAlerts((prev) => !prev)}
             aria-label="모집 일정 및 안내 알림 확인"
             aria-expanded={showAlerts}
-            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-ink transition-colors hover:bg-surface-3"
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink"
           >
             <Bell className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -100,7 +103,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             onClick={() => onNavigate('profile')}
             aria-label="내 정보 열기"
             aria-current={currentRoute === 'profile' ? 'page' : undefined}
-            className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl bg-lavender px-3.5 text-[14px] font-bold text-ink transition-colors hover:bg-lavender-hover aria-[current=page]:bg-ink aria-[current=page]:text-white"
+            className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl bg-surface-2 px-3.5 text-[14px] font-bold text-ink transition-colors hover:bg-surface-3 aria-[current=page]:bg-accent aria-[current=page]:text-primary-hover"
           >
             <span>내 정보</span>
           </button>
@@ -109,7 +112,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             <div
               role="dialog"
               aria-label="최근 안내 알림"
-              className="absolute right-0 top-13 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-surface p-4 shadow-[0_12px_32px_rgb(31_36_33/0.14)]"
+              className="absolute right-0 top-13 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-surface p-4 shadow-[0_12px_32px_rgb(25_31_40/0.12)]"
             >
               <div className="flex items-center justify-between">
                 <strong className="text-[15px] font-extrabold text-ink">

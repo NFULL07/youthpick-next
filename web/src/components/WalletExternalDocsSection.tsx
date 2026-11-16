@@ -12,7 +12,7 @@ export const WalletExternalDocsSection: React.FC = () => {
   return (
     <section
       aria-labelledby="wallet-external-docs-title"
-      className="card-soft rounded-3xl bg-surface p-6 sm:p-8"
+      className="rounded-3xl bg-surface p-6 sm:p-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="wallet-external-docs-title" className="t-section">

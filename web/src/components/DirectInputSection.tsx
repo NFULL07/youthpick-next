@@ -124,7 +124,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
         )}
 
         {spec?.kind === 'number' && (
-          <div className="field flex w-full items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink sm:max-w-sm">
+          <div className="field flex w-full items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary sm:max-w-sm">
             <input
               id={inputId}
               type="text"

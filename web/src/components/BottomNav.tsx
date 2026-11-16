@@ -32,7 +32,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="하단 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface-2 px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
     >
       <ul className="mx-auto grid max-w-2xl grid-cols-5">
         {BOTTOM_NAV_ITEMS.map((item) => {
@@ -48,18 +48,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 type="button"
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex min-h-12 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[11px] leading-tight tracking-tight ${
-                  active ? 'font-extrabold text-ink' : 'font-semibold text-ink-3'
+                className={`relative flex min-h-12 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[12px] leading-tight ${
+                  active ? 'font-bold text-primary' : 'font-medium text-ink-3'
                 }`}
               >
                 <span
-                  className={`relative flex h-7 w-11 items-center justify-center rounded-full ${
-                    active ? 'bg-accent' : ''
-                  }`}
+                  className="relative flex h-7 w-11 items-center justify-center"
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />
                   {badge !== null && (
-                    <span className="absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold tabular-nums text-ink ring-2 ring-surface-2">
+                    <span className="absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold tabular-nums text-white ring-2 ring-surface">
                       {badge}
                       <span className="sr-only">건 준비 중</span>
                     </span>

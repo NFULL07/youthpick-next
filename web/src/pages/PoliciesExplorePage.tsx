@@ -150,7 +150,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
         <form
           role="search"
           onSubmit={(e) => e.preventDefault()}
-          className="flex items-center gap-2 rounded-2xl border-[1.5px] border-edge bg-surface py-1.5 pl-4 pr-1.5"
+          className="flex items-center gap-2 rounded-2xl bg-surface py-2 pl-5 pr-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary"
         >
           <Search className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
           <label htmlFor="policy-search-input" className="sr-only">
@@ -372,7 +372,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
             </nav>
           </>
         ) : (
-          <div className="card-soft rounded-3xl bg-surface p-10 text-center">
+          <div className="rounded-3xl bg-surface p-10 text-center">
             <p className="t-card">선택한 조건에 맞는 정책이 아직 없어요.</p>
             <p className="mt-1.5 text-[15px] text-ink-2">
               분야나 모집 상태 필터를 전체로 돌려서 다른 정책을 살펴보세요.
@@ -386,7 +386,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 setSavedOnly(false);
                 setCurrentPage(1);
               }}
-              className="btn-primary-brand mt-5 cursor-pointer rounded-xl px-5 py-2.5 text-[14px]"
+              className="btn-weak mt-5 cursor-pointer rounded-xl px-5 py-2.5 text-[14px]"
             >
               필터 전체로 보기
             </button>

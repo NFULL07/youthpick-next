@@ -97,7 +97,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
       </div>
 
       {/* 안내: 가정만 비교한다 */}
-      <div role="note" className="flex items-start gap-3.5 rounded-2xl bg-lavender-soft px-5 py-4">
+      <div role="note" className="flex items-start gap-3.5 rounded-2xl bg-accent-soft px-5 py-4">
         <ArrowRightLeft
           className="mt-0.5 h-5 w-5 shrink-0 text-ink"
           aria-hidden="true"
@@ -143,7 +143,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
       {/* BEFORE vs AFTER Cards */}
       <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-11">
         {/* BEFORE */}
-        <section className="card-soft rounded-3xl bg-surface p-6 sm:p-7 lg:col-span-5">
+        <section className="rounded-3xl bg-surface p-6 sm:p-7 lg:col-span-5">
           <h2 className="t-section">지금의 나</h2>
           <p className="t-meta mt-0.5">현재 내 정보</p>
 
@@ -194,13 +194,13 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
 
         {/* Arrow Divider */}
         <div className="flex items-center justify-center lg:col-span-1">
-          <span className="flex h-10 w-10 rotate-90 items-center justify-center rounded-full bg-accent text-ink lg:rotate-0">
+          <span className="flex h-10 w-10 rotate-90 items-center justify-center rounded-full bg-accent text-primary-hover lg:rotate-0">
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </span>
         </div>
 
         {/* AFTER */}
-        <section className="card-tactile rounded-3xl bg-lavender-soft p-6 sm:p-7 lg:col-span-5">
+        <section className="rounded-3xl bg-accent-soft p-6 sm:p-7 lg:col-span-5">
           <h2 className="t-section">변화 후의 나</h2>
           <p className="t-meta mt-0.5 text-ink-2">가정한 상황</p>
 
@@ -309,12 +309,12 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
       {hasCompared && (
         <div className="space-y-8 pt-2">
           {/* Diff Table with Generous Padding (px-6 py-5) */}
-          <section className="card-soft overflow-hidden rounded-3xl bg-surface">
+          <section className="overflow-hidden rounded-3xl bg-surface">
             <h2 className="t-section px-6 pt-6">조건 변화 비교표</h2>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-edge/30 text-[13px] font-bold text-ink-3">
+                  <tr className="border-b border-line text-[13px] font-bold text-ink-3">
                     <th className="px-6 py-3">비교 항목</th>
                     <th className="px-6 py-3">현재</th>
                     <th className="px-6 py-3">변화 후</th>
@@ -338,7 +338,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                           {row.afterValue}
                         </strong>
                         {row.changed && (
-                          <span className="mt-1 inline-block text-[13px] font-bold text-ok">
+                          <span className="mt-1 inline-block text-[13px] font-bold text-primary">
                             변경됨
                           </span>
                         )}
@@ -364,7 +364,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                 <article
                   key={impact.policy.id}
                   data-testid="recheck-policy-card"
-                  className="card-soft flex flex-col justify-between gap-5 rounded-3xl bg-surface p-6 md:flex-row md:items-center"
+                  className="flex flex-col justify-between gap-5 rounded-3xl bg-surface p-6 md:flex-row md:items-center"
                 >
                   <div className="space-y-3">
                     {/* Category & Recruitment Status Meta */}
@@ -388,7 +388,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                       {impact.changedTags.map((tag) => (
                         <span
                           key={tag}
-                          className="badge whitespace-normal bg-lavender-soft py-1 text-ink"
+                          className="badge whitespace-normal bg-accent-soft py-1 text-ink"
                         >
                           <Tag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                           <span>{tag}</span>

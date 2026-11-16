@@ -79,16 +79,16 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           role="dialog"
           aria-label="AI 내비게이터 (AI 셰르파)"
           data-testid="ai-navigator-drawer"
-          className={`fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border border-line bg-surface-2 shadow-[0_16px_48px_rgb(31_36_33/0.22)] md:left-auto md:right-6 md:top-auto md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl ${
+          className={`fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border border-line bg-surface-2 shadow-[0_16px_48px_rgb(25_31_40/0.16)] md:left-auto md:right-6 md:top-auto md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl ${
             hasCompareBar
               ? 'md:bottom-[calc(13.75rem+env(safe-area-inset-bottom))] md:h-[min(600px,calc(100vh-16rem))] lg:bottom-[10.75rem] lg:h-[min(600px,calc(100vh-12rem))]'
               : 'md:bottom-[calc(9rem+env(safe-area-inset-bottom))] md:h-[min(680px,calc(100vh-14rem))] lg:bottom-20 lg:h-[min(680px,calc(100vh-7rem))]'
           }`}
         >
           {/* Drawer Header */}
-          <div className="flex items-center justify-between bg-lavender px-4 py-2.5">
+          <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2.5">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-primary-hover">
                 <Compass className="h-4 w-4" aria-hidden="true" />
               </span>
               <div>
@@ -134,7 +134,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                 <div className="rounded-xl bg-surface p-3.5">
                   <h3 className="text-[16px] font-extrabold leading-snug text-ink">
                     다음 한 칸,{' '}
-                    <span className="bg-accent px-1">같이 찾아볼까요?</span>
+                    <span className="text-primary">같이 찾아볼까요?</span>
                   </h3>
                   <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">
                     어려운 정책 용어 대신 지금 내 조건(만 {profile.age}세 ·{' '}
@@ -152,7 +152,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                       key={prompt}
                       type="button"
                       onClick={() => handleAsk(prompt)}
-                      className="flex min-h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-left text-[13px] font-semibold text-ink transition-colors hover:bg-sage"
+                      className="flex min-h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-left text-[13px] font-semibold text-ink transition-colors hover:bg-accent-soft"
                     >
                       <span>{prompt}</span>
                       <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-ink-2" aria-hidden="true" />
@@ -191,7 +191,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                     <div
                       className={`max-w-[92%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-line ${
                         msg.sender === 'user'
-                          ? 'bg-ink font-semibold text-white'
+                          ? 'bg-primary font-semibold text-white'
                           : 'border border-line bg-surface text-ink'
                       }`}
                     >
@@ -226,7 +226,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
             <label htmlFor="sherpa-question-input" className="sr-only">
               내비게이터에게 질문하기
             </label>
-            <div className="field flex items-center gap-2 py-1.5 pr-1.5 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
+            <div className="field flex items-center gap-2 py-1.5 pr-1.5 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary">
               <input
                 id="sherpa-question-input"
                 type="text"
@@ -262,9 +262,9 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           hasCompareBar
             ? 'bottom-[calc(11.75rem+env(safe-area-inset-bottom))] sm:bottom-[calc(9.5rem+env(safe-area-inset-bottom))] lg:bottom-[6.25rem]'
             : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4'
-        } cursor-pointer items-center gap-2.5 rounded-2xl bg-ink py-2 pl-2 pr-4 text-white shadow-[0_16px_48px_rgb(31_36_33/0.22)] transition-[bottom,transform] duration-150 hover:-translate-y-0.5`}
+        } cursor-pointer items-center gap-2.5 rounded-full bg-ink py-2 pl-2 pr-4 text-white shadow-[0_16px_48px_rgb(25_31_40/0.16)] transition-[bottom,transform] duration-150 hover:-translate-y-0.5`}
       >
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-ink">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white">
           <Compass className="h-5 w-5" aria-hidden="true" />
         </span>
         <strong className="text-[14px] font-extrabold">AI 내비게이터</strong>
