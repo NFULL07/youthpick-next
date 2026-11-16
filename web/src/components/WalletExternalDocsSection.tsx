@@ -30,7 +30,8 @@ export const WalletExternalDocsSection: React.FC = () => {
         받아 두고, 정책 상세 화면에서 필요한 값만 직접 입력해 주세요.
       </p>
 
-      <ul className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
+      {/* items-start: 한 칸을 펼쳐도 같은 줄의 옆 칸은 늘어나지 않게 함 */}
+      <ul className="mt-5 grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
         {externalDocs.map((doc) => (
           <li
             key={doc.id}
