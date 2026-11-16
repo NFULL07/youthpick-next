@@ -4,6 +4,7 @@
 - 기준 커밋
   - 수정 전(before): `main` `8016cbf` (PR #2, #4 병합 직후)
   - 수정 후(after): `chore/impeccable` `4748198` (`8016cbf` + 아래 수정 2건)
+  - 폰트 변경 후: `chore/impeccable` `affac77` (본문 글꼴을 Pretendard로 변경, 김주완 결정)
 - 도구: `impeccable` 4.9.2 (npx). 엔진은 `@impeccable/cli-windows-x64` 0.1.25. 화면 검사는 PC에 설치된 Chrome을 사용
 
 ## 파일
@@ -13,6 +14,7 @@
 | `before_source.txt` / `after_source.txt` | 소스 검사 (`web/src`, 정규식만) |
 | `before_page.txt` | 첫 화면 한 주소만 검사 (참고용, after 없음) |
 | `before_pages.txt` / `after_pages.txt` | 화면 8개 검사 |
+| `after_font_source.txt` | 폰트 변경(`affac77`) 후 소스 검사. 발견 0건이라 안내 문구만 있음 |
 
 `before_source.txt`는 PowerShell `*>`로 저장한 UTF-16 파일을 UTF-8로 바꾼 것입니다. 그래서 첫 줄에 PowerShell이 붙인 `NativeCommandError` 표시가 있고, 안내 문구의 화살표(→)가 `??`로 바뀌어 있습니다. 검사 내용에는 영향이 없습니다.
 
@@ -43,10 +45,12 @@ npx impeccable detect "http://localhost:3000/#home" "http://localhost:3000/#poli
 | `first-viewport-column-overflow` | 화면 | 2 | 0 | 수정: 상세 화면 사이드바를 lg 이상에서 sticky |
 | `nested-cards` | 화면 | 5 | 5 | 그대로 (취향 규칙) |
 | `cream-palette` | 화면 | 8 | 8 | 그대로 (취향 규칙) |
-| `overused-font` | 소스 | 1 | 1 | 그대로 (취향 규칙) |
-| 합계 | 화면 / 소스 | 16 / 1 | 13 / 1 | |
+| `overused-font` | 소스 | 1 | 1 → 0 | 1차에서는 그대로. 이후 본문 글꼴을 Plus Jakarta Sans·Noto Sans KR → Pretendard로 변경해 0 (`affac77`, 김주완 결정) |
+| 합계 | 화면 / 소스 | 16 / 1 | 13 / 0 | |
 
-**취향 규칙 3개(`nested-cards`, `cream-palette`, `overused-font`)는 이해찬 판단 대기.** 오류가 아니라 "AI가 만든 티가 나는 디자인"을 가리키는 규칙이라, UI·UX 담당 판단 후 고칠지 정합니다.
+**취향 규칙 2개(`nested-cards`, `cream-palette`)는 이해찬 판단 대기.** 오류가 아니라 "AI가 만든 티가 나는 디자인"을 가리키는 규칙이라, UI·UX 담당 판단 후 고칠지 정합니다. 세 번째 취향 규칙이던 `overused-font`는 김주완 결정으로 Pretendard로 바꿨습니다.
+
+폰트 변경 후 확인: Chrome의 실제 렌더링 글꼴을 확인해 제목·본문·버튼은 Pretendard Variable, 영문 라벨(`.font-mono-num`)은 JetBrains Mono인 것을 봤습니다. 360·390·768·1280px × 8개 화면에서 가로 넘침이 없습니다. Pretendard는 jsDelivr(`pretendard@1.3.9`)에서 불러옵니다.
 
 수정 후 추가 확인:
 - `npm run lint`, `npm test`(28/28), `npm run build` 통과
@@ -62,5 +66,5 @@ npx impeccable detect "http://localhost:3000/#home" "http://localhost:3000/#poli
 
 ## 작성 구분
 
-- 검수·판단: 김주완 (고칠 규칙 2개 선정, 취향 규칙 보류)
+- 검수·판단: 김주완 (고칠 규칙 2개 선정, 폰트 Pretendard 결정, 나머지 취향 규칙 보류)
 - AI 생성: 검사 실행, 수정 코드, 이 기록은 Claude Code가 작성
