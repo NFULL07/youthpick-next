@@ -64,13 +64,13 @@ export const WalletPage: React.FC<WalletPageProps> = ({
             aria-labelledby="wallet-living-title"
             className="card-tactile rounded-3xl bg-lavender p-6"
           >
-            <h2 id="wallet-living-title" className="text-[13px] font-semibold text-ink-2">
+            <h2 id="wallet-living-title" className="t-section">
               나의 생활권
             </h2>
-            <p className="t-section mt-1">
+            <p className="mt-3 text-[16px] font-bold text-ink">
               {profile.residence || '미입력'} ↔ {profile.schoolRegion || '미입력'}
             </p>
-            <p className="mt-1 text-[14px] font-semibold text-ink-2 tabular-nums">
+            <p className="mt-0.5 text-[14px] font-semibold text-ink-2 tabular-nums">
               만 {profile.age}세 · {profile.status}
             </p>
 
