@@ -160,7 +160,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
       <form
         role="search"
         onSubmit={(e) => e.preventDefault()}
-        className="flex items-center gap-3 rounded-2xl border-[1.5px] border-[#262A27] bg-white px-4 py-2.5 shadow-sm"
+        className="flex items-center gap-2 rounded-2xl border-[1.5px] border-[#262A27] bg-white px-3 py-2.5 shadow-sm sm:gap-3 sm:px-4"
       >
         <Search className="h-5 w-5 shrink-0 text-[#333333]" aria-hidden="true" />
         <label htmlFor="policy-search-input" className="sr-only">
@@ -172,7 +172,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="주거, 취업, 교육·직업훈련, 금융·복지·문화 등 정책을 검색해 보세요"
-          className="flex-1 bg-transparent text-[15px] text-[#1F2421] placeholder:text-[#5C5F5B] focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-[15px] text-[#1F2421] placeholder:text-[#5C5F5B] focus:outline-none"
         />
         {searchInput && (
           <button
@@ -186,7 +186,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
         )}
         <button
           type="submit"
-          className="btn-primary-brand cursor-pointer whitespace-nowrap rounded-xl px-5 py-2.5 text-[14px]"
+          className="btn-primary-brand shrink-0 cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] sm:px-5"
         >
           검색
         </button>
