@@ -1,0 +1,44 @@
+
+http://localhost:3000/#home
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#policies
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#detail/1
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#detail/9
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#switch
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#apply
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#profile
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#wallet
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+13 anti-patterns found.
