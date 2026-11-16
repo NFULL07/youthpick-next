@@ -1,0 +1,8 @@
+# 키
+.env
+.env.*
+!.env.example
+
+# 원본 데이터 (로컬 전용)
+data_raw/
+pipeline/ythapi_*/
