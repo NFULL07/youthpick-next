@@ -33,31 +33,26 @@ export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy }
   return (
     <section
       aria-labelledby={`direct-input-title-${policy.id}`}
-      className="mt-8 border-t border-dashed border-edge/30 pt-7"
+      className="mt-10 border-t border-line pt-8"
     >
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h3
-          id={`direct-input-title-${policy.id}`}
-          className="text-xl font-extrabold text-ink"
-        >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id={`direct-input-title-${policy.id}`} className="t-section">
           직접 입력이 필요한 조건
         </h3>
-        <span className="rounded-lg border border-warn bg-warn-bg px-3 py-1 text-[13px] font-bold text-ink">
-          직접 입력 기준
-        </span>
+        <span className="badge badge-warn">직접 입력 기준</span>
       </div>
-      <p className="text-[15px] leading-relaxed text-ink-2">
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
         아래 서류는 전자지갑으로 아직 받을 수 없어요. 서류를 보고 직접 입력해 주세요.
       </p>
       <p
         role="note"
-        className="mt-3 flex items-start gap-2 rounded-xl bg-canvas px-4 py-3 text-[14px] font-semibold text-ink-2"
+        className="inset mt-3 flex items-start gap-2 px-4 py-3 text-[14px] font-semibold text-ink-2"
       >
         <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <span>{DIRECT_INPUT_NOTICE}</span>
       </p>
 
-      <ul className="mt-5 space-y-4">
+      <ul className="mt-2 divide-y divide-line-soft">
         {items.map((item) => (
           <DirectInputRow
             key={item.fieldId}
@@ -98,13 +93,13 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
   const { result, label } = getDirectInputResult(combinedValue);
 
   return (
-    <li className="rounded-2xl border border-line bg-surface-2 p-4 sm:p-5">
+    <li className="py-6 last:pb-0">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <label htmlFor={inputId} className="text-[16px] font-extrabold text-ink">
           {item.label}
         </label>
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-warn bg-warn-bg px-2.5 py-1 text-[13px] font-bold text-ink">
-          <span aria-hidden="true" className="font-mono-num">
+        <span className="badge badge-warn">
+          <span aria-hidden="true" className="font-extrabold">
             {result}
           </span>
           <span>{label}</span>
@@ -117,7 +112,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
             id={inputId}
             value={values[item.fieldId] ?? ''}
             onChange={(e) => onChange(item.fieldId, e.target.value)}
-            className="w-full rounded-xl border-[1.5px] border-edge bg-surface px-3 py-2.5 text-[15px] text-ink sm:max-w-sm"
+            className="field w-full cursor-pointer sm:max-w-sm"
           >
             <option value="">선택하세요</option>
             {spec.options.map((opt) => (
@@ -129,7 +124,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
         )}
 
         {spec?.kind === 'number' && (
-          <div className="flex w-full items-center gap-2 rounded-xl border-[1.5px] border-edge bg-surface px-3 py-2.5 sm:max-w-sm">
+          <div className="field flex w-full items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink sm:max-w-sm">
             <input
               id={inputId}
               type="text"
@@ -156,7 +151,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
               aria-label={`${item.label} 시작 연월`}
               value={values[`${item.fieldId}.start`] ?? ''}
               onChange={(e) => onChange(`${item.fieldId}.start`, e.target.value)}
-              className="rounded-xl border-[1.5px] border-edge bg-surface px-3 py-2 text-[15px]"
+              className="field"
             />
             <span aria-hidden="true">~</span>
             <input
@@ -164,7 +159,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
               aria-label={`${item.label} 종료 연월`}
               value={values[`${item.fieldId}.end`] ?? ''}
               onChange={(e) => onChange(`${item.fieldId}.end`, e.target.value)}
-              className="rounded-xl border-[1.5px] border-edge bg-surface px-3 py-2 text-[15px]"
+              className="field"
             />
           </div>
         )}

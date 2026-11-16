@@ -13,6 +13,12 @@ export const POLICY_CATEGORIES: readonly PolicyCategory[] = [
   '참여·기반',
 ] as const;
 
+/** 홈에서 정책 찾기로 넘어갈 때 미리 채워 둘 검색 조건 */
+export interface ExplorePreset {
+  category?: PolicyCategory;
+  query?: string;
+}
+
 export type RecruitmentStatus = '모집 중' | '마감' | '공고 확인 필요';
 
 export type AcademicWorkStatus =

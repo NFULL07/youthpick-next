@@ -5,12 +5,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  SlidersHorizontal,
   X,
 } from 'lucide-react';
 import { PolicyCard } from '../components/PolicyCard';
 import { PolicyCompareBar } from '../components/PolicyCompareBar';
 import {
+  ExplorePreset,
   POLICY_CATEGORIES,
   PolicyCategory,
   PolicyItem,
@@ -32,6 +32,8 @@ interface PoliciesExplorePageProps {
   savedIds: string[];
   comparePolicyIds: string[];
   prepPolicyIds: string[];
+  /** 홈에서 넘어올 때 미리 채울 검색어·분야 */
+  preset?: ExplorePreset | null;
   onNavigate: (route: RouteId, policyId?: string) => void;
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
@@ -54,6 +56,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
   savedIds,
   comparePolicyIds,
   prepPolicyIds,
+  preset,
   onNavigate,
   onToggleSave,
   onToggleCompare,
@@ -62,12 +65,12 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
   onOpenSherpaWithPrompt,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'전체' | PolicyCategory>(
-    '전체'
+    preset?.category ?? '전체'
   );
   const [recruitmentStatus, setRecruitmentStatus] = useState<
     '전체' | RecruitmentStatus
   >('전체');
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState(preset?.query ?? '');
   const [sortBy, setSortBy] = useState<'default' | 'name' | 'openFirst'>(
     'default'
   );
@@ -113,30 +116,20 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
     [explorePolicies, comparePolicyIds]
   );
 
+  const profileSummary = [
+    `만 ${profile.age}세`,
+    profile.status,
+    `거주 ${profile.residence || '미입력'}`,
+    `학교 ${profile.schoolRegion || '해당 없음'}`,
+  ].join(' · ');
+
   return (
     <div className="space-y-8">
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-ink-2">
-        <div>
-          <span>나의 다음</span>
-          <span className="mx-2 text-ink-4">/</span>
-          <strong className="font-bold text-ink">정책 찾기</strong>
-        </div>
-        <span className="font-mono-num tracking-wider text-ink-3">
-          YOUR NEXT, ONE PICK AT A TIME.
-        </span>
-      </div>
-
-      {/* Page Heading & Saved Toggle */}
+      {/* 제목과 저장한 정책 보기 */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div className="space-y-2">
-          <p className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
-            FIND YOUR NEXT
-          </p>
-          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-            지금 내게 필요한, 한 장.
-          </h1>
-          <p className="text-[16px] text-ink-2">
+        <div>
+          <h1 className="t-page">지금 내게 필요한, 한 장.</h1>
+          <p className="t-lead mt-2">
             온통청년 5대 정책 분야별로 분류해 살펴보고, 내 생활권과 모집 상태를 바로 확인해요.
           </p>
         </div>
@@ -145,55 +138,50 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
           type="button"
           onClick={() => setSavedOnly((prev) => !prev)}
           aria-pressed={savedOnly}
-          className={`inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-[14px] font-bold transition-colors ${
-            savedOnly
-              ? 'border-[1.5px] border-edge bg-accent text-ink'
-              : 'border-[1.5px] border-line-dim bg-surface text-ink hover:bg-surface-3'
-          }`}
+          className="chip shrink-0 self-start sm:self-auto"
         >
           <Bookmark className="h-4 w-4" fill={savedOnly ? 'currentColor' : 'none'} />
           <span className="tabular-nums">저장한 정책 {savedIds.length}</span>
         </button>
       </div>
 
-      {/* Unified Search Bar */}
-      <form
-        role="search"
-        onSubmit={(e) => e.preventDefault()}
-        className="flex items-center gap-2 rounded-2xl border-[1.5px] border-edge bg-surface px-3 py-2.5 shadow-sm sm:gap-3 sm:px-4"
-      >
-        <Search className="h-5 w-5 shrink-0 text-ink-2" aria-hidden="true" />
-        <label htmlFor="policy-search-input" className="sr-only">
-          정책명 또는 관심 분야 검색
-        </label>
-        <input
-          id="policy-search-input"
-          type="search"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="주거, 취업, 교육·직업훈련, 금융·복지·문화 등 정책을 검색해 보세요"
-          className="min-w-0 flex-1 bg-transparent text-[15px] text-ink placeholder:text-ink-4 focus:outline-none"
-        />
-        {searchInput && (
-          <button
-            type="button"
-            onClick={() => setSearchInput('')}
-            aria-label="검색어 지우기"
-            className="cursor-pointer rounded-lg p-1.5 text-ink-2 hover:bg-surface-3"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-        <button
-          type="submit"
-          className="btn-primary-brand shrink-0 cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-[14px] sm:px-5"
-        >
-          검색
-        </button>
-      </form>
-
-      {/* Quick Intent & Active Profile Summary */}
+      {/* 검색 */}
       <div className="space-y-3">
+        <form
+          role="search"
+          onSubmit={(e) => e.preventDefault()}
+          className="flex items-center gap-2 rounded-2xl border-[1.5px] border-edge bg-surface py-1.5 pl-4 pr-1.5"
+        >
+          <Search className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
+          <label htmlFor="policy-search-input" className="sr-only">
+            정책명 또는 관심 분야 검색
+          </label>
+          <input
+            id="policy-search-input"
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="주거, 취업, 교육·직업훈련, 금융·복지·문화 등 정책을 검색해 보세요"
+            className="min-w-0 flex-1 bg-transparent py-2 text-[16px] text-ink placeholder:text-ink-4 focus:outline-none"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput('')}
+              aria-label="검색어 지우기"
+              className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-ink-2 hover:bg-surface-3"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          <button
+            type="submit"
+            className="btn-primary-brand shrink-0 cursor-pointer whitespace-nowrap rounded-xl px-4 py-2.5 text-[15px] sm:px-5"
+          >
+            검색
+          </button>
+        </form>
+
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 text-[14px] font-semibold text-ink-2">
             이런 다음은 어때요?
@@ -202,14 +190,11 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
             <button
               key={kw.label}
               type="button"
+              aria-pressed={searchInput === kw.query}
               onClick={() =>
                 setSearchInput((prev) => (prev === kw.query ? '' : kw.query))
               }
-              className={`cursor-pointer whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
-                searchInput === kw.query
-                  ? 'border-edge bg-ink text-white'
-                  : 'border-line-mid bg-surface text-ink-2 hover:border-edge'
-              }`}
+              className="chip chip-sm"
             >
               {kw.label}
             </button>
@@ -219,51 +204,28 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
             onClick={() =>
               onOpenSherpaWithPrompt('내 상황과 생활권 기준으로 어떤 정책부터 볼까요?')
             }
-            className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap px-2 py-1.5 text-[14px] font-bold text-ink hover:underline"
+            className="inline-flex min-h-8 cursor-pointer items-center gap-1 whitespace-nowrap px-2 text-[14px] font-bold text-ink hover:underline"
           >
             <span>내 상황으로 물어보기</span>
             <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-[13px]">
-          <span className="font-bold text-ink-2">내 조건</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('profile')}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-lavender px-3 py-1 font-bold text-ink hover:bg-lavender-hover"
-          >
-            <span>만 {profile.age}세</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('profile')}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-lavender px-3 py-1 font-bold text-ink hover:bg-lavender-hover"
-          >
-            <span>{profile.status}</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('profile')}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-lavender px-3 py-1 font-bold text-ink hover:bg-lavender-hover"
-          >
-            <span>거주 {profile.residence || '미입력'}</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('profile')}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-lavender px-3 py-1 font-bold text-ink hover:bg-lavender-hover"
-          >
-            <span>학교 {profile.schoolRegion || '해당 없음'}</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate('profile')}
+          className="group flex max-w-full cursor-pointer items-center gap-2 rounded-xl text-left text-[14px] text-ink-2"
+        >
+          <span className="shrink-0 font-bold text-ink">내 조건</span>
+          <span className="min-w-0 truncate">{profileSummary}</span>
+          <span className="inline-flex shrink-0 items-center font-bold text-ink group-hover:underline">
+            수정
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+        </button>
       </div>
 
-      {/* Category Tabs (5 Ontong-Youth Categories) & Top-Right Recruitment Status + Sort Controls (NO "조금 더 나에게 맞게" sidebar!) */}
+      {/* 분야 탭과 목록 */}
       <section
         ref={listTopRef}
         className="scroll-mt-24 space-y-5 border-t border-line pt-6"
@@ -273,49 +235,36 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
           aria-label="정책 분야"
           className="flex flex-wrap items-center gap-2"
         >
-          {(['전체', ...POLICY_CATEGORIES] as const).map((category) => {
-            const active = selectedCategory === category;
-            return (
-              <button
-                key={category}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setSelectedCategory(category)}
-                className={`cursor-pointer whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-bold transition-colors ${
-                  active
-                    ? 'border-[1.5px] border-ink bg-ink text-white'
-                    : 'border border-line-mid bg-surface text-ink-2 hover:border-edge hover:text-ink'
-                }`}
-              >
-                {category}
-              </button>
-            );
-          })}
+          {(['전체', ...POLICY_CATEGORIES] as const).map((category) => (
+            <button
+              key={category}
+              type="button"
+              aria-pressed={selectedCategory === category}
+              onClick={() => setSelectedCategory(category)}
+              className="chip"
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
-        {/* Policy List Toolbar: Left Count, Right Recruitment Status Filter + Sort */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2 text-[15px] text-ink-2">
-            {/* 목록 제목: h1(페이지) -> h2(목록) -> h3(카드) 순서를 맞춘다. 모양은 기존 strong과 같음 */}
-            <h2 className="font-extrabold text-ink tabular-nums">
+        {/* 목록 머리: 개수, 모집 상태, 정렬 */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            {/* 제목 순서: h1(페이지) -> h2(목록) -> h3(카드) */}
+            <h2 className="t-section tabular-nums">
               찾은 정책 {filteredPolicies.length}개
             </h2>
-            <span className="text-ink-4">·</span>
-            <span className="text-[14px] font-medium text-ink-2">
+            <span className="t-meta">
               {selectedCategory} · {recruitmentStatus} 기준
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Recruitment Status Filter relocated cleanly to list top-right */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-2">
-              <SlidersHorizontal
-                className="h-4 w-4 text-ink-2"
-                aria-hidden="true"
-              />
               <label
                 htmlFor="recruitment-status-filter"
-                className="text-[14px] font-bold text-ink"
+                className="text-[14px] font-semibold text-ink-2"
               >
                 모집 상태
               </label>
@@ -328,7 +277,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                     e.target.value as '전체' | RecruitmentStatus
                   )
                 }
-                className="cursor-pointer rounded-xl border border-line-dim bg-surface-2 px-3 py-2 text-[14px] font-semibold text-ink"
+                className="field cursor-pointer text-[14px] font-semibold"
               >
                 <option value="전체">전체</option>
                 <option value="모집 중">모집 중</option>
@@ -340,7 +289,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
             <div className="flex items-center gap-2">
               <label
                 htmlFor="policy-sort-select"
-                className="text-[14px] font-bold text-ink"
+                className="text-[14px] font-semibold text-ink-2"
               >
                 정렬
               </label>
@@ -351,7 +300,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 onChange={(e) =>
                   setSortBy(e.target.value as 'default' | 'name' | 'openFirst')
                 }
-                className="cursor-pointer rounded-xl border border-line-dim bg-surface-2 px-3 py-2 text-[14px] font-semibold text-ink"
+                className="field cursor-pointer text-[14px] font-semibold"
               >
                 <option value="default">기본순</option>
                 <option value="openFirst">모집 중 우선</option>
@@ -361,7 +310,6 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
           </div>
         </div>
 
-        {/* Policy Card Grid (Full Width without Left Filter Panel) */}
         {filteredPolicies.length > 0 ? (
           <>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -388,7 +336,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 type="button"
                 disabled={safePage <= 1}
                 onClick={() => handlePageChange(safePage - 1)}
-                className="inline-flex h-10 cursor-pointer items-center gap-1 rounded-xl border-[1.5px] border-line-mid bg-surface px-3.5 text-[14px] font-bold text-ink transition-colors hover:border-edge hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-45"
+                className="chip disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 <span>이전</span>
@@ -402,13 +350,9 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                       key={pageNum}
                       type="button"
                       onClick={() => handlePageChange(pageNum)}
-                      aria-current={isActive ? 'page' : undefined}
+                      aria-current={isActive ? 'true' : undefined}
                       aria-label={`${pageNum}페이지`}
-                      className={`font-mono-num inline-flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-xl border-[1.5px] px-3 text-[14px] font-extrabold transition-colors ${
-                        isActive
-                          ? 'border-ink bg-ink text-accent'
-                          : 'border-line-mid bg-surface text-ink hover:border-edge hover:bg-surface-3'
-                      }`}
+                      className="chip min-w-10 justify-center px-3 tabular-nums"
                     >
                       {pageNum}
                     </button>
@@ -420,7 +364,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                 type="button"
                 disabled={safePage >= totalPages}
                 onClick={() => handlePageChange(safePage + 1)}
-                className="inline-flex h-10 cursor-pointer items-center gap-1 rounded-xl border-[1.5px] border-line-mid bg-surface px-3.5 text-[14px] font-bold text-ink transition-colors hover:border-edge hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-45"
+                className="chip disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <span>다음</span>
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -428,10 +372,8 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
             </nav>
           </>
         ) : (
-          <div className="rounded-3xl border border-line bg-surface p-10 text-center">
-            <p className="text-lg font-bold text-ink">
-              선택한 조건에 맞는 정책이 아직 없어요.
-            </p>
+          <div className="card-soft rounded-3xl bg-surface p-10 text-center">
+            <p className="t-card">선택한 조건에 맞는 정책이 아직 없어요.</p>
             <p className="mt-1.5 text-[15px] text-ink-2">
               분야나 모집 상태 필터를 전체로 돌려서 다른 정책을 살펴보세요.
             </p>

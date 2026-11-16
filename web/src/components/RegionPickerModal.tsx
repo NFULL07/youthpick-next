@@ -69,7 +69,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="region-modal-title"
-        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border-[1.5px] border-edge bg-surface-2 shadow-2xl break-keep"
+        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-surface-2 shadow-[0_16px_48px_rgb(31_36_33/0.22)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header (Pinned) */}
@@ -92,7 +92,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="지역 선택 창 닫기"
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-edge/30 bg-surface text-ink hover:bg-canvas"
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-ink hover:bg-surface/60"
           >
             <X className="h-4.5 w-4.5" />
           </button>
@@ -178,7 +178,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
         <div className="flex shrink-0 flex-col gap-2.5 border-t border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink-2 sm:text-[14px]">
             <span className="shrink-0">선택된 지역:</span>
-            <strong className="rounded-lg border border-edge bg-sage px-2.5 py-1 font-bold text-ink break-keep sm:px-3">
+            <strong className="badge bg-sage text-ink">
               {formattedPreview}
             </strong>
           </div>

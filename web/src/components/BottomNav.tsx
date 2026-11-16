@@ -32,7 +32,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="하단 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-edge bg-surface-2 px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface-2 px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
     >
       <ul className="mx-auto grid max-w-2xl grid-cols-5">
         {BOTTOM_NAV_ITEMS.map((item) => {
@@ -53,13 +53,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 }`}
               >
                 <span
-                  className={`relative flex h-7 w-10 items-center justify-center rounded-lg border ${
-                    active ? 'border-edge bg-accent' : 'border-transparent'
+                  className={`relative flex h-7 w-11 items-center justify-center rounded-full ${
+                    active ? 'bg-accent' : ''
                   }`}
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />
                   {badge !== null && (
-                    <span className="font-mono-num absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-edge bg-accent px-1 text-[10px] font-bold text-ink">
+                    <span className="absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold tabular-nums text-ink ring-2 ring-surface-2">
                       {badge}
                       <span className="sr-only">건 준비 중</span>
                     </span>

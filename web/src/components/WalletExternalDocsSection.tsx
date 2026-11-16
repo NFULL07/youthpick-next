@@ -15,13 +15,10 @@ export const WalletExternalDocsSection: React.FC = () => {
       className="card-soft rounded-3xl bg-surface p-6 sm:p-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id="wallet-external-docs-title"
-          className="text-2xl font-extrabold text-ink"
-        >
+        <h2 id="wallet-external-docs-title" className="t-section">
           지갑 밖 서류 (직접 준비)
         </h2>
-        <span className="rounded-lg border border-warn bg-warn-bg px-3 py-1 text-[13px] font-bold text-ink">
+        <span className="badge badge-warn">
           {externalDocs.length}종 · 직접 입력 기준
         </span>
       </div>
@@ -35,7 +32,7 @@ export const WalletExternalDocsSection: React.FC = () => {
         {externalDocs.map((doc) => (
           <li
             key={doc.id}
-            className="rounded-2xl border border-line bg-surface-2 p-4"
+            className="inset p-4"
           >
             <details>
               <summary className="flex cursor-pointer items-start gap-2">

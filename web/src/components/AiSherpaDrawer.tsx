@@ -79,23 +79,23 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           role="dialog"
           aria-label="AI 내비게이터 (AI 셰르파)"
           data-testid="ai-navigator-drawer"
-          className={`fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-edge bg-surface-2 shadow-2xl md:left-auto md:right-6 md:top-auto md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl ${
+          className={`fixed left-2 right-2 top-2 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-50 flex flex-col overflow-hidden rounded-2xl border border-line bg-surface-2 shadow-[0_16px_48px_rgb(31_36_33/0.22)] md:left-auto md:right-6 md:top-auto md:w-[min(560px,calc(100vw-2rem))] md:rounded-3xl ${
             hasCompareBar
               ? 'md:bottom-[calc(13.75rem+env(safe-area-inset-bottom))] md:h-[min(600px,calc(100vh-16rem))] lg:bottom-[10.75rem] lg:h-[min(600px,calc(100vh-12rem))]'
               : 'md:bottom-[calc(9rem+env(safe-area-inset-bottom))] md:h-[min(680px,calc(100vh-14rem))] lg:bottom-20 lg:h-[min(680px,calc(100vh-7rem))]'
           }`}
         >
           {/* Drawer Header */}
-          <div className="flex items-center justify-between border-b border-edge bg-lavender px-4 py-2.5">
+          <div className="flex items-center justify-between bg-lavender px-4 py-2.5">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border-[1.5px] border-edge bg-accent text-ink">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-ink">
                 <Compass className="h-4 w-4" aria-hidden="true" />
               </span>
               <div>
                 <h2 className="text-[15px] font-extrabold leading-tight text-ink">
                   AI 내비게이터 (AI 셰르파)
                 </h2>
-                <p className="text-[12px] font-semibold text-ink-2">
+                <p className="text-[12px] font-medium text-ink-2">
                   내 조건·화면 맥락 기반 규칙형 안내
                 </p>
               </div>
@@ -105,7 +105,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
               type="button"
               onClick={onToggle}
               aria-label="AI 내비게이터 닫기"
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-edge/30 bg-surface text-ink hover:bg-canvas"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-ink hover:bg-surface/60"
             >
               <X className="h-4 w-4" />
             </button>
@@ -131,11 +131,8 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
             {messages.length === 0 ? (
               <div className="space-y-3">
-                <div className="rounded-xl border border-line bg-surface p-3.5">
-                  <p className="font-mono-num text-[10px] font-bold tracking-wider text-ink-3">
-                    MY NEXT NAVIGATOR
-                  </p>
-                  <h3 className="mt-1 text-[16px] font-extrabold leading-snug text-ink">
+                <div className="rounded-xl bg-surface p-3.5">
+                  <h3 className="text-[16px] font-extrabold leading-snug text-ink">
                     다음 한 칸,{' '}
                     <span className="bg-accent px-1">같이 찾아볼까요?</span>
                   </h3>
@@ -155,7 +152,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                       key={prompt}
                       type="button"
                       onClick={() => handleAsk(prompt)}
-                      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-line-mid bg-surface px-3 py-2 text-left text-[13px] font-semibold text-ink transition-colors hover:border-edge hover:bg-sage"
+                      className="flex min-h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-surface px-3 py-2 text-left text-[13px] font-semibold text-ink transition-colors hover:bg-sage"
                     >
                       <span>{prompt}</span>
                       <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-ink-2" aria-hidden="true" />
@@ -229,7 +226,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
             <label htmlFor="sherpa-question-input" className="sr-only">
               내비게이터에게 질문하기
             </label>
-            <div className="flex items-center gap-2 rounded-xl border-[1.5px] border-edge bg-surface-2 px-3 py-1.5">
+            <div className="field flex items-center gap-2 py-1.5 pr-1.5 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
               <input
                 id="sherpa-question-input"
                 type="text"
@@ -246,7 +243,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                 <Send className="h-3.5 w-3.5" />
               </button>
             </div>
-            <p className="mt-1.5 text-center text-[11px] font-medium text-ink-3">
+            <p className="mt-1.5 text-center text-[12px] font-medium text-ink-3">
               내 입력 조건 기반 규칙형 안내 · 외부 AI API를 호출하지 않습니다
             </p>
           </form>
@@ -265,17 +262,12 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
           hasCompareBar
             ? 'bottom-[calc(11.75rem+env(safe-area-inset-bottom))] sm:bottom-[calc(9.5rem+env(safe-area-inset-bottom))] lg:bottom-[6.25rem]'
             : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-4'
-        } cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-edge bg-ink px-4 py-2.5 text-white shadow-xl transition-[bottom,transform] duration-150 hover:-translate-y-0.5`}
+        } cursor-pointer items-center gap-2.5 rounded-2xl bg-ink py-2 pl-2 pr-4 text-white shadow-[0_16px_48px_rgb(31_36_33/0.22)] transition-[bottom,transform] duration-150 hover:-translate-y-0.5`}
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-ink">
           <Compass className="h-5 w-5" aria-hidden="true" />
         </span>
-        <span className="text-left leading-tight">
-          <span className="block text-[11px] font-semibold text-accent">
-            나의 다음 한 걸음
-          </span>
-          <strong className="block text-[14px] font-extrabold">AI 내비게이터</strong>
-        </span>
+        <strong className="text-[14px] font-extrabold">AI 내비게이터</strong>
       </button>
     </>
   );

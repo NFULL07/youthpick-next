@@ -91,27 +91,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-ink-2">
-        <div>
-          <span>나의 다음</span>
-          <span className="mx-2 text-ink-4">/</span>
-          <strong className="font-bold text-ink">내 정보</strong>
-        </div>
-        <span className="font-mono-num tracking-wider text-ink-3">
-          YOUR NEXT, ONE PICK AT A TIME.
-        </span>
-      </div>
-
-      {/* Heading */}
-      <div className="space-y-2">
-        <p className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
-          MY POLICY PASS / 내 정보
-        </p>
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          나를 알아야, 더 잘 고르니까.
-        </h1>
-        <p className="text-[16px] text-ink-2">
+      <div>
+        <h1 className="t-page">나를 알아야, 더 잘 고르니까.</h1>
+        <p className="t-lead mt-2">
           추천에 사용할 내 조건과 관심 분야, 준비 문서를 함께 관리해요.
         </p>
       </div>
@@ -130,15 +112,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           className="space-y-6 lg:col-span-8"
         >
           {/* Basic Info Card */}
-          <section className="card-tactile rounded-3xl bg-surface p-6 sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-2xl font-extrabold text-ink">
-                기본 정보
-              </h2>
-              <span className="rounded-lg border border-line bg-canvas px-3 py-1 text-[13px] font-bold text-ink-2">
-                시·도 / 시·군·구 모달 선택
-              </span>
-            </div>
+          <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8">
+            <h2 className="t-section">기본 정보</h2>
             <p className="mt-1.5 text-[15px] text-ink-2">
               거주지와 재학·근무 지역을 나누어 선택하면 생활권 특례 정책을 놓치지 않아요.
             </p>
@@ -152,7 +127,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 >
                   연령
                 </label>
-                <div className="flex items-center rounded-2xl border-[1.5px] border-line-mid bg-surface-2 px-4 py-3 focus-within:border-edge">
+                <div className="field flex min-h-13 items-center gap-2 rounded-2xl px-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
                   <input
                     id="profile-age"
                     type="number"
@@ -203,7 +178,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                       status: e.target.value as AcademicWorkStatus,
                     }))
                   }
-                  className="w-full cursor-pointer rounded-2xl border-[1.5px] border-line-mid bg-surface-2 px-4 py-3 text-[16px] font-bold text-ink focus:border-edge"
+                  className="field min-h-13 w-full cursor-pointer rounded-2xl px-4 text-[16px] font-bold"
                 >
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
@@ -223,12 +198,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   data-testid="select-residence-btn"
                   aria-label={`주민등록상 주소지 선택: 현재 ${draft.residence || '미선택'}`}
                   onClick={() => setModalField('residence')}
-                  className="flex w-full cursor-pointer items-center justify-between rounded-2xl border-[1.5px] border-line-mid bg-surface-2 px-4 py-3 text-left transition-colors hover:border-edge hover:bg-surface"
+                  className="field flex min-h-13 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl px-4 text-left transition-colors hover:border-ink-3"
                 >
                   <span className="text-[16px] font-bold text-ink">
                     {draft.residence || '시·도 / 시·군·구 선택하기'}
                   </span>
-                  <MapPin className="h-4.5 w-4.5 shrink-0 text-ink-2" aria-hidden="true" />
+                  <MapPin className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
                 </button>
                 <p className="mt-1.5 text-[13px] font-medium text-ink-3">
                   클릭하여 시·도 → 시·군·구를 계층적으로 선택해 주세요.
@@ -245,7 +220,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   data-testid="select-school-btn"
                   aria-label={`학교 소재지 선택: 현재 ${draft.schoolRegion || '미선택'}`}
                   onClick={() => setModalField('schoolRegion')}
-                  className="flex w-full cursor-pointer items-center justify-between rounded-2xl border-[1.5px] border-line-mid bg-surface-2 px-4 py-3 text-left transition-colors hover:border-edge hover:bg-surface"
+                  className="field flex min-h-13 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl px-4 text-left transition-colors hover:border-ink-3"
                 >
                   <span
                     className={`text-[16px] font-bold ${
@@ -254,7 +229,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   >
                     {draft.schoolRegion || '해당 시·군·구 선택 (선택)'}
                   </span>
-                  <MapPin className="h-4.5 w-4.5 shrink-0 text-ink-2" aria-hidden="true" />
+                  <MapPin className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
                 </button>
                 <p className="mt-1.5 text-[13px] font-medium text-ink-3">
                   학교에 다니고 있다면 소재지 시·군·구를 선택해 주세요.
@@ -271,7 +246,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   data-testid="select-work-btn"
                   aria-label={`근무 지역 선택: 현재 ${draft.workRegion || '선택 안 함'}`}
                   onClick={() => setModalField('workRegion')}
-                  className="flex w-full cursor-pointer items-center justify-between rounded-2xl border-[1.5px] border-line-mid bg-surface-2 px-4 py-3 text-left transition-colors hover:border-edge hover:bg-surface sm:max-w-md"
+                  className="field flex min-h-13 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl px-4 text-left transition-colors hover:border-ink-3 sm:max-w-md"
                 >
                   <span
                     className={`text-[16px] font-bold ${
@@ -280,7 +255,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   >
                     {draft.workRegion || '클릭해서 근무 지역 선택 (예: 충청남도 천안시)'}
                   </span>
-                  <MapPin className="h-4.5 w-4.5 shrink-0 text-ink-2" aria-hidden="true" />
+                  <MapPin className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -290,22 +265,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
           <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-2xl font-extrabold text-ink">
-                  관심 분야
-                </h2>
+                <h2 className="t-section">관심 분야</h2>
                 <p className="mt-1 text-[15px] text-ink-2">
                   온통청년 기준 5대 분야 중 관심 있는 지원을 여러 개 선택할 수 있어요.
                 </p>
               </div>
 
               <div className="flex shrink-0 items-center gap-2">
-                <span className="font-mono-num mr-1 text-[13px] font-bold text-ink-2 tabular-nums">
+                <span className="mr-1 text-[13px] font-semibold text-ink-3 tabular-nums">
                   {draft.interests.length}/{POLICY_CATEGORIES.length} 선택됨
                 </span>
                 <button
                   type="button"
                   onClick={selectAllInterests}
-                  className="cursor-pointer whitespace-nowrap rounded-xl border border-edge/30 bg-sage px-3.5 py-2 text-[13px] font-bold text-ink transition-colors hover:border-edge hover:bg-accent"
+                  className="btn-secondary-outline cursor-pointer whitespace-nowrap rounded-xl px-3.5 py-2 text-[13px]"
                 >
                   전체 선택
                 </button>
@@ -325,10 +298,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 return (
                   <label
                     key={category}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded-2xl border-[1.5px] px-4 py-3 text-[15px] font-bold transition-colors ${
+                    className={`flex cursor-pointer items-center gap-2.5 rounded-2xl px-4 py-3 text-[15px] font-bold transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ink ${
                       checked
-                        ? 'border-edge bg-accent text-ink'
-                        : 'border-line-mid bg-surface-2 text-ink-2 hover:border-edge/60'
+                        ? 'bg-accent text-ink'
+                        : 'bg-surface-2 text-ink-2 hover:bg-surface-3'
                     }`}
                   >
                     <input
@@ -376,34 +349,26 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
         {/* Right Info Sidebar */}
         <aside className="space-y-6 lg:col-span-4">
-          <section className="card-tactile rounded-3xl bg-surface p-6">
-            <div className="flex items-center justify-between text-xs font-bold tracking-wider text-ink-2">
-              <span className="font-mono-num">MY NEXT WALLET</span>
-              <Wallet className="h-4.5 w-4.5 text-ink" aria-hidden="true" />
+          <section className="rounded-3xl bg-sage p-6">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="t-section">내 서류도, 한 곳에.</h2>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent">
+                <Wallet className="h-5 w-5 text-ink" aria-hidden="true" />
+              </span>
             </div>
-
-            <h2 className="mt-3 text-2xl font-extrabold text-ink">
-              내 서류도, 한 곳에.
-            </h2>
             <p className="mt-1.5 text-[15px] text-ink-2">
               정책에 필요한 서류와 준비 안내를 함께 살펴봐요.
             </p>
+            <p className="mt-3">
+              <span className="badge bg-surface">전자지갑 연결 준비</span>
+            </p>
 
-            <div className="mt-5 flex items-center justify-between rounded-2xl border-[1.5px] border-edge bg-accent p-4">
-              <span className="font-mono-num text-sm font-extrabold text-ink">
-                N↗ NEXT WALLET
-              </span>
-              <span className="rounded-lg bg-surface px-2.5 py-1 text-xs font-bold text-ink">
-                연결 준비
-              </span>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 divide-x divide-line border-t border-dashed border-line-mid pt-4 text-center">
+            <div className="mt-5 grid grid-cols-2 divide-x divide-edge/15 border-t border-edge/15 pt-4 text-center">
               <div>
                 <span className="block text-[13px] font-semibold text-ink-3">
                   파일명 기록 문서
                 </span>
-                <strong className="font-mono-num mt-0.5 block text-2xl font-extrabold text-ink">
+                <strong className="mt-0.5 block text-2xl font-extrabold tabular-nums text-ink">
                   {walletDocCount}
                 </strong>
               </div>
@@ -411,7 +376,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 <span className="block text-[13px] font-semibold text-ink-3">
                   보관한 안내
                 </span>
-                <strong className="font-mono-num mt-0.5 block text-2xl font-extrabold text-ink">
+                <strong className="mt-0.5 block text-2xl font-extrabold tabular-nums text-ink">
                   {guideCount}
                 </strong>
               </div>
@@ -423,16 +388,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               className="btn-primary-brand mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[15px]"
             >
               <span>내 전자지갑 열기</span>
-              <ArrowRight className="h-4.5 w-4.5" aria-hidden="true" />
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </section>
 
-          <section className="card-soft rounded-3xl bg-surface-3 p-6">
-            <h2 className="text-lg font-extrabold text-ink">
-              정보를 입력하기 전에
-            </h2>
-            <ul className="mt-4 space-y-4 text-[14px] leading-relaxed text-ink-2">
-              <li className="border-b border-line pb-3">
+          <section className="card-soft rounded-3xl bg-surface p-6">
+            <h2 className="t-card">정보를 입력하기 전에</h2>
+            <ul className="mt-2 divide-y divide-line-soft text-[14px] leading-relaxed text-ink-2 [&>li]:py-3 [&>li:last-child]:pb-0">
+              <li>
                 <strong className="block font-bold text-ink">
                   주소지는 서로 달라도 돼요
                 </strong>
@@ -440,7 +403,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   실제 주민등록지와 학교·근무 지역을 구분하면 확인할 조건을 놓치지 않아요.
                 </span>
               </li>
-              <li className="border-b border-line pb-3">
+              <li>
                 <strong className="block font-bold text-ink">
                   민감한 정보는 입력하지 않아요
                 </strong>

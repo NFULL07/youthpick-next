@@ -73,11 +73,7 @@ export const TopNav: React.FC<TopNavProps> = ({
                 <span>{item.label}</span>
                 {typeof item.badge === 'number' && item.badge > 0 && (
                   <span
-                    className={`font-mono-num inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-bold ${
-                      active
-                        ? 'bg-accent text-ink'
-                        : 'bg-accent text-ink border border-edge'
-                    }`}
+                    className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold tabular-nums text-ink"
                   >
                     {item.badge}
                   </span>
@@ -94,9 +90,9 @@ export const TopNav: React.FC<TopNavProps> = ({
             onClick={() => setShowAlerts((prev) => !prev)}
             aria-label="모집 일정 및 안내 알림 확인"
             aria-expanded={showAlerts}
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-line-mid bg-surface text-ink transition-colors hover:bg-surface-3 sm:h-10 sm:w-10"
+            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl text-ink transition-colors hover:bg-surface-3"
           >
-            <Bell className="h-4.5 w-4.5" aria-hidden="true" />
+            <Bell className="h-5 w-5" aria-hidden="true" />
           </button>
 
           <button
@@ -104,7 +100,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             onClick={() => onNavigate('profile')}
             aria-label="내 정보 열기"
             aria-current={currentRoute === 'profile' ? 'page' : undefined}
-            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap break-keep rounded-xl border-[1.5px] border-edge bg-lavender px-3 text-[13px] font-bold text-ink transition-colors hover:bg-lavender-hover sm:h-10 sm:px-3.5 sm:text-sm"
+            className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl bg-lavender px-3.5 text-[14px] font-bold text-ink transition-colors hover:bg-lavender-hover aria-[current=page]:bg-ink aria-[current=page]:text-white"
           >
             <span>내 정보</span>
           </button>
@@ -113,28 +109,28 @@ export const TopNav: React.FC<TopNavProps> = ({
             <div
               role="dialog"
               aria-label="최근 안내 알림"
-              className="absolute right-0 top-13 z-50 w-80 rounded-2xl border-[1.5px] border-edge bg-surface p-4 shadow-lg"
+              className="absolute right-0 top-13 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-surface p-4 shadow-[0_12px_32px_rgb(31_36_33/0.14)]"
             >
-              <div className="mb-2 flex items-center justify-between border-b border-line-soft pb-2">
-                <strong className="text-sm font-bold text-ink">
+              <div className="flex items-center justify-between">
+                <strong className="text-[15px] font-extrabold text-ink">
                   {livingZoneLabel} 확인 안내
                 </strong>
                 <button
                   type="button"
                   onClick={() => setShowAlerts(false)}
-                  className="cursor-pointer text-xs font-semibold text-ink-2 hover:text-ink"
+                  className="cursor-pointer rounded-lg px-2 py-1 text-[13px] font-semibold text-ink-2 hover:bg-surface-3 hover:text-ink"
                 >
                   닫기
                 </button>
               </div>
-              <ul className="space-y-2.5 text-[13px] leading-relaxed text-ink-2">
-                <li className="rounded-xl bg-canvas p-2.5">
+              <ul className="mt-2 divide-y divide-line-soft text-[13px] leading-relaxed text-ink-2">
+                <li className="py-2.5">
                   <strong className="block font-bold text-ink">
                     모집 중 정책 5건 확인 가능
                   </strong>
                   <span>정책 찾기 우측 필터에서 모집 중 정책만 바로 모아볼 수 있어요.</span>
                 </li>
-                <li className="rounded-xl bg-canvas p-2.5">
+                <li className="pt-2.5">
                   <strong className="block font-bold text-ink">
                     생활권 정보 분리 관리
                   </strong>

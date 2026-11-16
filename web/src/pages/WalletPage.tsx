@@ -50,27 +50,9 @@ export const WalletPage: React.FC<WalletPageProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Breadcrumb */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-ink-2">
-        <div>
-          <span>나의 다음</span>
-          <span className="mx-2 text-ink-4">/</span>
-          <strong className="font-bold text-ink">전자지갑</strong>
-        </div>
-        <span className="font-mono-num tracking-wider text-ink-3">
-          YOUR NEXT, ONE PICK AT A TIME.
-        </span>
-      </div>
-
-      {/* Heading */}
-      <div className="space-y-2">
-        <p className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
-          04 / MY NEXT WALLET
-        </p>
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          준비는 한곳에. 쓰임은 한눈에.
-        </h1>
-        <p className="text-[16px] text-ink-2">
+      <div>
+        <h1 className="t-page">준비는 한곳에. 쓰임은 한눈에.</h1>
+        <p className="t-lead mt-2">
           내 정보와 서류를 잇고, 다음 신청 준비를 가볍게 시작해요.
         </p>
       </div>
@@ -78,44 +60,28 @@ export const WalletPage: React.FC<WalletPageProps> = ({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Wallet Card */}
         <aside className="space-y-5 lg:col-span-4">
-          <section className="card-tactile rounded-3xl bg-lavender p-6">
-            <div className="flex items-center justify-between text-xs font-bold tracking-wider text-ink">
-              <span className="font-mono-num">MY NEXT WALLET</span>
-              <span className="font-mono-num">01 / NEXT</span>
-            </div>
+          <section
+            aria-labelledby="wallet-living-title"
+            className="card-tactile rounded-3xl bg-lavender p-6"
+          >
+            <h2 id="wallet-living-title" className="text-[13px] font-semibold text-ink-2">
+              나의 생활권
+            </h2>
+            <p className="t-section mt-1">
+              {profile.residence || '미입력'} ↔ {profile.schoolRegion || '미입력'}
+            </p>
+            <p className="mt-1 text-[14px] font-semibold text-ink-2 tabular-nums">
+              만 {profile.age}세 · {profile.status}
+            </p>
 
-            <div className="mt-5 rounded-2xl border-[1.5px] border-edge bg-accent p-5">
-              <span className="font-mono-num text-xs font-bold text-ink">
-                MY NEXT
-              </span>
-              <p className="mt-2 text-lg font-extrabold text-ink">
-                나의 다음을 위한 서류
-              </p>
-              <span className="font-mono-num mt-4 block text-xs font-bold text-ink-2">
-                N↗ NEXT WALLET
-              </span>
-            </div>
-
-            <div className="mt-5 space-y-1">
-              <span className="text-[13px] font-semibold text-ink-2">
-                나의 생활권
-              </span>
-              <h2 className="text-xl font-extrabold text-ink">
-                {profile.residence || '미입력'} ↔ {profile.schoolRegion || '미입력'}
-              </h2>
-              <p className="text-[14px] font-semibold text-ink-2">
-                만 {profile.age}세 · {profile.status}
-              </p>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between border-t border-edge/20 pt-4">
-              <span className="text-[13px] font-semibold text-ink-2">
-                모달 선택 생활권 정보
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-edge/20 pt-4">
+              <span className="text-[13px] font-medium text-ink-2">
+                서류 안내에 쓰는 정보예요.
               </span>
               <button
                 type="button"
                 onClick={() => onNavigate('profile')}
-                className="btn-primary-brand cursor-pointer rounded-xl px-3.5 py-2 text-[13px]"
+                className="btn-primary-brand shrink-0 cursor-pointer rounded-xl px-3.5 py-2 text-[13px]"
               >
                 수정
               </button>
@@ -126,35 +92,35 @@ export const WalletPage: React.FC<WalletPageProps> = ({
         {/* Right Document Workspace */}
         <div className="space-y-6 lg:col-span-8">
           {/* Summary Bar */}
-          <div className="card-soft grid grid-cols-1 divide-y divide-line rounded-3xl bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="card-soft grid grid-cols-1 divide-y divide-line-soft rounded-3xl bg-surface sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <div className="p-5">
-              <span className="text-[13px] font-bold text-ink-3">
+              <span className="text-[13px] font-semibold text-ink-3">
                 파일명 기록 문서
               </span>
-              <strong className="font-mono-num mt-1 block text-3xl font-extrabold text-ink">
-                {String(uploadedCount).padStart(2, '0')}개
+              <strong className="mt-1 block text-2xl font-extrabold tabular-nums text-ink">
+                {uploadedCount}개
               </strong>
               <span className="mt-1 block text-[13px] text-ink-2">
                 현재 브라우저에 파일명 기록
               </span>
             </div>
             <div className="p-5">
-              <span className="text-[13px] font-bold text-ink-3">
+              <span className="text-[13px] font-semibold text-ink-3">
                 확인할 필요 서류
               </span>
-              <strong className="font-mono-num mt-1 block text-3xl font-extrabold text-ink">
-                {String(documents.length).padStart(2, '0')}개
+              <strong className="mt-1 block text-2xl font-extrabold tabular-nums text-ink">
+                {documents.length}개
               </strong>
               <span className="mt-1 block text-[13px] text-ink-2">
                 발급처 및 기준 안내
               </span>
             </div>
             <div className="p-5">
-              <span className="text-[13px] font-bold text-ink-3">
+              <span className="text-[13px] font-semibold text-ink-3">
                 준비 중인 정책
               </span>
-              <strong className="font-mono-num mt-1 block text-3xl font-extrabold text-ink">
-                {String(prepPolicyCount).padStart(2, '0')}건
+              <strong className="mt-1 block text-2xl font-extrabold tabular-nums text-ink">
+                {prepPolicyCount}건
               </strong>
               <span className="mt-1 block truncate text-[13px] text-ink-2">
                 {activePolicyTitle || '아직 선택한 정책 없음'}
@@ -165,7 +131,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
           {/* Search & Category Filter */}
           <div className="card-soft rounded-3xl bg-surface p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-1 items-center gap-2 rounded-xl border border-line-mid bg-surface-2 px-3.5 py-2.5">
+              <div className="field flex flex-1 items-center gap-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink">
                 <Search className="h-4 w-4 text-ink-2" aria-hidden="true" />
                 <input
                   type="search"
@@ -173,7 +139,7 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="서류 이름으로 찾아보세요"
-                  className="w-full bg-transparent text-[14px] text-ink placeholder:text-ink-4 focus:outline-none"
+                  className="w-full bg-transparent text-[15px] text-ink placeholder:text-ink-4 focus:outline-none"
                 />
               </div>
 
@@ -183,11 +149,8 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                     key={cat}
                     type="button"
                     onClick={() => setCategoryFilter(cat)}
-                    className={`cursor-pointer rounded-xl px-3.5 py-2 text-[13px] font-bold transition-colors ${
-                      categoryFilter === cat
-                        ? 'bg-ink text-white'
-                        : 'border border-line-mid bg-surface-2 text-ink-2 hover:border-edge'
-                    }`}
+                    aria-pressed={categoryFilter === cat}
+                    className="chip chip-sm"
                   >
                     {cat}
                   </button>
@@ -205,14 +168,13 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                       key={doc.id}
                       type="button"
                       onClick={() => setSelectedDocId(doc.id)}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-2xl border-[1.5px] p-4 text-left transition-colors ${
-                        selected
-                          ? 'border-edge bg-sage'
-                          : 'border-line bg-surface-2 hover:border-edge/50'
+                      aria-pressed={selected}
+                      className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl p-4 text-left transition-colors ${
+                        selected ? 'bg-sage' : 'bg-surface-2 hover:bg-surface-3'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-edge/20 bg-surface text-ink">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface text-ink">
                           <FileText className="h-5 w-5" aria-hidden="true" />
                         </span>
                         <div>
@@ -225,10 +187,8 @@ export const WalletPage: React.FC<WalletPageProps> = ({
                         </div>
                       </div>
                       <span
-                        className={`shrink-0 rounded-lg border px-2.5 py-1 text-[12px] font-bold ${
-                          doc.uploadedFileName
-                            ? 'border-edge bg-accent text-ink'
-                            : 'border-line-mid bg-surface text-ink-2'
+                        className={`shrink-0 ${
+                          doc.uploadedFileName ? 'badge badge-ok' : 'badge bg-surface'
                         }`}
                       >
                         {doc.uploadedFileName ? '파일명 기록' : doc.status}
@@ -240,13 +200,8 @@ export const WalletPage: React.FC<WalletPageProps> = ({
 
               {/* Selected Document Detail */}
               {selectedDoc && (
-                <div className="rounded-2xl border-[1.5px] border-edge bg-surface-2 p-5 md:col-span-6">
-                  <span className="font-mono-num text-xs font-bold tracking-wider text-ink-3">
-                    DOCUMENT DETAIL
-                  </span>
-                  <h3 className="mt-1.5 text-xl font-extrabold text-ink">
-                    {selectedDoc.name}
-                  </h3>
+                <div className="inset p-5 md:col-span-6">
+                  <h2 className="t-card">{selectedDoc.name}</h2>
                   <p className="mt-2 text-[14px] leading-relaxed text-ink-2">
                     {selectedDoc.previewNote}
                   </p>

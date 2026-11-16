@@ -8,7 +8,7 @@ export const DemoDataBanner: React.FC = () => (
   <div
     role="note"
     aria-label="시연 데이터 안내"
-    className="border-b border-warn/50 bg-warn-bg px-5 py-2 text-[13px] font-bold text-ink md:px-8"
+    className="bg-warn-bg px-5 py-2 text-[13px] font-semibold text-warn-ink md:px-8"
   >
     <p className="mx-auto flex max-w-[1280px] items-center justify-center gap-2 text-center">
       <Info className="h-4 w-4 shrink-0" aria-hidden="true" />

@@ -15,7 +15,13 @@ import { PoliciesExplorePage } from './pages/PoliciesExplorePage';
 import { PolicyDetailPage } from './pages/PolicyDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { WalletPage } from './pages/WalletPage';
-import { PolicyItem, RouteId, UserProfile, WalletDocument } from './types/policy';
+import {
+  ExplorePreset,
+  PolicyItem,
+  RouteId,
+  UserProfile,
+  WalletDocument,
+} from './types/policy';
 import {
   sanitizeProfile,
   sanitizeStringList,
@@ -115,6 +121,8 @@ export default function App() {
     sanitizeWalletDocs(loadJson<unknown>(STORAGE_KEY_DOCS, null), INITIAL_WALLET_DOCS)
   );
 
+  // 홈의 검색·분야 바로가기에서 정책 찾기로 넘길 조건. 다른 길로 이동하면 지운다.
+  const [explorePreset, setExplorePreset] = useState<ExplorePreset | null>(null);
   const [isSherpaOpen, setIsSherpaOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [lastRemovedPolicy, setLastRemovedPolicy] =
@@ -139,7 +147,12 @@ export default function App() {
     }, 2800);
   };
 
-  const handleNavigate = (nextRoute: RouteId, policyId?: string) => {
+  const handleNavigate = (
+    nextRoute: RouteId,
+    policyId?: string,
+    preset: ExplorePreset | null = null
+  ) => {
+    setExplorePreset(preset);
     if (nextRoute === 'detail') {
       const targetId = policyId ?? detailPolicyId ?? '1';
       setDetailPolicyId(targetId);
@@ -370,6 +383,7 @@ export default function App() {
             completedChecklistIds={completedChecklistIds}
             activePrepPolicy={activePrepPolicy}
             onNavigate={handleNavigate}
+            onExplore={(preset) => handleNavigate('policies', undefined, preset)}
             onToggleSave={handleToggleSave}
             onToggleCompare={handleToggleCompare}
             onClearCompare={() => handleClearCompareForPolicies(boardPolicies)}
@@ -384,6 +398,7 @@ export default function App() {
             savedIds={savedIds}
             comparePolicyIds={comparePolicyIds}
             prepPolicyIds={prepPolicyIds}
+            preset={explorePreset}
             onNavigate={handleNavigate}
             onToggleSave={handleToggleSave}
             onToggleCompare={handleToggleCompare}
@@ -452,12 +467,12 @@ export default function App() {
           />
         )}
 
-        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[13px] font-semibold text-ink-3 md:pr-56">
+        <footer className="mt-20 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[13px] font-medium text-ink-3 md:pr-56">
           <div>
             <strong className="font-extrabold text-ink">청년픽 NEXT</strong>
             <span className="ml-2">내 다음을, 가볍게 픽.</span>
           </div>
-          <span className="font-mono-num tracking-wider">A NEXT:UP PROJECT</span>
+          <span>A NEXT:UP PROJECT</span>
         </footer>
       </main>
 
@@ -471,7 +486,7 @@ export default function App() {
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-edge bg-ink px-5 py-3 text-[14px] font-bold text-white shadow-xl"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl bg-ink px-5 py-3 text-[14px] font-bold text-white shadow-[0_8px_24px_rgb(31_36_33/0.25)]"
         >
           {toastMessage}
         </div>

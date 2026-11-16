@@ -3,11 +3,13 @@ import { ArrowLeft, ArrowRight, Bookmark, MessageCircle } from 'lucide-react';
 import { CriteriaResult, PolicyItem, RouteId, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from '../utils/policyEngine';
 import { DirectInputSection } from '../components/DirectInputSection';
+import { RecruitmentStatusLabel } from '../components/RecruitmentStatusLabel';
+import { CATEGORY_TINT } from '../data/categoryStyle';
 
-const CRITERIA_RESULT_STYLE: Record<CriteriaResult, string> = {
-  O: 'border-edge bg-accent text-ink',
-  X: 'border-bad bg-peach text-ink',
-  '?': 'border-warn bg-warn-bg text-ink',
+const CRITERIA_RESULT_BADGE: Record<CriteriaResult, string> = {
+  O: 'badge badge-ok',
+  X: 'badge badge-bad',
+  '?': 'badge badge-warn',
 };
 
 interface PolicyDetailPageProps {
@@ -33,100 +35,76 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Top Back Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => onNavigate('policies')}
-          className="btn-secondary-outline inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 text-[14px]"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span>정책 목록으로</span>
-        </button>
+      <button
+        type="button"
+        onClick={() => onNavigate('policies')}
+        className="-ml-2 inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-xl px-2 text-[14px] font-bold text-ink-2 hover:bg-surface-3 hover:text-ink"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        <span>정책 목록으로</span>
+      </button>
 
-        <span className="font-mono-num text-xs font-bold tracking-wider text-ink-3">
-          YOUR NEXT, ONE PICK AT A TIME.
-        </span>
-      </div>
-
-      {/* Pastel Banner Header */}
-      <section className="card-tactile rounded-3xl bg-peach p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2.5 text-[14px] font-bold text-ink">
-          <span className="rounded-lg border border-edge/30 bg-surface/85 px-3 py-1">
-            {policy.category}
-          </span>
-          <span className="rounded-lg border border-edge bg-accent px-3 py-1">
-            {policy.recruitmentStatus}
-          </span>
-          <span className="text-ink-2">{policy.agencyLabel}</span>
+      {/* 정책 머리: 티켓 한 장. 색은 분야를 뜻한다 */}
+      <section
+        className={`card-tactile rounded-3xl p-6 sm:p-8 ${CATEGORY_TINT[policy.category]}`}
+      >
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[14px]">
+          <span className="font-bold text-ink">{policy.category}</span>
+          <span className="font-medium text-ink-2">{policy.agencyLabel}</span>
         </div>
 
-        <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-          {policy.title}
-        </h1>
-        <p className="mt-2.5 max-w-3xl text-[16px] leading-relaxed text-ink-2">
-          {policy.shortDescription}
-        </p>
+        <h1 className="t-page mt-3">{policy.title}</h1>
+        <p className="t-lead mt-2.5 max-w-3xl">{policy.shortDescription}</p>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-dashed border-edge/30 pt-5 sm:grid-cols-2">
+        <dl className="mt-6 grid grid-cols-1 gap-x-8 gap-y-4 border-t border-dashed border-edge/30 pt-5 sm:grid-cols-3">
           <div>
-            <span className="block text-[13px] font-bold text-ink-3">
-              모집 일정
-            </span>
-            <strong className="mt-0.5 block text-[16px] font-extrabold text-ink">
+            <dt className="text-[13px] font-semibold text-ink-3">모집 상태</dt>
+            <dd className="mt-1">
+              <RecruitmentStatusLabel status={policy.recruitmentStatus} />
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[13px] font-semibold text-ink-3">모집 일정</dt>
+            <dd className="mt-0.5 text-[16px] font-bold text-ink">
               {policy.deadlineLabel}
-            </strong>
+            </dd>
           </div>
           <div>
-            <span className="block text-[13px] font-bold text-ink-3">
-              주요 지원 내용
-            </span>
-            <strong className="mt-0.5 block text-[16px] font-extrabold text-ink">
+            <dt className="text-[13px] font-semibold text-ink-3">주요 지원 내용</dt>
+            <dd className="mt-0.5 text-[16px] font-bold text-ink">
               {policy.supportSummary}
-            </strong>
+            </dd>
           </div>
-        </div>
+        </dl>
       </section>
 
-      {/* Main Split: Generously Padded Criteria Table + Action Sidebar */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8 lg:col-span-8">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-2xl font-extrabold text-ink">
-              공고 기준과 나의 조건
-            </h2>
-            <span className="rounded-lg border border-warn bg-warn-bg px-3 py-1 text-[13px] font-bold text-ink">
-              세부 조건 확인
-            </span>
-          </div>
-          <p className="mb-6 text-[15px] leading-relaxed text-ink-2">
+          <h2 className="t-section">공고 기준과 나의 조건</h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
             학교가 타 지역에 있더라도 모든 정책이 재학 지역을 동일하게 인정하는 것은
             아니에요. 주민등록상 거주지, 학교·근무지 기준을 표에서 항목별로 대조해 보세요.
           </p>
 
-          {/* Table with generous padding (px-5 py-5) and break-keep for clean Korean readability */}
-          <div className="overflow-x-auto rounded-2xl border border-line">
-            <table className="w-full min-w-[680px] border-collapse text-left break-keep">
+          <div className="mt-5 overflow-x-auto">
+            <table className="w-full min-w-[680px] border-collapse text-left">
               <thead>
-                <tr className="border-b-[1.5px] border-edge/25 bg-canvas text-[14px] font-extrabold text-ink">
-                  <th className="w-[18%] px-5 py-4 whitespace-nowrap">항목</th>
-                  <th className="w-[27%] px-5 py-4">공고 기준</th>
-                  <th className="w-[22%] px-5 py-4">내 정보</th>
-                  <th className="w-[13%] px-5 py-4 whitespace-nowrap">확인 결과</th>
-                  <th className="w-[20%] px-5 py-4">판단 근거</th>
+                <tr className="border-b border-edge/30 text-[13px] font-bold text-ink-3">
+                  <th className="w-[18%] py-3 pr-4 whitespace-nowrap">항목</th>
+                  <th className="w-[27%] px-4 py-3">공고 기준</th>
+                  <th className="w-[22%] px-4 py-3">내 정보</th>
+                  <th className="w-[13%] px-4 py-3 whitespace-nowrap">확인 결과</th>
+                  <th className="w-[20%] py-3 pl-4">판단 근거</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line-soft text-[15px] leading-relaxed text-ink-2">
                 {criteriaRows.map((row) => (
-                  <tr
-                    key={row.item}
-                    className="transition-colors hover:bg-surface-2"
-                  >
-                    <td className="px-5 py-5 font-bold text-ink align-top">
+                  <tr key={row.item}>
+                    <th scope="row" className="py-4 pr-4 align-top font-bold text-ink">
                       {row.item}
-                    </td>
-                    <td className="px-5 py-5 align-top">{row.officialRule}</td>
-                    <td className="px-5 py-5 font-semibold text-ink align-top">
+                    </th>
+                    <td className="px-4 py-4 align-top">{row.officialRule}</td>
+                    <td className="px-4 py-4 align-top font-semibold text-ink">
                       {row.userMatchNote}
                       {row.result === 'X' && row.reason && (
                         <span className="mt-1.5 block text-[14px] font-bold text-bad">
@@ -135,19 +113,15 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-5 whitespace-nowrap align-top">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-bold ${CRITERIA_RESULT_STYLE[row.result]}`}
-                      >
-                        <span aria-hidden="true" className="font-mono-num">
+                    <td className="px-4 py-4 align-top whitespace-nowrap">
+                      <span className={CRITERIA_RESULT_BADGE[row.result]}>
+                        <span aria-hidden="true" className="font-extrabold">
                           {row.result}
                         </span>
                         <span>{row.status}</span>
                       </span>
                     </td>
-                    <td className="px-5 py-5 text-[14px] text-ink-2 align-top">
-                      {row.basis}
-                    </td>
+                    <td className="py-4 pl-4 align-top text-[14px]">{row.basis}</td>
                   </tr>
                 ))}
               </tbody>
@@ -158,17 +132,14 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           <DirectInputSection key={policy.id} policy={policy} />
         </section>
 
-        {/* Right Action Sidebar: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}
+        {/* 행동 영역: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}
         <aside className="space-y-5 lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
-          <div className="card-tactile rounded-3xl bg-sage p-6">
-            <span className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
-              ONE MORE STEP
-            </span>
-            <h3 className="mt-2 text-2xl font-extrabold leading-snug text-ink">
+          <div className="rounded-3xl bg-sage p-6">
+            <h2 className="t-section">
               알아본 정책,
               <br />내 준비로 이어가요.
-            </h3>
-            <p className="mt-2.5 text-[15px] leading-relaxed text-ink-2">
+            </h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
               공고 확인부터 필요 서류 점검까지, 다음 해야 할 일을 신청 준비
               노트에 담아드려요.
             </p>
@@ -180,12 +151,13 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                 className="btn-primary-lime flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[15px]"
               >
                 <span>준비 이어가기</span>
-                <ArrowRight className="h-4.5 w-4.5" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
 
               <button
                 type="button"
                 onClick={() => onToggleSave(policy.id)}
+                aria-pressed={isSaved}
                 className="btn-secondary-outline flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-[14px]"
               >
                 <Bookmark
@@ -200,9 +172,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           </div>
 
           <div className="card-soft rounded-3xl bg-surface p-6">
-            <h3 className="text-lg font-extrabold text-ink">
-              이 조건이 헷갈린다면?
-            </h3>
+            <h2 className="t-card">이 조건이 헷갈린다면?</h2>
             <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">
               내비게이터에게 내 생활권과 서류 기준을 쉬운 말로 물어보세요.
             </p>

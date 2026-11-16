@@ -1,8 +1,15 @@
-import React from 'react';
-import { ArrowRight, ArrowUpRight, Sparkles, Wallet } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Search, Wallet } from 'lucide-react';
 import { PolicyCard } from '../components/PolicyCard';
 import { PolicyCompareBar } from '../components/PolicyCompareBar';
-import { PolicyItem, RouteId, UserProfile } from '../types/policy';
+import { CATEGORY_ICON, CATEGORY_TINT } from '../data/categoryStyle';
+import {
+  ExplorePreset,
+  POLICY_CATEGORIES,
+  PolicyItem,
+  RouteId,
+  UserProfile,
+} from '../types/policy';
 import {
   getComparedPoliciesForTab,
   getRecommendedPoliciesForProfile,
@@ -17,6 +24,7 @@ interface HomeBoardPageProps {
   completedChecklistIds: string[];
   activePrepPolicy?: PolicyItem;
   onNavigate: (route: RouteId, policyId?: string) => void;
+  onExplore: (preset: ExplorePreset) => void;
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
   onClearCompare: () => void;
@@ -32,11 +40,13 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   completedChecklistIds,
   activePrepPolicy,
   onNavigate,
+  onExplore,
   onToggleSave,
   onToggleCompare,
   onClearCompare,
   onStartPreparation,
 }) => {
+  const [query, setQuery] = useState('');
   const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
   const comparedPolicies = getComparedPoliciesForTab(
     boardPolicies,
@@ -50,148 +60,140 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   const totalCount = activePrepPolicy ? activePrepPolicy.checklist.length : 0;
 
   return (
-    <div className="space-y-12">
-      {/* Breadcrumb Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-ink-2">
-        <div>
-          <span>나의 다음</span>
-          <span className="mx-2 text-ink-4">/</span>
-          <strong className="font-bold text-ink">나의 보드</strong>
-        </div>
-        <span className="font-mono-num tracking-wider text-ink-3">
-          YOUR NEXT, ONE PICK AT A TIME.
-        </span>
-      </div>
-
-      {/* Hero Split: Left Copy + Primary CTA, Right Living Pass Ticket */}
-      <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
-        <div className="space-y-6 lg:col-span-6">
-          <p className="text-[13px] font-bold tracking-wider text-ink-2">
-            MY NEXT / 내 정책 보드
-          </p>
-
-          <div className="relative inline-block">
-            <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight text-ink sm:text-5xl">
-              내 다음을,
-              <br />
-              <span className="relative inline-block">
-                <span className="relative z-10">가볍게 픽.</span>
-                <span
-                  aria-hidden="true"
-                  className="absolute bottom-1 left-0 right-0 -z-0 h-4 bg-accent"
-                />
-              </span>
-            </h1>
-            <span className="ml-3 inline-block -rotate-3 rounded-lg border border-edge bg-peach px-2.5 py-1 text-xs font-bold text-ink align-top">
-              나에게 맞는 가능성 ↗
+    <div className="space-y-14">
+      {/* 시작: 대표 문구, 검색, 분야 바로가기 | 나의 생활권 */}
+      <section className="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+        <div className="lg:col-span-7">
+          <h1 className="t-display">
+            내 다음을,
+            <br />
+            <span className="relative inline-block">
+              <span className="relative z-10">가볍게 픽.</span>
+              <span
+                aria-hidden="true"
+                className="absolute bottom-1 left-0 right-0 h-4 bg-accent"
+              />
             </span>
-          </div>
-
-          <p className="max-w-lg text-[16px] leading-relaxed text-ink-2">
+          </h1>
+          <p className="t-lead mt-5 max-w-[34rem]">
             사는 곳과 학교, 지금의 나를 함께 살펴보고 정책 발견부터 신청
             준비까지 한 칸씩 이어가요.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-1">
+          <form
+            role="search"
+            aria-label="정책 검색"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onExplore({ query: query.trim() });
+            }}
+            className="mt-8 flex items-center gap-2 rounded-2xl border-[1.5px] border-edge bg-surface py-1.5 pl-4 pr-1.5"
+          >
+            <Search className="h-5 w-5 shrink-0 text-ink-3" aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="찾을 정책"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="주거, 취업, 교육 등 정책 검색"
+              className="min-w-0 flex-1 bg-transparent py-2 text-[16px] text-ink placeholder:text-ink-4 focus:outline-none"
+            />
             <button
-              type="button"
-              onClick={() => onNavigate('policies')}
-              className="btn-primary-lime inline-flex cursor-pointer items-center gap-2.5 rounded-2xl px-6 py-3.5 text-[16px]"
+              type="submit"
+              className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-xl px-5 py-2.5 text-[15px]"
             >
-              <span>내게 맞는 정책 찾기</span>
-              <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              <span>정책 찾기</span>
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
-            <span className="text-[14px] font-medium leading-snug text-ink-2">
-              조건 확인부터 신청 준비까지,
-              <br />한 번에 이어가요.
+          </form>
+
+          <ul aria-label="분야별로 보기" className="mt-4 flex flex-wrap gap-2">
+            {POLICY_CATEGORIES.map((category) => {
+              const Icon = CATEGORY_ICON[category];
+              const count = policies.filter((p) => p.category === category).length;
+              return (
+                <li key={category}>
+                  <button
+                    type="button"
+                    onClick={() => onExplore({ category })}
+                    className={`inline-flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-bold text-ink transition-transform duration-150 hover:-translate-y-0.5 ${CATEGORY_TINT[category]}`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>{category}</span>
+                    <span className="tabular-nums font-semibold text-ink-3">
+                      {count}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* 나의 생활권 */}
+        <section
+          aria-labelledby="home-living-title"
+          className="card-tactile rounded-3xl bg-lavender p-6 sm:p-7 lg:col-span-5"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 id="home-living-title" className="t-section">
+              나의 생활권
+            </h2>
+            <span className="text-[14px] font-bold text-ink-2 tabular-nums">
+              만 {profile.age}세 · {profile.status}
             </span>
           </div>
-        </div>
 
-        {/* MY LIVING PASS Ticket Card */}
-        <div className="lg:col-span-6">
-          <section
-            aria-label="내 생활권 패스"
-            className="card-tactile relative overflow-hidden rounded-3xl bg-lavender p-6 sm:p-7 lg:rotate-[0.6deg]"
-          >
-            <div className="mb-5 flex items-center justify-between border-b border-edge/20 pb-3">
-              <strong className="font-mono-num text-xs font-bold tracking-widest text-ink">
-                MY LIVING PASS
-              </strong>
-              <span className="text-[13px] font-bold text-ink-2">
-                나의 생활권
-              </span>
+          <dl className="mt-5 grid grid-cols-1 gap-x-6 gap-y-4 border-t border-edge/20 pt-5 sm:grid-cols-2">
+            <div>
+              <dt className="text-[13px] font-semibold text-ink-3">주민등록지</dt>
+              <dd className="mt-0.5 text-xl font-extrabold text-ink">
+                {profile.residence || '미입력'}
+              </dd>
             </div>
-
-            <div className="space-y-5">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-xl font-extrabold text-ink">
-                  나의 출발점
-                </h2>
-                <span className="text-[14px] font-bold text-ink-2 tabular-nums">
-                  만 {profile.age}세 · {profile.status}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 rounded-2xl border border-edge/20 bg-surface/75 p-4 sm:grid-cols-2">
-                <div>
-                  <span className="block text-[13px] font-semibold text-ink-3">
-                    주민등록지
-                  </span>
-                  <strong className="mt-0.5 block text-xl font-extrabold text-ink">
-                    {profile.residence || '미입력'}
-                  </strong>
-                </div>
-                <div>
-                  <span className="block text-[13px] font-semibold text-ink-3">
-                    학교 소재지
-                  </span>
-                  <strong className="mt-0.5 block text-xl font-extrabold text-ink">
-                    {profile.schoolRegion || '해당 없음'}
-                  </strong>
-                </div>
-              </div>
-
-              <p className="text-[13px] font-medium text-ink-2 break-keep">
-                추천에 사용하는 정보 · 모달 선택으로 정확하게 관리해요
-              </p>
+            <div>
+              <dt className="text-[13px] font-semibold text-ink-3">학교 소재지</dt>
+              <dd className="mt-0.5 text-xl font-extrabold text-ink">
+                {profile.schoolRegion || '해당 없음'}
+              </dd>
             </div>
+          </dl>
 
-            <div className="mt-5 flex items-center justify-between gap-2 border-t border-dashed border-edge/35 pt-4 sm:gap-3">
-              <span className="font-mono-num min-w-0 truncate text-[11px] font-bold tracking-wider text-ink-2 sm:text-xs sm:tracking-widest">
-                ||| |||| ||| MY NEXT
-              </span>
-              <button
-                type="button"
-                onClick={() => onNavigate('profile')}
-                className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap break-keep rounded-xl px-3 py-2 text-[13px] sm:px-4 sm:text-[14px]"
-              >
-                <span>내 조건 수정</span>
-                <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-              </button>
-            </div>
-          </section>
-        </div>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[13px] font-medium text-ink-2">
+              정책 추천에 쓰는 정보예요.
+            </p>
+            <button
+              type="button"
+              onClick={() => onNavigate('profile')}
+              className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px]"
+            >
+              <span>내 조건 수정</span>
+              <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+            </button>
+          </div>
+        </section>
       </section>
 
-      {/* Today's Next Steps & My Pocket (Note: The 3 old summary cards 검토할 정책 / 추가 확인 필요 / 신청 준비 중 are completely removed per requirement #2) */}
+      {/* 오늘의 다음 한 칸 + 전자지갑 */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="card-soft rounded-3xl bg-surface p-6 lg:col-span-7">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-ink">
-              오늘의 다음 한 칸
-            </h2>
-            <span className="rounded-lg border border-line bg-canvas px-3 py-1 text-[13px] font-bold text-ink-2 tabular-nums">
+        <div className="card-soft rounded-3xl bg-surface p-6 sm:p-7 lg:col-span-7">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="t-section">오늘의 다음 한 칸</h2>
+            <span className="badge tabular-nums">
               {activePrepPolicy
                 ? `${Math.max(totalCount - doneCount, 0)}개 남음`
                 : '준비 시작 전'}
             </span>
           </div>
 
-          <div className="divide-y divide-line-soft">
-            <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <ol className="mt-3 divide-y divide-line-soft">
+            <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3.5">
-                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-mid bg-canvas text-xs font-bold text-ink">
+                <span
+                  aria-hidden="true"
+                  className="font-mono-num mt-0.5 w-6 shrink-0 text-[13px] font-bold text-ink-4"
+                >
                   01
                 </span>
                 <div>
@@ -207,16 +209,19 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('detail', '1')}
-                className="btn-secondary-outline inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 self-start whitespace-nowrap break-keep rounded-xl px-4 py-2 text-center text-[14px] sm:self-auto"
+                className="btn-secondary-outline ml-9 inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px] sm:ml-0"
               >
                 <span>조건 확인</span>
                 <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
-            </div>
+            </li>
 
-            <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <li className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3.5">
-                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-mid bg-canvas text-xs font-bold text-ink">
+                <span
+                  aria-hidden="true"
+                  className="font-mono-num mt-0.5 w-6 shrink-0 text-[13px] font-bold text-ink-4"
+                >
                   02
                 </span>
                 <div>
@@ -233,73 +238,58 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate(activePrepPolicy ? 'apply' : 'policies')}
-                className="btn-primary-brand inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 self-start whitespace-nowrap break-keep rounded-xl px-4 py-2 text-center text-[14px] sm:self-auto"
+                className="btn-primary-brand ml-9 inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-4 py-2 text-[14px] sm:ml-0"
               >
                 <span>{activePrepPolicy ? '이어가기' : '정책 찾기'}</span>
                 <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
               </button>
-            </div>
-          </div>
+            </li>
+          </ol>
         </div>
 
-        {/* MY POCKET Card */}
-        <div className="card-soft flex flex-col justify-between rounded-3xl bg-sage p-6 lg:col-span-5">
+        <div className="flex flex-col justify-between gap-6 rounded-3xl bg-sage p-6 sm:p-7 lg:col-span-5">
           <div className="flex items-start justify-between gap-4">
-            <div className="space-y-2">
-              <span className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
-                MY POCKET
-              </span>
-              <h3 className="text-2xl font-extrabold leading-snug text-ink">
+            <div>
+              <h2 className="t-section">
                 내 문서가 모이면,
                 <br />
                 다음 준비는 더 가볍게.
-              </h3>
-              <p className="text-[15px] leading-relaxed text-ink-2">
+              </h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
                 필요한 서류와 연결된 정책을 전자지갑에서 함께 확인해요.
               </p>
             </div>
-
-            <div className="flex h-16 w-14 shrink-0 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-accent shadow-sm">
-              <Wallet className="h-7 w-7 text-ink" aria-hidden="true" />
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={() => onNavigate('wallet')}
-              className="btn-primary-brand inline-flex cursor-pointer items-center gap-2 rounded-xl px-5 py-2.5 text-[14px]"
-            >
-              <span>전자지갑 열기</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Recommended Policies Section */}
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="font-mono-num rounded-lg border border-edge bg-accent px-2.5 py-1 text-xs font-bold text-ink">
-              01
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent">
+              <Wallet className="h-6 w-6 text-ink" aria-hidden="true" />
             </span>
-            <h2 className="text-2xl font-extrabold text-ink">
-              나를 위한 정책 픽
-            </h2>
           </div>
 
           <button
             type="button"
+            onClick={() => onNavigate('wallet')}
+            className="btn-primary-brand inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl px-5 py-2.5 text-[14px]"
+          >
+            <span>전자지갑 열기</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+
+      {/* 추천 정책 */}
+      <section>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 className="t-section">나를 위한 정책 픽</h2>
+          <button
+            type="button"
             onClick={() => onNavigate('policies')}
-            className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-4 py-2 text-[14px]"
+            className="inline-flex cursor-pointer items-center gap-1 rounded-lg py-1 text-[14px] font-bold text-ink-2 hover:text-ink"
           >
             <span>정책 모두 보기</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {boardPolicies.map((policy) => (
             <PolicyCard
               key={policy.id}
@@ -316,17 +306,13 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
         </div>
       </section>
 
-      {/* Bottom Life Change Comparison Banner */}
-      <section className="card-tactile flex flex-col items-start justify-between gap-5 rounded-3xl bg-lavender p-6 sm:flex-row sm:items-center sm:p-8">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-2">
-            <Sparkles className="h-4 w-4 text-ink" aria-hidden="true" />
-            <span>생활변화 시뮬레이션</span>
-          </div>
-          <h3 className="text-xl font-extrabold text-ink sm:text-2xl">
+      {/* 생활변화 비교 */}
+      <section className="flex flex-col items-start justify-between gap-5 rounded-3xl bg-lavender p-6 sm:flex-row sm:items-center sm:p-8">
+        <div>
+          <h2 className="t-section">
             졸업하거나, 이사하면 내 정책은 어떻게 달라질까?
-          </h3>
-          <p className="text-[15px] text-ink-2">
+          </h2>
+          <p className="mt-1.5 text-[15px] text-ink-2">
             내 정보는 그대로 두고, 변화 후 조건과 영향을 받는 정책을 미리 비교해 봐요.
           </p>
         </div>
@@ -334,10 +320,10 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('switch')}
-          className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-2xl px-6 py-3.5 text-[15px]"
+          className="btn-primary-brand inline-flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl px-5 py-3 text-[15px]"
         >
           <span>변화 비교하기</span>
-          <ArrowUpRight className="h-4.5 w-4.5" aria-hidden="true" />
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </section>
 
