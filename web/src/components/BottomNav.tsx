@@ -32,7 +32,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <nav
       aria-label="하단 메뉴"
-      className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-[#262A27] bg-[#FDFCF5] px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t-[1.5px] border-edge bg-surface-2 px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] lg:hidden"
     >
       <ul className="mx-auto grid max-w-2xl grid-cols-5">
         {BOTTOM_NAV_ITEMS.map((item) => {
@@ -49,17 +49,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
                 className={`relative flex min-h-12 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1 text-[11px] leading-tight tracking-tight ${
-                  active ? 'font-extrabold text-[#1F2421]' : 'font-semibold text-[#4A4D49]'
+                  active ? 'font-extrabold text-ink' : 'font-semibold text-ink-3'
                 }`}
               >
                 <span
                   className={`relative flex h-7 w-10 items-center justify-center rounded-lg border ${
-                    active ? 'border-[#262A27] bg-[#D8F279]' : 'border-transparent'
+                    active ? 'border-edge bg-accent' : 'border-transparent'
                   }`}
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />
                   {badge !== null && (
-                    <span className="font-mono-num absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-[#262A27] bg-[#D8F279] px-1 text-[10px] font-bold text-[#1F2421]">
+                    <span className="font-mono-num absolute -right-2 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-edge bg-accent px-1 text-[10px] font-bold text-ink">
                       {badge}
                       <span className="sr-only">건 준비 중</span>
                     </span>

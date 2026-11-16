@@ -5,9 +5,9 @@ import { evaluatePolicyCriteria } from '../utils/policyEngine';
 import { DirectInputSection } from '../components/DirectInputSection';
 
 const CRITERIA_RESULT_STYLE: Record<CriteriaResult, string> = {
-  O: 'border-[#262A27] bg-[#D8F279] text-[#1F2421]',
-  X: 'border-[#A33A1E] bg-[#FBE1D6] text-[#1F2421]',
-  '?': 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]',
+  O: 'border-edge bg-accent text-ink',
+  X: 'border-bad bg-peach text-ink',
+  '?': 'border-warn bg-warn-bg text-ink',
 };
 
 interface PolicyDetailPageProps {
@@ -44,44 +44,44 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           <span>정책 목록으로</span>
         </button>
 
-        <span className="font-mono-num text-xs font-bold tracking-wider text-[#4A4D49]">
+        <span className="font-mono-num text-xs font-bold tracking-wider text-ink-3">
           YOUR NEXT, ONE PICK AT A TIME.
         </span>
       </div>
 
       {/* Pastel Banner Header */}
-      <section className="card-tactile rounded-3xl bg-[#FBE1D6] p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2.5 text-[14px] font-bold text-[#1F2421]">
-          <span className="rounded-lg border border-[#262A27]/30 bg-white/85 px-3 py-1">
+      <section className="card-tactile rounded-3xl bg-peach p-6 sm:p-8">
+        <div className="flex flex-wrap items-center gap-2.5 text-[14px] font-bold text-ink">
+          <span className="rounded-lg border border-edge/30 bg-surface/85 px-3 py-1">
             {policy.category}
           </span>
-          <span className="rounded-lg border border-[#262A27] bg-[#D8F279] px-3 py-1">
+          <span className="rounded-lg border border-edge bg-accent px-3 py-1">
             {policy.recruitmentStatus}
           </span>
-          <span className="text-[#333333]">{policy.agencyLabel}</span>
+          <span className="text-ink-2">{policy.agencyLabel}</span>
         </div>
 
-        <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#1F2421] sm:text-4xl">
+        <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
           {policy.title}
         </h1>
-        <p className="mt-2.5 max-w-3xl text-[16px] leading-relaxed text-[#333333]">
+        <p className="mt-2.5 max-w-3xl text-[16px] leading-relaxed text-ink-2">
           {policy.shortDescription}
         </p>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-dashed border-[#262A27]/30 pt-5 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-4 border-t border-dashed border-edge/30 pt-5 sm:grid-cols-2">
           <div>
-            <span className="block text-[13px] font-bold text-[#4A4D49]">
+            <span className="block text-[13px] font-bold text-ink-3">
               모집 일정
             </span>
-            <strong className="mt-0.5 block text-[16px] font-extrabold text-[#1F2421]">
+            <strong className="mt-0.5 block text-[16px] font-extrabold text-ink">
               {policy.deadlineLabel}
             </strong>
           </div>
           <div>
-            <span className="block text-[13px] font-bold text-[#4A4D49]">
+            <span className="block text-[13px] font-bold text-ink-3">
               주요 지원 내용
             </span>
-            <strong className="mt-0.5 block text-[16px] font-extrabold text-[#1F2421]">
+            <strong className="mt-0.5 block text-[16px] font-extrabold text-ink">
               {policy.supportSummary}
             </strong>
           </div>
@@ -90,25 +90,25 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
 
       {/* Main Split: Generously Padded Criteria Table + Action Sidebar */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-        <section className="card-soft rounded-3xl bg-white p-6 sm:p-8 lg:col-span-8">
+        <section className="card-soft rounded-3xl bg-surface p-6 sm:p-8 lg:col-span-8">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-2xl font-extrabold text-[#1F2421]">
+            <h2 className="text-2xl font-extrabold text-ink">
               공고 기준과 나의 조건
             </h2>
-            <span className="rounded-lg border border-[#B8860B] bg-[#FFF0CC] px-3 py-1 text-[13px] font-bold text-[#1F2421]">
+            <span className="rounded-lg border border-warn bg-warn-bg px-3 py-1 text-[13px] font-bold text-ink">
               세부 조건 확인
             </span>
           </div>
-          <p className="mb-6 text-[15px] leading-relaxed text-[#333333]">
+          <p className="mb-6 text-[15px] leading-relaxed text-ink-2">
             학교가 타 지역에 있더라도 모든 정책이 재학 지역을 동일하게 인정하는 것은
             아니에요. 주민등록상 거주지, 학교·근무지 기준을 표에서 항목별로 대조해 보세요.
           </p>
 
           {/* Table with generous padding (px-5 py-5) and break-keep for clean Korean readability */}
-          <div className="overflow-x-auto rounded-2xl border border-[#DCD7C9]">
+          <div className="overflow-x-auto rounded-2xl border border-line">
             <table className="w-full min-w-[680px] border-collapse text-left break-keep">
               <thead>
-                <tr className="border-b-[1.5px] border-[#262A27]/25 bg-[#F7F5EE] text-[14px] font-extrabold text-[#1F2421]">
+                <tr className="border-b-[1.5px] border-edge/25 bg-canvas text-[14px] font-extrabold text-ink">
                   <th className="w-[18%] px-5 py-4 whitespace-nowrap">항목</th>
                   <th className="w-[27%] px-5 py-4">공고 기준</th>
                   <th className="w-[22%] px-5 py-4">내 정보</th>
@@ -116,20 +116,20 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                   <th className="w-[20%] px-5 py-4">판단 근거</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5E1D5] text-[15px] leading-relaxed text-[#333333]">
+              <tbody className="divide-y divide-line-soft text-[15px] leading-relaxed text-ink-2">
                 {criteriaRows.map((row) => (
                   <tr
                     key={row.item}
-                    className="transition-colors hover:bg-[#FAF8F2]"
+                    className="transition-colors hover:bg-surface-2"
                   >
-                    <td className="px-5 py-5 font-bold text-[#1F2421] align-top">
+                    <td className="px-5 py-5 font-bold text-ink align-top">
                       {row.item}
                     </td>
                     <td className="px-5 py-5 align-top">{row.officialRule}</td>
-                    <td className="px-5 py-5 font-semibold text-[#1F2421] align-top">
+                    <td className="px-5 py-5 font-semibold text-ink align-top">
                       {row.userMatchNote}
                       {row.result === 'X' && row.reason && (
-                        <span className="mt-1.5 block text-[14px] font-bold text-[#A33A1E]">
+                        <span className="mt-1.5 block text-[14px] font-bold text-bad">
                           <span aria-hidden="true">! </span>
                           {row.reason}
                         </span>
@@ -145,7 +145,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                         <span>{row.status}</span>
                       </span>
                     </td>
-                    <td className="px-5 py-5 text-[14px] text-[#333333] align-top">
+                    <td className="px-5 py-5 text-[14px] text-ink-2 align-top">
                       {row.basis}
                     </td>
                   </tr>
@@ -160,15 +160,15 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
 
         {/* Right Action Sidebar: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}
         <aside className="space-y-5 lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
-          <div className="card-tactile rounded-3xl bg-[#EEF1E3] p-6">
-            <span className="font-mono-num text-xs font-bold tracking-wider text-[#333333]">
+          <div className="card-tactile rounded-3xl bg-sage p-6">
+            <span className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
               ONE MORE STEP
             </span>
-            <h3 className="mt-2 text-2xl font-extrabold leading-snug text-[#1F2421]">
+            <h3 className="mt-2 text-2xl font-extrabold leading-snug text-ink">
               알아본 정책,
               <br />내 준비로 이어가요.
             </h3>
-            <p className="mt-2.5 text-[15px] leading-relaxed text-[#333333]">
+            <p className="mt-2.5 text-[15px] leading-relaxed text-ink-2">
               공고 확인부터 필요 서류 점검까지, 다음 해야 할 일을 신청 준비
               노트에 담아드려요.
             </p>
@@ -186,7 +186,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
               <button
                 type="button"
                 onClick={() => onToggleSave(policy.id)}
-                className="btn-secondary-outline flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-[14px]"
+                className="btn-secondary-outline flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-[14px]"
               >
                 <Bookmark
                   className="h-4 w-4"
@@ -199,11 +199,11 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
             </div>
           </div>
 
-          <div className="card-soft rounded-3xl bg-white p-6">
-            <h3 className="text-lg font-extrabold text-[#1F2421]">
+          <div className="card-soft rounded-3xl bg-surface p-6">
+            <h3 className="text-lg font-extrabold text-ink">
               이 조건이 헷갈린다면?
             </h3>
-            <p className="mt-1.5 text-[15px] leading-relaxed text-[#333333]">
+            <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">
               내비게이터에게 내 생활권과 서류 기준을 쉬운 말로 물어보세요.
             </p>
             <button

@@ -52,13 +52,13 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   return (
     <div className="space-y-12">
       {/* Breadcrumb Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-[#333333]">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-ink-2">
         <div>
           <span>나의 다음</span>
-          <span className="mx-2 text-[#6B6E68]">/</span>
-          <strong className="font-bold text-[#1F2421]">나의 보드</strong>
+          <span className="mx-2 text-ink-4">/</span>
+          <strong className="font-bold text-ink">나의 보드</strong>
         </div>
-        <span className="font-mono-num tracking-wider text-[#4A4D49]">
+        <span className="font-mono-num tracking-wider text-ink-3">
           YOUR NEXT, ONE PICK AT A TIME.
         </span>
       </div>
@@ -66,28 +66,28 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
       {/* Hero Split: Left Copy + Primary CTA, Right Living Pass Ticket */}
       <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10">
         <div className="space-y-6 lg:col-span-6">
-          <p className="text-[13px] font-bold tracking-wider text-[#333333]">
+          <p className="text-[13px] font-bold tracking-wider text-ink-2">
             MY NEXT / 내 정책 보드
           </p>
 
           <div className="relative inline-block">
-            <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight text-[#1F2421] sm:text-5xl">
+            <h1 className="text-4xl font-extrabold leading-[1.15] tracking-tight text-ink sm:text-5xl">
               내 다음을,
               <br />
               <span className="relative inline-block">
                 <span className="relative z-10">가볍게 픽.</span>
                 <span
                   aria-hidden="true"
-                  className="absolute bottom-1 left-0 right-0 -z-0 h-4 bg-[#D8F279]"
+                  className="absolute bottom-1 left-0 right-0 -z-0 h-4 bg-accent"
                 />
               </span>
             </h1>
-            <span className="ml-3 inline-block -rotate-3 rounded-lg border border-[#262A27] bg-[#FBE1D6] px-2.5 py-1 text-xs font-bold text-[#1F2421] align-top">
+            <span className="ml-3 inline-block -rotate-3 rounded-lg border border-edge bg-peach px-2.5 py-1 text-xs font-bold text-ink align-top">
               나에게 맞는 가능성 ↗
             </span>
           </div>
 
-          <p className="max-w-lg text-[16px] leading-relaxed text-[#333333]">
+          <p className="max-w-lg text-[16px] leading-relaxed text-ink-2">
             사는 곳과 학교, 지금의 나를 함께 살펴보고 정책 발견부터 신청
             준비까지 한 칸씩 이어가요.
           </p>
@@ -101,7 +101,7 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               <span>내게 맞는 정책 찾기</span>
               <ArrowRight className="h-5 w-5" aria-hidden="true" />
             </button>
-            <span className="text-[14px] font-medium leading-snug text-[#333333]">
+            <span className="text-[14px] font-medium leading-snug text-ink-2">
               조건 확인부터 신청 준비까지,
               <br />한 번에 이어가요.
             </span>
@@ -112,53 +112,53 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
         <div className="lg:col-span-6">
           <section
             aria-label="내 생활권 패스"
-            className="card-tactile relative overflow-hidden rounded-3xl bg-[#E8E0FC] p-6 sm:p-7 lg:rotate-[0.6deg]"
+            className="card-tactile relative overflow-hidden rounded-3xl bg-lavender p-6 sm:p-7 lg:rotate-[0.6deg]"
           >
-            <div className="mb-5 flex items-center justify-between border-b border-[#262A27]/20 pb-3">
-              <strong className="font-mono-num text-xs font-bold tracking-widest text-[#1F2421]">
+            <div className="mb-5 flex items-center justify-between border-b border-edge/20 pb-3">
+              <strong className="font-mono-num text-xs font-bold tracking-widest text-ink">
                 MY LIVING PASS
               </strong>
-              <span className="text-[13px] font-bold text-[#333333]">
+              <span className="text-[13px] font-bold text-ink-2">
                 나의 생활권
               </span>
             </div>
 
             <div className="space-y-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="text-xl font-extrabold text-[#1F2421]">
+                <h2 className="text-xl font-extrabold text-ink">
                   나의 출발점
                 </h2>
-                <span className="text-[14px] font-bold text-[#333333] tabular-nums">
+                <span className="text-[14px] font-bold text-ink-2 tabular-nums">
                   만 {profile.age}세 · {profile.status}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 rounded-2xl border border-[#262A27]/20 bg-white/75 p-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 rounded-2xl border border-edge/20 bg-surface/75 p-4 sm:grid-cols-2">
                 <div>
-                  <span className="block text-[13px] font-semibold text-[#4A4D49]">
+                  <span className="block text-[13px] font-semibold text-ink-3">
                     주민등록지
                   </span>
-                  <strong className="mt-0.5 block text-xl font-extrabold text-[#1F2421]">
+                  <strong className="mt-0.5 block text-xl font-extrabold text-ink">
                     {profile.residence || '미입력'}
                   </strong>
                 </div>
                 <div>
-                  <span className="block text-[13px] font-semibold text-[#4A4D49]">
+                  <span className="block text-[13px] font-semibold text-ink-3">
                     학교 소재지
                   </span>
-                  <strong className="mt-0.5 block text-xl font-extrabold text-[#1F2421]">
+                  <strong className="mt-0.5 block text-xl font-extrabold text-ink">
                     {profile.schoolRegion || '해당 없음'}
                   </strong>
                 </div>
               </div>
 
-              <p className="text-[13px] font-medium text-[#333333] break-keep">
+              <p className="text-[13px] font-medium text-ink-2 break-keep">
                 추천에 사용하는 정보 · 모달 선택으로 정확하게 관리해요
               </p>
             </div>
 
-            <div className="mt-5 flex items-center justify-between gap-2 border-t border-dashed border-[#262A27]/35 pt-4 sm:gap-3">
-              <span className="font-mono-num min-w-0 truncate text-[11px] font-bold tracking-wider text-[#333333] sm:text-xs sm:tracking-widest">
+            <div className="mt-5 flex items-center justify-between gap-2 border-t border-dashed border-edge/35 pt-4 sm:gap-3">
+              <span className="font-mono-num min-w-0 truncate text-[11px] font-bold tracking-wider text-ink-2 sm:text-xs sm:tracking-widest">
                 ||| |||| ||| MY NEXT
               </span>
               <button
@@ -176,29 +176,29 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
 
       {/* Today's Next Steps & My Pocket (Note: The 3 old summary cards 검토할 정책 / 추가 확인 필요 / 신청 준비 중 are completely removed per requirement #2) */}
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="card-soft rounded-3xl bg-white p-6 lg:col-span-7">
+        <div className="card-soft rounded-3xl bg-surface p-6 lg:col-span-7">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-[#1F2421]">
+            <h2 className="text-xl font-extrabold text-ink">
               오늘의 다음 한 칸
             </h2>
-            <span className="rounded-lg border border-[#DCD7C9] bg-[#F7F5EE] px-3 py-1 text-[13px] font-bold text-[#333333] tabular-nums">
+            <span className="rounded-lg border border-line bg-canvas px-3 py-1 text-[13px] font-bold text-ink-2 tabular-nums">
               {activePrepPolicy
                 ? `${Math.max(totalCount - doneCount, 0)}개 남음`
                 : '준비 시작 전'}
             </span>
           </div>
 
-          <div className="divide-y divide-[#ECE8DC]">
+          <div className="divide-y divide-line-soft">
             <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3.5">
-                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#C9C4B6] bg-[#F7F5EE] text-xs font-bold text-[#1F2421]">
+                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-mid bg-canvas text-xs font-bold text-ink">
                   01
                 </span>
                 <div>
-                  <strong className="block text-[16px] font-bold text-[#1F2421]">
+                  <strong className="block text-[16px] font-bold text-ink">
                     주거 지원, 내 생활권도 인정될까?
                   </strong>
-                  <p className="mt-0.5 text-[14px] text-[#333333]">
+                  <p className="mt-0.5 text-[14px] text-ink-2">
                     주민등록지({profile.residence || '미입력'})와 학교 소재지(
                     {profile.schoolRegion || '없음'}) 기준을 확인해요.
                   </p>
@@ -216,14 +216,14 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
 
             <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3.5">
-                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#C9C4B6] bg-[#F7F5EE] text-xs font-bold text-[#1F2421]">
+                <span className="font-mono-num flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line-mid bg-canvas text-xs font-bold text-ink">
                   02
                 </span>
                 <div>
-                  <strong className="block text-[16px] font-bold text-[#1F2421]">
+                  <strong className="block text-[16px] font-bold text-ink">
                     서류 준비, 이어서 한 칸
                   </strong>
-                  <p className="mt-0.5 text-[14px] text-[#333333] tabular-nums">
+                  <p className="mt-0.5 text-[14px] text-ink-2 tabular-nums">
                     {activePrepPolicy
                       ? `${activePrepPolicy.title} · ${doneCount}/${totalCount} 점검`
                       : '아직 준비 중인 정책이 없어요 · 정책 찾기에서 담아보세요'}
@@ -243,24 +243,24 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
         </div>
 
         {/* MY POCKET Card */}
-        <div className="card-soft flex flex-col justify-between rounded-3xl bg-[#EEF1E3] p-6 lg:col-span-5">
+        <div className="card-soft flex flex-col justify-between rounded-3xl bg-sage p-6 lg:col-span-5">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
-              <span className="font-mono-num text-xs font-bold tracking-wider text-[#333333]">
+              <span className="font-mono-num text-xs font-bold tracking-wider text-ink-2">
                 MY POCKET
               </span>
-              <h3 className="text-2xl font-extrabold leading-snug text-[#1F2421]">
+              <h3 className="text-2xl font-extrabold leading-snug text-ink">
                 내 문서가 모이면,
                 <br />
                 다음 준비는 더 가볍게.
               </h3>
-              <p className="text-[15px] leading-relaxed text-[#333333]">
+              <p className="text-[15px] leading-relaxed text-ink-2">
                 필요한 서류와 연결된 정책을 전자지갑에서 함께 확인해요.
               </p>
             </div>
 
-            <div className="flex h-16 w-14 shrink-0 items-center justify-center rounded-2xl border-[1.5px] border-[#262A27] bg-[#D8F279] shadow-sm">
-              <Wallet className="h-7 w-7 text-[#1F2421]" aria-hidden="true" />
+            <div className="flex h-16 w-14 shrink-0 items-center justify-center rounded-2xl border-[1.5px] border-edge bg-accent shadow-sm">
+              <Wallet className="h-7 w-7 text-ink" aria-hidden="true" />
             </div>
           </div>
 
@@ -281,10 +281,10 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
       <section className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="font-mono-num rounded-lg border border-[#262A27] bg-[#D8F279] px-2.5 py-1 text-xs font-bold text-[#1F2421]">
+            <span className="font-mono-num rounded-lg border border-edge bg-accent px-2.5 py-1 text-xs font-bold text-ink">
               01
             </span>
-            <h2 className="text-2xl font-extrabold text-[#1F2421]">
+            <h2 className="text-2xl font-extrabold text-ink">
               나를 위한 정책 픽
             </h2>
           </div>
@@ -317,16 +317,16 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
       </section>
 
       {/* Bottom Life Change Comparison Banner */}
-      <section className="card-tactile flex flex-col items-start justify-between gap-5 rounded-3xl bg-[#E8E0FC] p-6 sm:flex-row sm:items-center sm:p-8">
+      <section className="card-tactile flex flex-col items-start justify-between gap-5 rounded-3xl bg-lavender p-6 sm:flex-row sm:items-center sm:p-8">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 text-[13px] font-bold text-[#333333]">
-            <Sparkles className="h-4 w-4 text-[#1F2421]" aria-hidden="true" />
+          <div className="inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-2">
+            <Sparkles className="h-4 w-4 text-ink" aria-hidden="true" />
             <span>생활변화 시뮬레이션</span>
           </div>
-          <h3 className="text-xl font-extrabold text-[#1F2421] sm:text-2xl">
+          <h3 className="text-xl font-extrabold text-ink sm:text-2xl">
             졸업하거나, 이사하면 내 정책은 어떻게 달라질까?
           </h3>
-          <p className="text-[15px] text-[#333333]">
+          <p className="text-[15px] text-ink-2">
             내 정보는 그대로 두고, 변화 후 조건과 영향을 받는 정책을 미리 비교해 봐요.
           </p>
         </div>

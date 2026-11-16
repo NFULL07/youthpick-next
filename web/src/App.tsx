@@ -337,10 +337,10 @@ export default function App() {
     (route === 'policies' && exploreComparedPolicies.length > 0);
 
   return (
-    <div className="min-h-screen bg-[#F7F5EE] text-[#1F2421]">
+    <div className="min-h-screen bg-canvas text-ink">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-[#1F2421] focus:px-4 focus:py-2 focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
       >
         본문으로 이동
       </a>
@@ -452,9 +452,9 @@ export default function App() {
           />
         )}
 
-        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-[#DCD7C9] pt-6 text-[13px] font-semibold text-[#4A4D49] md:pr-56">
+        <footer className="mt-16 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6 text-[13px] font-semibold text-ink-3 md:pr-56">
           <div>
-            <strong className="font-extrabold text-[#1F2421]">청년픽 NEXT</strong>
+            <strong className="font-extrabold text-ink">청년픽 NEXT</strong>
             <span className="ml-2">내 다음을, 가볍게 픽.</span>
           </div>
           <span className="font-mono-num tracking-wider">A NEXT:UP PROJECT</span>
@@ -471,7 +471,7 @@ export default function App() {
       {toastMessage && (
         <div
           role="status"
-          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-[#262A27] bg-[#1F2421] px-5 py-3 text-[14px] font-bold text-white shadow-xl"
+          className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-1/2 z-[60] -translate-x-1/2 lg:bottom-6 rounded-2xl border-[1.5px] border-edge bg-ink px-5 py-3 text-[14px] font-bold text-white shadow-xl"
         >
           {toastMessage}
         </div>

@@ -62,28 +62,28 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1F2421]/50 p-3 backdrop-blur-[2px] sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-3 backdrop-blur-[2px] sm:p-4"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="region-modal-title"
-        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border-[1.5px] border-[#262A27] bg-[#FAF8F2] shadow-2xl break-keep"
+        className="flex max-h-[85dvh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border-[1.5px] border-edge bg-surface-2 shadow-2xl break-keep"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header (Pinned) */}
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#DCD7C9] bg-[#E8E0FC] px-4 py-3.5 sm:px-6 sm:py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line bg-lavender px-4 py-3.5 sm:px-6 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            <MapPin className="h-5 w-5 shrink-0 text-[#1F2421]" aria-hidden="true" />
+            <MapPin className="h-5 w-5 shrink-0 text-ink" aria-hidden="true" />
             <div className="min-w-0">
               <h2
                 id="region-modal-title"
-                className="text-base font-bold text-[#1F2421] sm:text-lg"
+                className="text-base font-bold text-ink sm:text-lg"
               >
                 {title}
               </h2>
-              <p className="text-[12px] font-medium text-[#333333] sm:text-[13px]">
+              <p className="text-[12px] font-medium text-ink-2 sm:text-[13px]">
                 시·도를 먼저 선택한 뒤 시·군·구를 클릭해 주세요.
               </p>
             </div>
@@ -92,7 +92,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="지역 선택 창 닫기"
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#262A27]/30 bg-white text-[#1F2421] hover:bg-[#F7F5EE]"
+            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-edge/30 bg-surface text-ink hover:bg-canvas"
           >
             <X className="h-4.5 w-4.5" />
           </button>
@@ -100,10 +100,10 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
 
         {/* Hierarchical 2-column selector (Scrollable Middle Body) */}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 divide-y divide-[#DCD7C9] sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+          <div className="grid grid-cols-1 divide-y divide-line sm:grid-cols-2 sm:divide-x sm:divide-y-0">
             {/* Column 1: 시/도 */}
             <div className="p-3.5 sm:p-4">
-              <p className="mb-2 px-1.5 text-xs font-bold tracking-wide text-[#333333] sm:mb-2.5 sm:px-2">
+              <p className="mb-2 px-1.5 text-xs font-bold tracking-wide text-ink-2 sm:mb-2.5 sm:px-2">
                 1단계 · 시 / 도 선택
               </p>
               <div
@@ -122,8 +122,8 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
                       onClick={() => handleSidoClick(group.sido)}
                       className={`flex w-full min-w-0 cursor-pointer items-center justify-between gap-1 rounded-xl px-2.5 py-2 text-left text-[12px] font-semibold leading-snug transition-colors break-keep sm:px-3.5 sm:py-2.5 sm:text-[14px] ${
                         isSelected
-                          ? 'border-[1.5px] border-[#262A27] bg-[#D8F279] font-bold text-[#1F2421]'
-                          : 'border border-transparent bg-white text-[#333333] hover:border-[#C9C4B6] hover:bg-[#F2EFE6]'
+                          ? 'border-[1.5px] border-edge bg-accent font-bold text-ink'
+                          : 'border border-transparent bg-surface text-ink-2 hover:border-line-mid hover:bg-surface-3'
                       }`}
                     >
                       <span className="min-w-0 whitespace-nowrap">{group.sido}</span>
@@ -136,7 +136,7 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
 
             {/* Column 2: 시/군/구 */}
             <div className="p-3.5 sm:p-4">
-              <p className="mb-2 px-1.5 text-xs font-bold tracking-wide text-[#333333] sm:mb-2.5 sm:px-2">
+              <p className="mb-2 px-1.5 text-xs font-bold tracking-wide text-ink-2 sm:mb-2.5 sm:px-2">
                 2단계 · {activeGroup.sido} 시 / 군 / 구 선택
               </p>
               <div
@@ -158,8 +158,8 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
                         isAllOption ? 'col-span-2' : ''
                       } ${
                         isSelected
-                          ? 'border-[1.5px] border-[#262A27] bg-[#1F2421] font-bold text-white'
-                          : 'border border-[#E5E1D5] bg-white text-[#333333] hover:border-[#262A27]/40 hover:bg-[#F2EFE6]'
+                          ? 'border-[1.5px] border-edge bg-ink font-bold text-white'
+                          : 'border border-line-soft bg-surface text-ink-2 hover:border-edge/40 hover:bg-surface-3'
                       }`}
                     >
                       <span className="min-w-0 truncate">{sigungu}</span>
@@ -175,10 +175,10 @@ export const RegionPickerModal: React.FC<RegionPickerModalProps> = ({
         </div>
 
         {/* Footer Preview & CTAs (Pinned) */}
-        <div className="flex shrink-0 flex-col gap-2.5 border-t border-[#DCD7C9] bg-white px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
-          <div className="flex flex-wrap items-center gap-2 text-[13px] text-[#333333] sm:text-[14px]">
+        <div className="flex shrink-0 flex-col gap-2.5 border-t border-line bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-4">
+          <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink-2 sm:text-[14px]">
             <span className="shrink-0">선택된 지역:</span>
-            <strong className="rounded-lg border border-[#262A27] bg-[#EEF1E3] px-2.5 py-1 font-bold text-[#1F2421] break-keep sm:px-3">
+            <strong className="rounded-lg border border-edge bg-sage px-2.5 py-1 font-bold text-ink break-keep sm:px-3">
               {formattedPreview}
             </strong>
           </div>

@@ -14,16 +14,16 @@ interface PolicyCardProps {
 }
 
 const ACCENT_BG: Record<PolicyItem['accentTheme'], string> = {
-  peach: 'bg-[#FBE1D6]',
-  lime: 'bg-[#D8F279]',
-  lavender: 'bg-[#E8E0FC]',
-  sage: 'bg-[#E5ECD4]',
+  peach: 'bg-peach',
+  lime: 'bg-accent',
+  lavender: 'bg-lavender',
+  sage: 'bg-sage-deep',
 };
 
 const STATUS_STYLE: Record<PolicyItem['recruitmentStatus'], string> = {
-  '모집 중': 'bg-[#D8F279] text-[#1F2421] border-[#262A27]',
-  마감: 'bg-[#EAE6DA] text-[#333333] border-[#9E998B]',
-  '공고 확인 필요': 'bg-[#FFF0CC] text-[#1F2421] border-[#B8860B]',
+  '모집 중': 'bg-accent text-ink border-edge',
+  마감: 'bg-surface-3 text-ink-2 border-line-dim',
+  '공고 확인 필요': 'bg-warn-bg text-ink border-warn',
 };
 
 export const PolicyCard: React.FC<PolicyCardProps> = ({
@@ -37,17 +37,17 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
   onStartPreparation,
 }) => {
   return (
-    <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-white break-keep transition-transform duration-150 hover:-translate-y-0.5">
+    <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-surface break-keep transition-transform duration-150 hover:-translate-y-0.5">
       {/* Pastel Ticket Top Strip */}
       <div
-        className={`flex items-center justify-between border-b border-[#262A27] px-5 py-3.5 ${ACCENT_BG[policy.accentTheme]}`}
+        className={`flex items-center justify-between border-b border-edge px-5 py-3.5 ${ACCENT_BG[policy.accentTheme]}`}
       >
-        <div className="flex items-center gap-2 text-[14px] font-bold text-[#1F2421]">
+        <div className="flex items-center gap-2 text-[14px] font-bold text-ink">
           <span>{policy.category}</span>
-          <span aria-hidden="true" className="text-[#4A4D49]">
+          <span aria-hidden="true" className="text-ink-3">
             /
           </span>
-          <span className="font-mono-num text-[13px] font-bold text-[#333333]">
+          <span className="font-mono-num text-[13px] font-bold text-ink-2">
             {policy.pickNumber}
           </span>
         </div>
@@ -59,8 +59,8 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           aria-pressed={isSaved}
           className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border transition-colors ${
             isSaved
-              ? 'border-[#262A27] bg-[#1F2421] text-white'
-              : 'border-[#262A27]/30 bg-white/80 text-[#1F2421] hover:bg-white'
+              ? 'border-edge bg-ink text-white'
+              : 'border-edge/30 bg-surface/80 text-ink hover:bg-surface'
           }`}
         >
           <Bookmark className="h-4 w-4" fill={isSaved ? 'currentColor' : 'none'} />
@@ -69,11 +69,11 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
 
       {/* Main Body */}
       <div className="flex flex-1 flex-col gap-3.5 p-5">
-        <p className="text-[13px] font-semibold text-[#4A4D49]">
+        <p className="text-[13px] font-semibold text-ink-3">
           {policy.agencyLabel}
         </p>
 
-        <h3 className="text-[19px] font-extrabold leading-snug text-[#1F2421]">
+        <h3 className="text-[19px] font-extrabold leading-snug text-ink">
           <button
             type="button"
             onClick={() => onOpenDetail(policy.id)}
@@ -83,11 +83,11 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           </button>
         </h3>
 
-        <p className="text-[15px] leading-relaxed text-[#333333]">
+        <p className="text-[15px] leading-relaxed text-ink-2">
           {policy.shortDescription}
         </p>
 
-        <div className="rounded-xl bg-[#F7F5EE] px-3.5 py-2.5 text-[14px] font-medium text-[#222623]">
+        <div className="rounded-xl bg-canvas px-3.5 py-2.5 text-[14px] font-medium text-ink">
           {policy.supportSummary}
         </div>
 
@@ -97,20 +97,20 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           >
             {policy.recruitmentStatus}
           </span>
-          <span className="text-[13px] font-semibold text-[#333333]">
+          <span className="text-[13px] font-semibold text-ink-2">
             {policy.deadlineLabel}
           </span>
         </div>
 
-        <div className="flex items-start gap-2 border-t border-[#ECE8DC] pt-3 text-[13px] font-medium text-[#333333]">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#4A4D49]" aria-hidden="true" />
+        <div className="flex items-start gap-2 border-t border-line-soft pt-3 text-[13px] font-medium text-ink-2">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
           <span>{policy.keyCheckHint}</span>
         </div>
       </div>
 
       {/* Bottom Action Footer with Ticket Notch Divider */}
-      <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-[#C7C2B4] bg-[#FAF8F2] px-5 py-3.5">
-        <label className="flex cursor-pointer items-center gap-2 text-[14px] font-semibold text-[#333333]">
+      <div className="relative flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-line-mid bg-surface-2 px-5 py-3.5">
+        <label className="flex cursor-pointer items-center gap-2 text-[14px] font-semibold text-ink-2">
           <input
             type="checkbox"
             checked={isCompared}
@@ -121,8 +121,8 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
           <span
             className={`flex h-5 w-5 items-center justify-center rounded-md border-[1.5px] transition-colors ${
               isCompared
-                ? 'border-[#1F2421] bg-[#1F2421] text-white'
-                : 'border-[#7D796E] bg-white'
+                ? 'border-ink bg-ink text-white'
+                : 'border-ink-4 bg-surface'
             }`}
           >
             {isCompared && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
@@ -137,8 +137,8 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
               onClick={() => onStartPreparation(policy.id)}
               className={`cursor-pointer whitespace-nowrap break-keep rounded-xl px-3 py-2 text-[13px] font-bold transition-colors ${
                 isPrepping
-                  ? 'border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421] hover:bg-[#CEF058]'
-                  : 'btn-secondary-outline bg-white'
+                  ? 'border-[1.5px] border-edge bg-accent text-ink hover:bg-accent-hover'
+                  : 'btn-secondary-outline bg-surface'
               }`}
             >
               준비 이어가기
