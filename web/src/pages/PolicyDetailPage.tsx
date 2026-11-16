@@ -158,8 +158,8 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           <DirectInputSection key={policy.id} policy={policy} />
         </section>
 
-        {/* Right Action Sidebar */}
-        <aside className="space-y-5 lg:col-span-4">
+        {/* Right Action Sidebar: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}
+        <aside className="space-y-5 lg:sticky lg:top-24 lg:col-span-4 lg:self-start">
           <div className="card-tactile rounded-3xl bg-[#EEF1E3] p-6">
             <span className="font-mono-num text-xs font-bold tracking-wider text-[#333333]">
               ONE MORE STEP
