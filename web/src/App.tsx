@@ -17,6 +17,11 @@ import { ProfilePage } from './pages/ProfilePage';
 import { WalletPage } from './pages/WalletPage';
 import { PolicyItem, RouteId, UserProfile, WalletDocument } from './types/policy';
 import {
+  sanitizeProfile,
+  sanitizeStringList,
+  sanitizeWalletDocs,
+} from './utils/storedState';
+import {
   clearCompareIdsForTab,
   countCheckedPrepPolicies,
   getComparedPoliciesForTab,
@@ -74,11 +79,12 @@ export default function App() {
     initialRoute.policyId
   );
 
+  // 저장값 형식이 다르면(이전 버전·손상) 기본값을 써서 빈 화면을 막는다
   const [profile, setProfile] = useState<UserProfile>(() =>
-    loadJson<UserProfile>(STORAGE_KEY_PROFILE, DEFAULT_USER_PROFILE)
+    sanitizeProfile(loadJson<unknown>(STORAGE_KEY_PROFILE, null), DEFAULT_USER_PROFILE)
   );
   const [savedIds, setSavedIds] = useState<string[]>(() =>
-    loadJson<string[]>(STORAGE_KEY_SAVED, ['1'])
+    sanitizeStringList(loadJson<unknown>(STORAGE_KEY_SAVED, null), ['1'])
   );
   const [comparePolicyIds, setComparePolicyIds] = useState<string[]>([]);
   const [prepPolicyIds, setPrepPolicyIds] = useState<string[]>(() => {
@@ -106,7 +112,7 @@ export default function App() {
     return {};
   });
   const [walletDocs, setWalletDocs] = useState<WalletDocument[]>(() =>
-    loadJson<WalletDocument[]>(STORAGE_KEY_DOCS, INITIAL_WALLET_DOCS)
+    sanitizeWalletDocs(loadJson<unknown>(STORAGE_KEY_DOCS, null), INITIAL_WALLET_DOCS)
   );
 
   const [isSherpaOpen, setIsSherpaOpen] = useState(false);
