@@ -1,6 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ArrowRight, FileText, Search, Upload } from 'lucide-react';
 import { RouteId, UserProfile, WalletDocument } from '../types/policy';
+import { WalletExternalDocsSection } from '../components/WalletExternalDocsSection';
 
 interface WalletPageProps {
   profile: UserProfile;
@@ -334,6 +335,8 @@ export const WalletPage: React.FC<WalletPageProps> = ({
           </div>
         </div>
       </div>
+
+      <WalletExternalDocsSection />
     </div>
   );
 };

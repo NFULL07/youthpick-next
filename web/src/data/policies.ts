@@ -28,6 +28,7 @@ export const POLICIES_DATA: PolicyItem[] = [
     minAge: 19,
     maxAge: 34,
     requiredDocs: ['주민등록표 등본', '임대차계약서 사본', '재학·졸업 증빙서류'],
+    directInputFieldIds: ['monthly_rent_amount', 'rental_deposit_amount', 'housing_loan_product', 'existing_support', 'support_period'],
     checklist: [
       {
         id: '1-c1',
@@ -79,6 +80,7 @@ export const POLICIES_DATA: PolicyItem[] = [
     minAge: 18,
     maxAge: 34,
     requiredDocs: ['졸업(예정)증명서', '구직등록확인증', '소득 관련 증빙서류'],
+    directInputFieldIds: ['weekly_work_hours', 'interview_schedule', 'existing_support', 'support_period'],
     checklist: [
       {
         id: '2-c1',
@@ -118,6 +120,7 @@ export const POLICIES_DATA: PolicyItem[] = [
     minAge: 18,
     maxAge: 34,
     requiredDocs: ['국민내일배움카드', '재학·졸업 증빙서류'],
+    directInputFieldIds: ['existing_support', 'support_period'],
     checklist: [
       {
         id: '3-c1',
@@ -151,6 +154,7 @@ export const POLICIES_DATA: PolicyItem[] = [
     minAge: 19,
     maxAge: 34,
     requiredDocs: ['소득금액증명원', '재직증명서 또는 사업자등록증'],
+    directInputFieldIds: ['weekly_work_hours', 'existing_support', 'support_period'],
     checklist: [
       {
         id: '4-c1',
@@ -265,12 +269,53 @@ export const POLICIES_DATA: PolicyItem[] = [
     minAge: 24,
     maxAge: 24,
     requiredDocs: ['주민등록표 초본(주소변동 이력 포함)'],
+    directInputFieldIds: ['interview_schedule'],
     checklist: [
       {
         id: '8-c1',
         title: '경기도 최근 3년 계속 거주 여부 확인',
         detail: '타 시도 전출 예정이 있다면 신청 분기 기준일 먼저 점검',
         tag: '직접 점검',
+      },
+    ],
+  },
+  {
+    id: '9',
+    pickNumber: 'PICK 09',
+    title: '학자금 대출이자 지원 (시연 예시)',
+    agencyLabel: '지자체·장학재단 연계 정책 예시',
+    category: '교육·직업훈련',
+    accentTheme: 'lavender',
+    recruitmentStatus: '공고 확인 필요',
+    deadlineLabel: '공고 연결 후 확인',
+    shortDescription: '학자금 지원구간과 대출 종류를 서류로 확인해요.',
+    supportSummary: '공고 연결 후 확인',
+    keyCheckHint: '학자금 지원구간 통지서와 학자금대출 종류 확인',
+    badgeText: '추가 확인',
+    targetRegions: ['충청남도 천안시'],
+    targetStatuses: ['대학 재학', '휴학', '졸업', '구직 중'],
+    minAge: 19,
+    maxAge: 39,
+    requiredDocs: ['학자금 지원구간 통지서', '학자금대출 부채확인서', '주민등록표 초본'],
+    directInputFieldIds: ['aid_band_value', 'aid_band_scheme', 'aid_band_period', 'student_loan_status'],
+    checklist: [
+      {
+        id: '9-c1',
+        title: '공식 공고·모집 상태 확인',
+        detail: '운영기관의 최신 공고에서 대상 대출 기간과 지원구간 기준 확인',
+        tag: '직접 점검',
+      },
+      {
+        id: '9-c2',
+        title: '학자금 지원구간 통지서 발급',
+        detail: '한국장학재단에서 공고가 요구하는 학기의 통지서 발급',
+        tag: '할 일',
+      },
+      {
+        id: '9-c3',
+        title: '학자금대출 부채확인서 발급',
+        detail: '한국장학재단에서 대출 종류(취업후상환·일반상환)와 생활비 대출 여부 확인',
+        tag: '할 일',
       },
     ],
   },

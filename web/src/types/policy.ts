@@ -81,6 +81,8 @@ export interface PolicyItem {
   minAge: number;
   maxAge: number;
   requiredDocs: string[];
+  /** 지갑 밖 서류로 직접 입력해야 하는 항목의 영문 ID (docs/data/doc_requirements_items_v1.csv) */
+  directInputFieldIds?: string[];
   checklist: {
     id: string;
     title: string;
