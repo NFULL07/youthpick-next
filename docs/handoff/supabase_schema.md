@@ -1,142 +1,160 @@
-# Supabase 스키마와 적재 (v0.1, 2026-11-17)
+# Supabase 연결: 스키마, 적재, 화면 (v0.2, 2026-11-17)
 
-작성: Claude(Cowork), 주완 요청 · 상태: **코드 작성과 로컬 검증 완료, 원격 Supabase에는 아직 적용 안 함**
+작성: Claude(Cowork), 주완 요청 · 상태: **코드 작성과 로컬 검증 완료. 원격 Supabase에는 아직 적용하지 않음(프로젝트 없음)**
 
 > 앞 단계 문서: `docs/handoff/supabase_setup.md` (설계 방향, 데이터 현황, 품질 문제 1~10). 공통 규칙은 `CLAUDE.md`.
 
-## 0. 이 브랜치에 들어 있는 것
+## 0. 연결 순서 (이대로 하면 화면이 Supabase 데이터로 뜬다)
+
+| 순서 | 할 일 | 어디서 |
+|---|---|---|
+| 1 | 청년픽용 Supabase 프로젝트 만들기 (서울, 무료 플랜) | Supabase 대시보드 |
+| 2 | `supabase/migrations/`의 SQL 2개를 파일 이름 순서대로 실행 | SQL 편집기(붙여 넣기) 또는 `npx supabase db push` |
+| 3 | 적재: `python pipeline/load_supabase.py --raw data_raw/policies_all.json` | 노트북 (저장소 맨 위 `.env`에 URL과 service_role 키) |
+| 4 | 점검: `supabase/checks/schema_checks.sql` 실행, 13개 모두 true | SQL 편집기 |
+| 5 | `web/.env.local`에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 넣고 `npm run dev` | 노트북 |
+| 6 | 배포 환경(Cloudflare)에도 같은 두 값을 환경변수로 넣고 다시 빌드 | Cloudflare 대시보드 |
+
+- 3번에서 API 원본 파일이 없으면 `--skip-raw`로 먼저 넣을 수 있다(정책·공고·서류는 들어가고, API 원본과 API 대분류만 빠진다).
+- 5번의 두 값이 없으면 화면은 지금처럼 시연용 예시 데이터로 동작한다. 값을 넣는 순간부터 Supabase 데이터를 쓴다.
+- 화면에는 **공개용 키(anon 또는 sb_publishable_)만** 넣는다. 관리자 키(service_role, sb_secret_)를 넣으면 화면이 그 키를 쓰지 않고 예시 데이터로 돌아가며 안내를 띄운다.
+
+## 1. 이 브랜치에 들어 있는 것
 
 | 파일 | 내용 |
 |---|---|
 | `supabase/migrations/20261117000000_init_policy_schema.sql` | 테이블 10개, 제약조건, 트리거, RLS |
-| `supabase/checks/schema_checks.sql` | 적용 후 점검 11개. 점검용 행을 넣고 마지막에 rollback |
-| `pipeline/load_supabase.py` | CSV와 API 원본을 Supabase에 넣는 적재 스크립트(표준 라이브러리만) |
-| `pipeline/tests/test_load_supabase.py` | 적재 스크립트 테스트 4개 |
-| `.env.example` | 필요한 환경변수 이름(값 없음) |
+| `supabase/migrations/20261117010000_screen_support.sql` | 화면 표시용 칸, 나이 연산자, 입력 질문·보기, 근거 문서 필수 |
+| `supabase/checks/schema_checks.sql` | 적용 후 점검 13개. 점검용 행을 넣고 마지막에 rollback |
+| `pipeline/load_supabase.py`, `pipeline/rule_tables.py` | 적재 스크립트(표준 라이브러리만) |
+| `docs/data/eligibility_rules_v0_1.csv` | 판정 규칙. 지금은 API 값으로 만든 **초안 28행**뿐(화면에 안 보임) |
+| `docs/data/policy_relationships_v0_1.csv`, `document_requirements_v0_1.csv` | 정책 관계, 공고별 제출서류. 지금은 머리글만 |
+| `web/src/data/` (`supabaseSource`, `policyCatalog`, `catalogBuilder`, `catalogTypes`) | Supabase 읽기, 예시 데이터 대체, 받아 둔 사본 |
+| `web/src/utils/` (`ruleEngine`, `ruleTypes`, `regionMatch`) | 검수 완료 규칙으로 O/X/? 계산 |
 
-만들지 않은 것: 사용자 프로필 테이블(저장 방식 결정 전), 임베딩 칸(모델 미정), 판정 규칙·정책 관계·제출서류 **내용**(사람이 검수해서 넣음).
+만들지 않은 것: 사용자 프로필 테이블(저장 방식 결정 전), 임베딩 칸(모델 미정), 검수 완료 규칙·관계·제출서류의 **내용**(주완 검수 필요).
 
-## 1. 테이블
+## 2. 테이블
 
 | 테이블 | 한 행 | 공개 읽기(anon) | 채우는 방법 |
 |---|---|---|---|
-| `region` | 지역 코드 하나 (충남 44, 천안 44130·44131·44133, 아산 44200) | 전부 | 마이그레이션에 포함 |
-| `personal_field` | 개인화 항목 **정의** 하나 (69개, 값 아님) | 전부 | 적재 스크립트 |
-| `document_catalog` | 확인 서류 하나 (39종, 지갑 밖 14종 표시) | 전부 | 적재 스크립트 |
-| `policy` | 정책 하나 (후보 41건: 1차안 28, 예비 10, 제외 3) | 전부 | 적재 스크립트 |
-| `policy_notice` | 공고 한 건 (1차안 28건 -> 공고 33건: API 26 + API에 없음 7) | 전부 | 적재 스크립트 |
-| `source_document` | 근거 문서 URL 하나 | 전부 | 적재 스크립트(정책후보표 URL), 이후 수기 |
-| `eligibility_rule` | 공고의 조건 하나 | **검수 완료만** | 사람이 검수해서 입력 |
-| `policy_relationship` | 두 공고 사이 관계 하나 (5종) | **검수 완료만** | 사람이 검수해서 입력 |
-| `document_requirement` | 공고별 제출서류 하나 | **검수 완료만** | 사람이 검수해서 입력 |
-| `api_policy_raw` | 온통청년 API 레코드 원본 하나 | **읽기 불가** | 적재 스크립트(service_role) |
+| `region` | 지역 코드 (충남 44, 천안 44130·44131·44133, 아산 44200) | 전부 | 마이그레이션에 포함 |
+| `personal_field` | 개인화 항목 **정의** (69개, 값 아님) + 확인 서류 안내 | 전부 | 적재 스크립트 |
+| `document_catalog` | 확인 서류 (39종, 지갑 밖 14종 표시) | 전부 | 적재 스크립트 |
+| `policy` | 정책 (후보 41건: 1차안 28, 예비 10, 제외 3) | 전부 | 적재 스크립트 |
+| `policy_notice` | 공고 (1차안 28건 -> 공고 33건: API 26 + API에 없음 7) | 전부 | 적재 스크립트 |
+| `source_document` | 근거 문서 URL | 전부 | 적재 스크립트 |
+| `eligibility_rule` | 공고의 조건 하나 | **검수 완료만** | 규칙 CSV -> 적재 스크립트 |
+| `policy_relationship` | 두 공고 사이 관계 (5종) | **검수 완료만** | 관계 CSV -> 적재 스크립트 |
+| `document_requirement` | 공고별 제출서류 | **검수 완료만** | 제출서류 CSV -> 적재 스크립트 |
+| `api_policy_raw` | 온통청년 API 레코드 원본 | **읽기 불가** | 적재 스크립트(service_role) |
 
 쓰기는 모든 테이블에서 service_role만 된다(anon·authenticated는 RLS와 권한 회수로 이중 차단).
 
-DB가 직접 막는 규칙:
+DB가 직접 막는 것:
 
-- 검수 완료(reviewed) 판정 규칙과 관계는 근거 원문 인용(source_quote), 검수자, 검수 시각이 있어야 한다. 금지 문구가 없다는 이유로 '병행 가능'을 검수 완료로 둘 수 없다.
-- '추가 확인' 관계는 인용 대신 확인할 내용(condition_text)이 있어야 하고, '조건부 병행'은 조건이 있어야 한다.
-- 수집 제외 항목(주민등록번호 등 6개)은 판정 규칙에 쓸 수 없다(트리거).
-- 연산자에 맞지 않는 값 모양은 거부(between은 `{"min","max"}`, in·region_in은 배열 등).
-- 방향이 없는 관계는 작은 공고 id를 a에 둬서 같은 관계가 두 줄로 생기지 않는다. 선행조건만 방향이 있다(a가 b를 먼저 필요로 함).
+- 검수 완료 규칙·관계에 근거 원문 인용, 근거 문서, 검수자, 검수 시각이 없으면 거부. 근거 없는 '병행 가능'은 검수 완료가 될 수 없다.
+- '추가 확인' 관계는 확인할 내용이, '조건부 병행'은 조건이 있어야 한다.
+- 수집 제외 항목(주민등록번호 등 6개)은 판정 규칙에 쓸 수 없다.
+- 연산자에 맞지 않는 값 모양, 값이 필요한 연산자의 빈 값은 거부.
+- 방향이 없는 관계는 한 줄만 생긴다(작은 공고 id가 a). 선행조건만 방향이 있다(a가 b를 먼저 필요로 함).
 
-## 2. 판정 규칙 한 줄의 모양
+정책의 분야(`policy.category`)는 API 대분류가 있으면 그것을 쓰고, 없으면 목적묶음으로 **잠정** 분류한다(A·B 교육·직업훈련, C 주거, D·E·H 일자리, F·G 금융·복지·문화). 근거는 `category_basis`에 남는다. 잠정 분류는 사람이 정한 값이 아니므로 확인이 필요하다. 적재할 때 잠정인 정책 목록이 출력된다.
 
-```text
-notice_id   : 어느 공고의 조건인지
-rule_key    : 공고 안에서 고유한 이름 (age, resident_region ...)
-field_id    : personal_field.id (birth_year, resident_sigungu ...)
-operator    : between | gte | lte | eq | in | not_in | region_in | is_true | is_false
-value       : between {"min":19,"max":34} / region_in ["44130","44131","44133"] / eq "대학 재학"
-any_of_group: 같은 값끼리는 하나만 충족하면 됨(OR). 비어 있으면 반드시 충족(AND)
-label       : 화면 문구 "만 19~34세"
-fail_reason : X일 때 보여줄 이유
-source_quote: 근거 원문 인용 (검수 완료면 필수)
-review_status: draft -> reviewed (화면에는 reviewed만)
-```
+## 3. 판정 규칙 CSV 쓰는 법 (`docs/data/eligibility_rules_v0_1.csv`)
 
-미입력이면 X가 아니라 ?로 두는 것, ?를 O·X로 바꾸지 않는 것은 화면의 판정 엔진이 지킨다(CLAUDE.md 4장).
+CSV가 원본이다. 엑셀에서 고치고 UTF-8 CSV로 저장한 뒤 적재 스크립트를 다시 돌린다. **'검수 완료' 행만 화면에 보이고 판정에 쓰인다.**
 
-## 3. 품질 문제 1~10 처리 (supabase_setup.md 3장)
+| 열 | 뜻 | 예 |
+|---|---|---|
+| 공고키 | `정책ID:plcyNo` 또는 `정책ID:manual`(API에 없는 공고) | `C1:20260319005400112218` |
+| 규칙키 | 공고 안에서 고유한 이름(영문 소문자·숫자·밑줄) | `age` |
+| 항목ID | `personal_fields_v0_3.csv`의 항목ID | `birth_year` |
+| 연산자 | 아래 표 | `age_between` |
+| 값(JSON) | 연산자에 맞는 값 | `{"min": 19, "max": 34}` |
+| OR묶음 | 같은 글자를 쓴 규칙끼리는 하나만 맞으면 됨. 비우면 반드시 맞아야 함 | `cheonan_link` |
+| 화면 문구 | 조건표의 '공고 기준' 칸 | `만 19~34세` |
+| 불일치 이유 | X일 때 보여 줄 문장(비우면 자동 문장) | `만 19~34세만 신청할 수 있어요.` |
+| 질문 | 직접 입력 칸에 보여 줄 질문 | `부모와 따로 살고 있나요?` |
+| 선택지(JSON) | 직접 입력 보기(비우면 값에서 만듦) | `["무주택", "주택 소유", "모름"]` |
+| 단위 | 숫자 입력 단위 | `원` |
+| 순서 | 조건표에서의 순서(작은 수가 위) | `10` |
+| 근거 URL, 근거 원문 인용, 근거 위치 | 공고 원문 주소, 그대로 옮긴 문장, 쪽·항목 | |
+| 작성 | 직접 / AI 초안 / API 초안 | |
+| 검수 상태 | 초안 / 검수 완료 / 반려 | |
+| 검수자, 검수일 | 검수 완료일 때 필수. 날짜는 `2026-11-18` 형식 | |
+
+| 연산자 | 값 | 뜻 |
+|---|---|---|
+| `age_between` | `{"min":19,"max":34}` (한쪽만 가능) | 만 나이 범위. 출생연도만 알아 경계에 걸리면 ?로 둔다 |
+| `between`, `gte`, `lte` | `{"min":1,"max":8}`, `12`, `700000` | 숫자 범위, 이상, 이하 |
+| `in`, `not_in` | `["재학","휴학"]` | 보기 중 하나임 / 아님 |
+| `eq` | `"무주택"`, `3`, `true` | 같음 |
+| `region_in` | `["44130","44131","44133"]` | 지역 코드(`region` 표). 천안은 세 코드를 모두 적는다 |
+| `is_true`, `is_false` | 비움 | 예·아니오 질문 (예: 가구 소득 기준 충족 여부) |
+
+'내 정보'에서 값을 가져오는 항목은 값 이름이 정해져 있다. 다르게 쓰면 적재가 멈춘다.
+
+- `enrollment_status`: 재학, 휴학, 졸업예정, 졸업, 수료·졸업유예, 대학원
+- `employment_status`: 재직, 자영업, 미취업, 프리랜서, 일용근로, 예비창업, 단기근로, 영농, 기타
+- 지역: `registered_sido_code`·`registered_city_code`(주민등록지), `campus_id`(학교 소재지), `employer_info`(근무지)에 `region_in`
+
+초안을 검수 완료로 올리는 순서: 원문과 대조 -> 값·문구 고치기 -> 근거 URL·근거 원문 인용 채우기 -> 검수 상태 '검수 완료', 검수자, 검수일 -> 적재. 하나라도 빠지면 적재 스크립트가 어느 행인지 알려 주고 멈춘다. CSV에서 지운 행을 DB에서도 지우려면 `--prune`을 붙인다.
+
+정책 관계 CSV는 공고키 두 개와 관계(병행 제한 / 병행 가능 / 조건부 병행 / 선행조건 / 추가 확인)를 적는다. 검수 완료면 근거 URL과 인용이 필수이고, '추가 확인'만 인용 대신 확인할 내용을 적는다.
+
+## 4. 화면 동작
+
+- 정책 목록: `selection = '1차안'`인 정책 28건. 카드의 글은 정책후보표 값을 그대로 쓴다. 값이 없으면 '공고에서 확인'.
+- 모집 상태: 원문 기준 상태(정책후보표)가 우선. '접수중'은 API 접수 종료일이 지나면 마감. 모르면 '공고 확인 필요'.
+- 조건표: 검수 완료 규칙만 O/X/?로 계산한다. **미입력·모름·판정할 수 없는 값은 ?**이고 X는 이유와 함께 나온다. 규칙이 없는 정책은 ? 한 줄만 나온다.
+- API 값(연령, 참여 제한, 제출 서류 원문)은 '(API 참고)' 줄로만 보여 주고 판정에 쓰지 않는다.
+- 정책 관계는 조건표 아래 '함께 받기' 줄로 나온다. '병행 가능'만 O, 나머지는 ?.
+- 직접 입력: '내 정보'로 채울 수 없는 규칙 항목은 정책 상세에서 그 자리에서 입력해 판정한다. **입력값은 화면 메모리에만 있고 저장·전송하지 않는다**(Supabase로는 읽기 요청만 간다).
+- 생활변화 비교: 검수 완료 규칙의 판정이 달라지는지만 말한다. 규칙이 없으면 '판단하지 않았어요'라고 쓴다.
+- 연결 실패: 이 브라우저에 받아 둔 공개 정책 데이터 사본으로 뜨고, 사본도 없으면 시연용 예시 데이터로 뜬다. 어느 쪽인지 맨 위 안내에 나온다.
+- 한 정책에 공고가 여러 개면(C1, F1 등) 검수 완료 규칙이 있는 공고 > 모집 중 > 접수 종료일이 늦은 공고 순으로 하나를 대표로 쓴다.
+
+지금 화면의 '내 정보'는 나이·상태·주민등록지·학교 소재지·근무지 5개라서, 기본 저장 10개 항목 가운데 일부(실거주 일치 여부, 학년 등)는 정책 상세의 직접 입력으로 받는다. 프로필 항목을 10개로 맞추는 일은 별도 결정 사항이다.
+
+## 5. 품질 문제 1~10 처리 (supabase_setup.md 3장)
 
 | 번호 | 문제 | 처리 |
 |---|---|---|
-| 1 | 천안 코드 44130 / 44131·44133 혼용 | `region` 표와 `zip_codes` 배열 보관. 천안 사용자는 세 코드 모두와 대조(규칙 `region_in`) |
-| 2 | 연령 플래그와 값 불일치 | `api_min_age`·`api_max_age`에 값만 보관, 플래그는 안 씀. 0은 원문 대조 전까지 단정하지 않음 |
-| 3 | 소득 코드 '무관'인데 문구에 소득 기준 | `income_text_conflict` 표시(문자열 기준, 사람이 다시 봄). 소득 코드만으로 O 처리 금지 |
-| 4 | 묶음 레코드(인재육성사업 추진) | A2·B2·B3가 같은 plcyNo로 각각 공고를 가짐, `is_bundle_record` 표시 |
-| 5 | 한 정책에 레코드 여러 개 | 레코드마다 공고 한 건(A1 2건, C1 2건, F1 2건, F2 2건, G2 2건) |
-| 6 | API 기간·상태와 원문 불일치(D4, D5) | API 기간(`apply_start`·`apply_end`)과 원문 기간(`apply_period_original`)을 따로 보관. 원문 우선 |
-| 7 | 이전 연도 레코드만 있음 | `current_year_unconfirmed` 표시(D2, E5, G2) |
+| 1 | 천안 코드 44130 / 44131·44133 혼용 | `region` 표와 `zip_codes` 배열. 규칙은 세 코드를 모두 적고 화면은 '충청남도 천안시'로 대조 |
+| 2 | 연령 플래그와 값 불일치 | 값만 보관, 플래그는 안 씀. API 연령은 참고로만 표시 |
+| 3 | 소득 코드 '무관'인데 문구에 소득 기준 | `income_text_conflict` 표시(문자열 기준, 사람이 다시 봄) |
+| 4 | 묶음 레코드(인재육성사업 추진) | A2·B2·B3가 같은 plcyNo로 각각 공고를 가짐, `is_bundle_record` |
+| 5 | 한 정책에 레코드 여러 개 | 레코드마다 공고 한 건 |
+| 6 | API 기간·상태와 원문 불일치(D4, D5) | API 기간과 원문 기간을 따로 보관, 화면은 원문 우선 |
+| 7 | 이전 연도 레코드만 있음 | `current_year_unconfirmed`(D2, E5, G2). 화면에 '2026년 운영 여부 미확인' |
 | 8 | C2 매칭 확인 필요 | `match_status = '매칭(확인 필요)'` |
-| 9 | F2 소득 문구 혼재 | 원문 칸(`api_extra_qualification`, `api_income_text`)에 보관. 규칙 검수 때 정리 |
-| 10 | C3 새 제한 문구 | `api_restriction_text`에 보관. 관계 검수 때 근거로 사용 |
+| 9 | F2 소득 문구 혼재 | 원문 칸에 보관. 규칙 검수 때 정리 |
+| 10 | C3 새 제한 문구 | `api_restriction_text`에 보관. 화면 '참여 제한 (API 참고)' 줄, 관계 검수 근거 |
 
-## 4. 원격 Supabase에 적용하는 방법 (셋 중 하나)
-
-먼저 Supabase 대시보드에서 청년픽용 새 프로젝트를 만든다(서울, 무료 플랜). DB 비밀번호는 저장소에 넣지 않는다.
-
-1. **SQL 편집기**: 마이그레이션 파일 내용을 그대로 붙여 넣고 실행. 가장 빠름.
-2. **Supabase CLI**: `npx supabase init`(config.toml 생성) -> `npx supabase link --project-ref <프로젝트 ref>` -> `npx supabase db push`.
-3. **Claude(Cowork)의 Supabase 연결**: 프로젝트를 만든 뒤 적용을 요청.
-
-1·3번으로 적용했다면 나중에 CLI를 쓸 때 `supabase migration repair`로 적용 기록을 맞춘다.
-
-## 5. 적재
-
-```text
-# 저장소 맨 위 폴더에서. data_raw/는 Git에 올라가지 않는다
-python pipeline/load_supabase.py --raw data_raw/policies_all.json --dry-run    # 미리보기, 네트워크 안 씀
-python pipeline/load_supabase.py --raw data_raw/policies_all.json              # 실제 적재 (.env 필요)
-python pipeline/load_supabase.py --skip-raw --sql-out data_raw/load.sql        # 원본 없이 SQL 파일로 (SQL 편집기용)
-```
-
-- 필요한 값: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (환경변수 또는 저장소 맨 위 `.env`). service_role 키는 이 스크립트에서만 쓴다.
-- 다시 실행해도 같은 행이 두 번 생기지 않는다(키 기준 upsert).
-- 실행하면 건수와 검증 결과를 먼저 출력한다. 후보별 매칭(개별 18·묶음 3·없음 7)이나 지갑 밖 서류 14종이 맞지 않으면 적재하지 않고 멈춘다.
-- `policies_all.json`의 수집일은 폴더 이름(ythapi_YYYYMMDD)에서 읽는다. 다르면 `--collected-on 2026-11-09`.
-
-## 6. 점검
-
-적용과 적재 후 SQL 편집기에서 `supabase/checks/schema_checks.sql`을 실행한다. 결과 표의 passed가 11개 모두 true면 통과. 점검용 행은 rollback으로 지워진다.
-
-## 7. 화면 연결 (다음 단계, 아직 안 함)
-
-- 화면용 환경변수: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (anon 키만. service_role 키는 절대 넣지 않음)
-- 조회 예시(supabase-js):
-
-```ts
-const { data: policies } = await supabase
-  .from('policy')
-  .select('*, policy_notice(*)')
-  .eq('selection', '1차안');
-
-// 검수 완료 규칙만 돌아온다(RLS)
-const { data: rules } = await supabase
-  .from('eligibility_rule')
-  .select('*')
-  .in('notice_id', noticeIds);
-```
-
-- 타입은 원격 적용 후 `npx supabase gen types typescript --project-id <ref>`로 만든다.
-- `policy.category`(온통청년 5대 분야)는 비어 있다. 화면 분야 필터에 쓰려면 정책별로 확인해 채워야 한다.
-
-## 8. 실행한 확인 (2026-11-17, 클라우드 환경)
+## 6. 실행한 확인 (2026-11-17, 클라우드 환경)
 
 | 확인 | 결과 |
 |---|---|
-| PostgreSQL 16에 Supabase 역할(anon, authenticated, service_role)을 흉내 내 마이그레이션 적용 | 오류 없음 |
-| 점검 11개(`schema_checks.sql`) | 11/11 통과. 일부러 제약을 지운 DB에서는 해당 항목이 false로 나옴 |
-| 적재 스크립트 테스트 4개 | 통과 |
-| 적재 SQL을 같은 DB에 두 번 적용 | 정책 41, 공고 33, 서류 39(지갑 밖 14), 항목 69, 출처 59행. 두 번째 적용 후에도 같은 수 |
-| 실제 `policies_all.json`으로 적재 | **미실행** (파일이 노트북에만 있음. 테스트는 매칭표 값으로 만든 레코드 24건으로 함) |
-| 원격 Supabase 적용, `supabase db push`, 타입 생성 | **미실행** (프로젝트 없음, CLI 설치 불가 환경) |
-| 소득 문구 충돌 표시가 기록된 51건과 맞는지 | **미실행** (실제 원본 필요. 적재 미리보기에 건수가 나옴) |
+| PostgreSQL 16에 Supabase 역할을 흉내 내 마이그레이션 2개 적용 | 오류 없음 |
+| `schema_checks.sql` | 13/13 통과. 일부러 제약을 지운 DB에서는 해당 항목이 false |
+| 적재 스크립트 테스트 | 13개 통과 |
+| 적재 SQL을 같은 DB에 두 번 적용 | 정책 41, 공고 33, 서류 39, 항목 69, 출처 59행. 두 번째에도 같은 수 |
+| 화면 테스트 (`npm test`), lint, build | 59개 통과, lint 통과, build 성공 |
+| 테스트 DB -> anon 권한 REST 흉내 서버 -> 화면 (브라우저 자동 조작) | 23개 확인 통과: 직접 입력 O/X/?, 입력값이 저장소·URL·요청에 없음, 요청은 GET 9번뿐, 프로필 변경 반영, 연결 실패 시 사본·예시 데이터 |
+| 설정 없이 빌드한 화면 | 8개 확인 통과: 기존 예시 데이터 동작 그대로, Supabase 코드·요청 없음 |
+| 360·390·768·1280px 가로 넘침 | Supabase 데이터 11개 화면, 예시 데이터 8개 화면 모두 없음 |
+| 실제 Supabase(PostgREST)와의 통신 | **미실행** (프로젝트 없음. REST 흉내 서버는 `select=*`와 `eq` 필터만 흉내 냄) |
+| 실제 `policies_all.json` 적재 | **미실행** (파일이 노트북에만 있음. 매칭표 값으로 만든 레코드 24건으로 시험) |
+| 적재 스크립트의 REST 방식 | 요청 형식만 가짜 서버로 확인. 실제 PostgREST upsert는 **미실행** |
+| 검수 완료 규칙이 있는 화면 | 시험용 규칙(실제 공고 내용 아님)으로만 확인. 저장소의 규칙 CSV는 초안뿐 |
 
-## 9. 미확인·결정 필요
+## 7. 남은 일
 
-- 사용자 프로필 저장: 서버 저장 + 로그인 / 시연까지 브라우저 저장 (주완 결정)
-- 시연 정책 묶음과 그 판정 규칙 검수 (주완)
-- 지역 코드는 공식 코드표로 재확인 필요
-- Supabase가 해외 사업자라 개인정보처리방침에 처리위탁을 적어야 하는지(법률 검토)
+- 주완: Supabase 프로젝트 만들기, 시연 정책 묶음 결정, 그 정책들의 규칙·관계·제출서류 검수(CSV), 분야 잠정 분류 확인
+- 프로필 저장 방식(서버 저장 + 로그인 / 브라우저 저장) 결정, 프로필 항목을 기본 저장 10개로 맞출지 결정
+- 디자인 브랜치(A/B) 병합 뒤: 직접 입력 결과 배지 색을 결과(O/X/?)에 맞추기, 정책 카드의 긴 문장 줄 수 제한
+- 전자지갑의 예시 서류 3종은 그대로다(가상지갑 시연)
+- 지역 코드는 공식 코드표로 재확인 필요. 천안·아산·충남 밖의 지역을 규칙에 쓰려면 `region` 표에 먼저 넣어야 한다
+- Supabase가 해외 사업자라 개인정보처리방침에 무엇을 적어야 하는지(법률 검토). 지금은 사용자 값을 Supabase에 보내지 않는다
+- 무료 플랜은 1주 동안 쓰지 않으면 일시정지된다. 시연 전 접속해 깨워 둔다(화면은 받아 둔 사본으로 뜨지만 새 데이터는 못 받는다)
