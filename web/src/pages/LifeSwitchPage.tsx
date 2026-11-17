@@ -6,6 +6,7 @@ import {
   MapPin,
   Tag,
 } from 'lucide-react';
+import { RecruitmentStatusBadge } from '../components/RecruitmentStatusBadge';
 import { RegionPickerModal } from '../components/RegionPickerModal';
 import {
   AcademicWorkStatus,
@@ -160,44 +161,40 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
       {/* BEFORE vs AFTER Cards */}
       <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-11">
         {/* BEFORE */}
-        <section className="card-soft rounded-3xl bg-white p-6 sm:p-7 lg:col-span-5">
-          <p className="font-mono-num text-xs font-bold tracking-wider text-[#4A4D49]">
-            BEFORE / 현재 내 정보
-          </p>
-          <h2 className="mt-1.5 text-2xl font-extrabold text-[#1F2421]">
-            지금의 나
-          </h2>
+        <section className="card-soft rounded-3xl bg-surface p-6 sm:p-7 lg:col-span-5">
+          <h2 className="t-section">지금의 나</h2>
+          <p className="t-meta mt-0.5">현재 내 정보</p>
 
           <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div className="border-b border-[#E5E1D5] pb-3">
-              <span className="block text-[13px] font-semibold text-[#4A4D49]">
+            <div className="border-b border-line-soft pb-3">
+              <span className="block text-[13px] font-semibold text-ink-3">
                 주민등록지
               </span>
-              <strong className="mt-1 block text-[17px] font-bold text-[#1F2421]">
+              <strong className="mt-1 block text-[17px] font-bold text-ink">
                 {profile.residence || '미입력'}
               </strong>
             </div>
-            <div className="border-b border-[#E5E1D5] pb-3">
-              <span className="block text-[13px] font-semibold text-[#4A4D49]">
+            <div className="border-b border-line-soft pb-3">
+              <span className="block text-[13px] font-semibold text-ink-3">
                 학교 소재지
               </span>
-              <strong className="mt-1 block text-[17px] font-bold text-[#1F2421]">
+              <strong className="mt-1 block text-[17px] font-bold text-ink">
                 {profile.schoolRegion || '해당 없음'}
               </strong>
             </div>
-            <div className="border-b border-[#E5E1D5] pb-3">
-              <span className="block text-[13px] font-semibold text-[#4A4D49]">
+            <div className="border-b border-line-soft pb-3">
+              <span className="block text-[13px] font-semibold text-ink-3">
                 학적·현재 상태
               </span>
-              <strong className="mt-1 block text-[17px] font-bold text-[#1F2421]">
+              <strong className="mt-1 block text-[17px] font-bold text-ink">
                 {profile.status}
               </strong>
             </div>
-            <div className="border-b border-[#E5E1D5] pb-3">
-              <span className="block text-[13px] font-semibold text-[#4A4D49]">
+            <div className="border-b border-line-soft pb-3">
+              <span className="block text-[13px] font-semibold text-ink-3">
                 근무 지역
               </span>
-              <strong className="mt-1 block text-[17px] font-bold text-[#1F2421]">
+              <strong className="mt-1 block text-[17px] font-bold text-ink">
                 {profile.workRegion || '해당 없음'}
               </strong>
             </div>
@@ -206,7 +203,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
           <button
             type="button"
             onClick={() => onNavigate('profile')}
-            className="mt-6 inline-flex cursor-pointer items-center gap-1.5 text-[14px] font-bold text-[#1F2421] hover:underline"
+            className="mt-6 inline-flex cursor-pointer items-center gap-1.5 text-[14px] font-bold text-ink hover:underline"
           >
             <span>현재 내 정보 수정</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -215,55 +212,51 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
 
         {/* Arrow Divider */}
         <div className="flex items-center justify-center lg:col-span-1">
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-[#262A27] bg-[#D8F279] text-[#1F2421]">
+          <span className="flex h-10 w-10 rotate-90 items-center justify-center rounded-full bg-accent text-ink lg:rotate-0">
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </span>
         </div>
 
         {/* AFTER */}
-        <section className="card-tactile rounded-3xl bg-[#EDE8FC] p-6 sm:p-7 lg:col-span-5">
-          <p className="font-mono-num text-xs font-bold tracking-wider text-[#333333]">
-            AFTER / 가정한 상황
-          </p>
-          <h2 className="mt-1.5 text-2xl font-extrabold text-[#1F2421]">
-            변화 후의 나
-          </h2>
+        <section className="card-tactile rounded-3xl bg-lavender-soft p-6 sm:p-7 lg:col-span-5">
+          <h2 className="t-section">변화 후의 나</h2>
+          <p className="t-meta mt-0.5 text-ink-2">가정한 상황</p>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <span className="mb-1.5 block text-[13px] font-bold text-[#1F2421]">
+              <span className="mb-1.5 block text-[13px] font-bold text-ink">
                 주민등록지
               </span>
               <button
                 type="button"
                 onClick={() => setActiveRegionField('residence')}
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border-[1.5px] border-[#262A27]/30 bg-white px-3.5 py-2.5 text-left text-[15px] font-semibold text-[#1F2421] hover:border-[#262A27]"
+                className="field flex w-full cursor-pointer items-center justify-between gap-2 text-left font-semibold hover:border-ink-3"
               >
                 <span className="truncate">{scenario.residence}</span>
-                <MapPin className="h-4 w-4 shrink-0 text-[#333333]" />
+                <MapPin className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
               </button>
             </div>
 
             <div>
-              <span className="mb-1.5 block text-[13px] font-bold text-[#1F2421]">
+              <span className="mb-1.5 block text-[13px] font-bold text-ink">
                 학교 소재지
               </span>
               <button
                 type="button"
                 onClick={() => setActiveRegionField('schoolRegion')}
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl border-[1.5px] border-[#262A27]/30 bg-white px-3.5 py-2.5 text-left text-[15px] font-semibold text-[#1F2421] hover:border-[#262A27]"
+                className="field flex w-full cursor-pointer items-center justify-between gap-2 text-left font-semibold hover:border-ink-3"
               >
                 <span className="truncate">
                   {scenario.schoolRegion || '해당 없음'}
                 </span>
-                <MapPin className="h-4 w-4 shrink-0 text-[#333333]" />
+                <MapPin className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
               </button>
             </div>
 
             <div>
               <label
                 htmlFor="after-academic-status"
-                className="mb-1.5 block text-[13px] font-bold text-[#1F2421]"
+                className="mb-1.5 block text-[13px] font-bold text-ink"
               >
                 학적 상태
               </label>
@@ -276,7 +269,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                     academicStatus: e.target.value as AcademicWorkStatus,
                   }))
                 }
-                className="w-full cursor-pointer rounded-xl border-[1.5px] border-[#262A27]/30 bg-white px-3.5 py-2.5 text-[15px] font-semibold text-[#1F2421]"
+                className="field w-full cursor-pointer font-semibold"
               >
                 {ACADEMIC_STATUSES.map((st) => (
                   <option key={st} value={st}>
@@ -289,7 +282,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
             <div>
               <label
                 htmlFor="after-employment-status"
-                className="mb-1.5 block text-[13px] font-bold text-[#1F2421]"
+                className="mb-1.5 block text-[13px] font-bold text-ink"
               >
                 취업 상태
               </label>
@@ -303,7 +296,7 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                       .value as LifeChangeScenario['employmentStatus'],
                   }))
                 }
-                className="w-full cursor-pointer rounded-xl border-[1.5px] border-[#262A27]/30 bg-white px-3.5 py-2.5 text-[15px] font-semibold text-[#1F2421]"
+                className="field w-full cursor-pointer font-semibold"
               >
                 <option value="확인 전">확인 전</option>
                 <option value="구직 중">구직 중</option>
@@ -334,40 +327,36 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
       {hasCompared && (
         <div className="space-y-8 pt-2">
           {/* Diff Table with Generous Padding (px-6 py-5) */}
-          <section className="card-soft overflow-hidden rounded-3xl bg-white">
-            <div className="border-b border-[#DCD7C9] bg-[#FAF8F2] px-6 py-4">
-              <h2 className="text-lg font-extrabold text-[#1F2421]">
-                조건 변화 비교표
-              </h2>
-            </div>
-            <div className="overflow-x-auto">
+          <section className="card-soft overflow-hidden rounded-3xl bg-surface">
+            <h2 className="t-section px-6 pt-6">조건 변화 비교표</h2>
+            <div className="mt-2 overflow-x-auto">
               <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="border-b border-[#DCD7C9] bg-[#F7F5EE] text-[14px] font-extrabold text-[#1F2421]">
-                    <th className="px-6 py-4">비교 항목</th>
-                    <th className="px-6 py-4">현재 (BEFORE)</th>
-                    <th className="px-6 py-4">변화 후 (AFTER)</th>
+                  <tr className="border-b border-edge/30 text-[13px] font-bold text-ink-3">
+                    <th className="px-6 py-3">비교 항목</th>
+                    <th className="px-6 py-3">현재</th>
+                    <th className="px-6 py-3">변화 후</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#ECE8DC] text-[15px]">
+                <tbody className="divide-y divide-line-soft text-[15px]">
                   {comparisonRows.map((row) => (
                     <tr key={row.fieldLabel}>
-                      <td className="px-6 py-5 font-bold text-[#1F2421]">
+                      <th scope="row" className="px-6 py-4 font-bold text-ink">
                         {row.fieldLabel}
-                      </td>
-                      <td className="px-6 py-5 text-[#333333]">
+                      </th>
+                      <td className="px-6 py-4 text-ink-2">
                         {row.beforeValue}
                       </td>
                       <td
-                        className={`px-6 py-5 ${
-                          row.changed ? 'bg-[#EEF6CE]' : ''
+                        className={`px-6 py-4 ${
+                          row.changed ? 'bg-accent-soft' : ''
                         }`}
                       >
-                        <strong className="block font-bold text-[#1F2421]">
+                        <strong className="block font-bold text-ink">
                           {row.afterValue}
                         </strong>
                         {row.changed && (
-                          <span className="mt-1 inline-block text-[13px] font-bold text-[#2F4F1C]">
+                          <span className="mt-1 inline-block text-[13px] font-bold text-ok">
                             변경됨
                           </span>
                         )}
@@ -403,17 +392,8 @@ export const LifeSwitchPage: React.FC<LifeSwitchPageProps> = ({
                       <span className="rounded-lg border border-[#262A27]/30 bg-[#F7F5EE] px-2.5 py-1 text-[#1F2421]">
                         {impact.policy.category}
                       </span>
-                      <span
-                        className={`rounded-lg border px-2.5 py-1 ${
-                          impact.policy.recruitmentStatus === '모집 중'
-                            ? 'border-[#262A27] bg-[#D8F279] text-[#1F2421]'
-                            : impact.policy.recruitmentStatus === '마감'
-                              ? 'border-[#9E998B] bg-[#EAE6DA] text-[#333333]'
-                              : 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]'
-                        }`}
-                      >
-                        {impact.policy.recruitmentStatus}
-                      </span>
+                      {/* 가정한 상황의 화면이라 '조건 미충족(빨강)'은 쓰지 않고 모집 상태만 보여 준다 */}
+                      <RecruitmentStatusBadge status={impact.policy.recruitmentStatus} />
                       <span className="text-[#4A4D49]">
                         {impact.policy.agencyLabel}
                       </span>

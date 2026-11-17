@@ -23,6 +23,7 @@ import {
   getComparedPoliciesForTab,
   paginatePolicies,
 } from '../utils/policyEngine';
+import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -296,9 +297,10 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
         {/* Policy List Toolbar: Left Count, Right Recruitment Status Filter + Sort */}
         <div className="flex flex-col gap-3 rounded-2xl border border-[#DCD7C9] bg-white px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-[15px] text-[#333333]">
-            <strong className="font-extrabold text-[#1F2421] tabular-nums">
+            {/* 목록 제목: h1(페이지) -> h2(목록) -> h3(카드) 순서를 맞춘다. 모양은 기존 strong과 같음 */}
+            <h2 className="font-extrabold text-[#1F2421] tabular-nums">
               찾은 정책 {filteredPolicies.length}개
-            </strong>
+            </h2>
             <span className="text-[#6B6E68]">·</span>
             <span className="text-[14px] font-medium text-[#333333]">
               {selectedCategory} · {recruitmentStatus} 기준
@@ -371,6 +373,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                   isSaved={savedIds.includes(policy.id)}
                   isCompared={comparePolicyIds.includes(policy.id)}
                   isPrepping={prepPolicyIds.includes(policy.id)}
+                  unmetReasons={unmetCriteriaReasons(policy, profile)}
                   onToggleSave={onToggleSave}
                   onToggleCompare={onToggleCompare}
                   onOpenDetail={(id) => onNavigate('detail', id)}

@@ -1,0 +1,50 @@
+
+http://localhost:3000/#home
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#policies
+  [skipped-heading] <h1> "지금 내게 필요한, 한 장." followed by <h3> "청년 주거 지원 정책 (월세·임차보증금)" (missing h2)
+    → Heading levels should not skip (e.g. h1 then h3 with no h2). Screen readers use heading hierarchy for navigation. Skipping levels breaks the document outline.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#detail/1
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [first-viewport-column-overflow] div.grid.grid-cols-1.gap-8.lg:grid-cols-12 opens the page with one column running 272% of the viewport tall while a sibling fits in 70% — the fold falls deep inside the section
+    → A multi-column opening section lets one column run far past the fold while its sibling fits in a single viewport, so the short column floats in dead space and the fold falls deep inside one section. Balance the columns, cap the tall one, or let the long content flow below the opening row.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#detail/9
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [first-viewport-column-overflow] div.grid.grid-cols-1.gap-8.lg:grid-cols-12 opens the page with one column running 241% of the viewport tall while a sibling fits in 70% — the fold falls deep inside the section
+    → A multi-column opening section lets one column run far past the fold while its sibling fits in a single viewport, so the short column floats in dead space and the fold falls deep inside one section. Balance the columns, cap the tall one, or let the long content flow below the opening row.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#switch
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#apply
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#profile
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+http://localhost:3000/#wallet
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [nested-cards] Card inside card
+    → Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.
+  [cream-palette] cream/beige page background rgb(247, 245, 238)
+    → A warm cream or beige page background has become the default "tasteful" AI surface, reached for by reflex. Choose a background that comes from a deliberate palette, not the safe warm off-white.
+
+16 anti-patterns found.
