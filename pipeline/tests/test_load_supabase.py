@@ -72,6 +72,12 @@ class BuildTest(unittest.TestCase):
         with_api = {p["id"]: p for p in ls.build_policies(cand, {"C1": "복지문화", "D1": "알 수 없는 값"})}
         self.assertEqual((with_api["C1"]["category"], with_api["C1"]["category_basis"]), ("금융·복지·문화", ls.BASIS_API))
         self.assertEqual(with_api["D1"]["category_basis"], ls.BASIS_PROVISIONAL)
+        # 실측한 API 대분류 표기(가운뎃점이 '･', 이전 표기, 여러 개)
+        for value, expected in (("금융･복지･문화", "금융·복지·문화"), ("교육･직업훈련", "교육·직업훈련"), ("참여･기반", "참여·기반"),
+                                ("복지문화", "금융·복지·문화"), ("참여권리", "참여·기반"), ("교육", "교육·직업훈련"),
+                                ("일자리,교육", "일자리"), ("교육,일자리", "교육·직업훈련"), ("주거", "주거")):
+            self.assertEqual(ls.category_from_api(value), expected, value)
+        self.assertIsNone(ls.category_from_api(""))
 
     def test_personal_fields_carry_document_guidance(self):
         fields = {f["id"]: f for f in ls.build_personal_fields(
@@ -92,6 +98,7 @@ class BuildTest(unittest.TestCase):
         a1 = by_key["A1:20250616005400110939"]
         self.assertEqual((a1["apply_start"], a1["apply_end"]), ("2026-07-01", "2026-11-17"))
         self.assertEqual(a1["notice_year"], 2026)
+        self.assertEqual(a1["apply_period_type"], "특정기간")  # 원본의 코드 대신 매칭표의 이름
         self.assertEqual((a1["api_min_age"], a1["api_max_age"]), (1, 35))
         self.assertEqual(a1["zip_codes"], ["44130", "44131", "44133", "44200"])
 

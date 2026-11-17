@@ -200,9 +200,12 @@ def build_document_catalog(rows: list[dict]) -> list[dict]:
 
 
 def category_from_api(value) -> str | None:
-    for word, category in API_CATEGORY_WORDS:
-        if word in str(value or ""):
-            return category
+    """API 대분류(lclsfNm)를 화면 분야로. '일자리,교육'처럼 여러 개면 앞에 적힌 것을 쓴다.
+    실측 값: 일자리, 주거, 교육･직업훈련, 금융･복지･문화, 참여･기반, (이전 표기) 교육, 복지문화, 참여권리."""
+    for token in str(value or "").split(","):
+        for word, category in API_CATEGORY_WORDS:
+            if word in token:
+                return category
     return None
 
 
@@ -290,7 +293,8 @@ def build_notices(match_rows: list[dict], cand_rows: list[dict], raw_index: dict
                 "title": text(rec.get("plcyNm")) or m["API 정책명"].strip(),
                 "operator_label": text(rec.get("operInstCdNm")) or text(rec.get("sprvsnInstCdNm")),
                 "zip_codes": split_codes(rec.get("zipCd")),
-                "apply_period_type": text(rec.get("aplyPrdSeCd")),
+                # 원본은 코드(0057001 등)라서 매칭표에 적어 둔 이름(특정기간·상시·마감)을 먼저 쓴다
+                "apply_period_type": text(m.get("API 신청기간 구분")) or text(rec.get("aplyPrdSeCd")),
                 "api_min_age": to_int(rec.get("sprtTrgtMinAge")),
                 "api_max_age": to_int(rec.get("sprtTrgtMaxAge")),
                 "api_income_code": text(rec.get("earnCndSeCd")),
@@ -417,7 +421,8 @@ def report(tables: dict[str, list[dict]], match_counts: Counter, raw_loaded: boo
             lines.append("소득 코드 무관 + 소득 문구(공고): " + ", ".join(sorted({n['notice_key'] for n in notices if n['income_text_conflict']})))
     raw = tables.get("api_policy_raw", [])
     if raw:
-        lines.append(f"원본 중 소득 코드 무관 + 소득 문구: {sum(income_conflict(r['payload']) for r in raw)}건 (handoff 기록 51건과 대조)")
+        lines.append(f"원본 중 소득 코드 무관 + 소득 문구: {sum(income_conflict(r['payload']) for r in raw)}건 "
+                     "(문자열 기준. supabase_setup.md의 51건과는 세는 기준이 달라 수가 다르다)")
     return lines
 
 
