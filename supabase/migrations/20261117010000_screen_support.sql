@@ -105,5 +105,27 @@ alter table public.policy_relationship add constraint reviewed_relationship_has_
   review_status <> 'reviewed' or relation = '추가 확인' or source_document_id is not null
 );
 
--- 새로 만든 칸에도 쓰기 권한이 생기지 않게 다시 거둔다(테이블 단위 권한이라 변화는 없지만 명시)
+-- ---------------------------------------------------------------------------
+-- 5. 접근 권한을 명시한다
+--    프로젝트의 기본 권한 설정에 기대지 않고, 화면(anon·authenticated)은 공개 표를 읽기만,
+--    적재 스크립트(service_role)는 모든 표를 쓸 수 있게 직접 준다. 행 단위 제한은 RLS가 한다.
+-- ---------------------------------------------------------------------------
+grant usage on schema public to anon, authenticated, service_role;
+
+grant select on
+  public.region, public.personal_field, public.document_catalog,
+  public.policy, public.policy_notice, public.source_document,
+  public.eligibility_rule, public.policy_relationship, public.document_requirement
+to anon, authenticated;
+
+grant all on
+  public.region, public.personal_field, public.document_catalog,
+  public.policy, public.policy_notice, public.source_document,
+  public.eligibility_rule, public.policy_relationship, public.document_requirement,
+  public.api_policy_raw
+to service_role;
+grant usage, select on all sequences in schema public to service_role;
+
+-- 화면 쪽 역할에는 쓰기 권한과 API 원본 읽기 권한이 없어야 한다
 revoke insert, update, delete, truncate on all tables in schema public from anon, authenticated;
+revoke all on public.api_policy_raw from anon, authenticated;

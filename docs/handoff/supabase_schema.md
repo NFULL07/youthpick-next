@@ -49,7 +49,7 @@
 | `document_requirement` | 공고별 제출서류 | **검수 완료만** | 제출서류 CSV -> 적재 스크립트 |
 | `api_policy_raw` | 온통청년 API 레코드 원본 | **읽기 불가** | 적재 스크립트(service_role) |
 
-쓰기는 모든 테이블에서 service_role만 된다(anon·authenticated는 RLS와 권한 회수로 이중 차단).
+쓰기는 모든 테이블에서 service_role만 된다(anon·authenticated는 RLS와 권한 회수로 이중 차단). 읽기·쓰기 권한은 마이그레이션이 직접 준다(프로젝트의 기본 권한 설정에 기대지 않음).
 
 DB가 직접 막는 것:
 
@@ -136,7 +136,7 @@ CSV가 원본이다. 엑셀에서 고치고 UTF-8 CSV로 저장한 뒤 적재 �
 
 | 확인 | 결과 |
 |---|---|
-| PostgreSQL 16에 Supabase 역할을 흉내 내 마이그레이션 2개 적용 | 오류 없음 |
+| PostgreSQL 16에 Supabase 역할을 흉내 내 마이그레이션 2개 적용 | 오류 없음. 새 표에 기본 권한을 주는 설정과 주지 않는 설정 둘 다에서 anon 읽기·쓰기 차단·service_role 적재 확인 |
 | `schema_checks.sql` | 13/13 통과. 일부러 제약을 지운 DB에서는 해당 항목이 false |
 | 적재 스크립트 테스트 | 13개 통과 |
 | 적재 SQL을 같은 DB에 두 번 적용 | 정책 41, 공고 33, 서류 39, 항목 69, 출처 59행. 두 번째에도 같은 수 |
