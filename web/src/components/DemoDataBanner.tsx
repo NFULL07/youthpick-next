@@ -3,8 +3,8 @@ import { Info } from 'lucide-react';
 
 export const DEMO_DATA_NOTICE = '시연용 예시 데이터입니다. 실제 공고는 연결 후 표시됩니다.';
 
-/** 모든 화면 맨 위에 표시하는 시연 데이터 안내 배너 */
-export const DemoDataBanner: React.FC = () => (
+/** 모든 화면 맨 위에 표시하는 데이터 안내 배너. notice가 없으면 시연 데이터 안내를 보여준다 */
+export const DemoDataBanner: React.FC<{ notice?: string }> = ({ notice = DEMO_DATA_NOTICE }) => (
   <div
     role="note"
     aria-label="시연 데이터 안내"
@@ -12,7 +12,7 @@ export const DemoDataBanner: React.FC = () => (
   >
     <p className="mx-auto flex max-w-[1280px] items-center justify-center gap-2 text-center">
       <Info className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span>{DEMO_DATA_NOTICE}</span>
+      <span>{notice}</span>
     </p>
   </div>
 );

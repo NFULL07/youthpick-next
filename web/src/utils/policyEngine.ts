@@ -1,4 +1,6 @@
-import { KOREA_REGIONS, normalizeLegacyRegion } from '../data/regions';
+import { compareRegion, matchesRegion } from './regionMatch';
+import type { RegionMatch } from './regionMatch';
+import { analyzeRuleChange, buildCriteriaRows, profileToInputs } from './ruleEngine';
 import {
   CriteriaResult,
   CRITERIA_STATUS_LABEL,
@@ -75,63 +77,8 @@ export function filterAndSortPolicies(
   return filtered;
 }
 
-/** 지역 비교 결과. unknown은 미입력·시군 미선택·해석할 수 없는 값이라 판단하지 않은 경우 */
-export type RegionMatch = 'match' | 'mismatch' | 'unknown';
-
-export interface ParsedRegion {
-  sido: string;
-  /** null이면 시·도 단위 (시·군·구 미선택) */
-  sigungu: string | null;
-}
-
-/**
- * '충청남도' 또는 '충청남도 천안시' 형식만 해석한다. 지역 목록(KOREA_REGIONS)과
- * 정확히 같은 이름일 때만 인정하고, 부분 문자열이나 시·군·구 이름만으로는 추측하지 않는다.
- */
-export function parseRegion(value: string): ParsedRegion | null {
-  const trimmed = normalizeLegacyRegion(value);
-  if (!trimmed) return null;
-  for (const group of KOREA_REGIONS) {
-    if (trimmed === group.sido) {
-      return { sido: group.sido, sigungu: null };
-    }
-    if (trimmed.startsWith(`${group.sido} `)) {
-      const rest = trimmed.slice(group.sido.length + 1).trim();
-      if (!rest.endsWith('전체') && group.sigunguList.includes(rest)) {
-        return { sido: group.sido, sigungu: rest };
-      }
-      return null;
-    }
-  }
-  return null;
-}
-
-export function compareRegion(targetRegions: string[], userRegion: string): RegionMatch {
-  const user = parseRegion(userRegion);
-  if (!user) return 'unknown';
-
-  let result: RegionMatch = 'mismatch';
-  for (const raw of targetRegions) {
-    if (raw.trim() === '전국') return 'match';
-    const target = parseRegion(raw);
-    if (!target) {
-      result = 'unknown';
-      continue;
-    }
-    if (target.sido !== user.sido) continue;
-    if (target.sigungu === null) return 'match';
-    if (user.sigungu === null) {
-      result = 'unknown';
-      continue;
-    }
-    if (target.sigungu === user.sigungu) return 'match';
-  }
-  return result;
-}
-
-export function matchesRegion(targetRegions: string[], userRegion: string): boolean {
-  return compareRegion(targetRegions, userRegion) === 'match';
-}
+export { compareRegion, matchesRegion, parseRegion } from './regionMatch';
+export type { ParsedRegion, RegionMatch } from './regionMatch';
 
 function criteriaRow(
   row: Omit<PolicyCriteriaRow, 'status'> & { result: CriteriaResult }
@@ -149,6 +96,11 @@ export function evaluatePolicyCriteria(
   policy: PolicyItem,
   profile: UserProfile
 ): PolicyCriteriaRow[] {
+  // Supabase 정책은 검수 완료 규칙으로만 판정한다. 아래 계산은 시연용 예시 정책 전용이다
+  if (policy.ruleSet) {
+    return buildCriteriaRows(policy.ruleSet, profileToInputs(profile));
+  }
+
   // 연령: 값이 없으면 ?, 범위 안이면 O, 범위 밖이면 X
   const ageKnown = Number.isFinite(profile.age) && profile.age > 0;
   const ageResult: CriteriaResult = !ageKnown
@@ -282,8 +234,13 @@ export function analyzeLifeChangeImpacts(
   const academicChanged = before.status !== after.academicStatus;
   const employmentChanged = after.employmentStatus !== '확인 전';
 
-  return policies
-    .map((policy) => {
+  const impacts: PolicyChangeImpact[] = policies
+    .map((policy): PolicyChangeImpact => {
+      // Supabase 정책은 검수 완료 규칙의 판정이 달라지는지만 본다(근거 없는 안내 문구를 만들지 않음)
+      if (policy.ruleSet) {
+        return analyzeRuleChange(policy, policy.ruleSet, before, after);
+      }
+
       const changedTags: string[] = [];
       let impactTone: PolicyChangeImpact['impactTone'] = 'neutral';
       const summaryParts: string[] = [];
@@ -354,8 +311,19 @@ export function analyzeLifeChangeImpacts(
         impactSummary: summaryParts.join(' · ') || policy.keyCheckHint,
         impactTone,
       };
-    })
-    .filter((_, idx) => idx < 5);
+    });
+
+  // Supabase 정책은 판정이 달라지는 정책을 먼저, 검수한 규칙이 없는 정책을 맨 뒤에 둔다
+  const rank = (impact: PolicyChangeImpact): number => {
+    if (!impact.policy.ruleSet) return 0;
+    if (impact.impactTone !== 'neutral') return 0;
+    return impact.policy.ruleSet.rules.length > 0 ? 1 : 2;
+  };
+  return impacts
+    .map((impact, index) => ({ impact, index }))
+    .sort((a, b) => rank(a.impact) - rank(b.impact) || a.index - b.index)
+    .map(({ impact }) => impact)
+    .slice(0, 5);
 }
 
 export function getRecommendedPoliciesForProfile(

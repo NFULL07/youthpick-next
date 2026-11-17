@@ -22,8 +22,8 @@
 | PostgreSQL 선택 이유 | 공고마다 형태가 다른 판정 규칙을 jsonb로 저장, RLS로 본인 데이터만 조회, pgvector로 유사 공고 검색 |
 | 화면 배포 | Cloudflare Pages |
 | AI 배치 | Python 3, 모두의 AI 실험실 클라우드(이용기간 1개월 고정). 공개 공고만 처리하고 사용자 요청은 받지 않는다 |
-| 판정 엔진 | 브라우저 안 TypeScript 규칙 계산 (계획) |
-| 화면 프레임워크 | React + Vite 또는 Next.js (후보, 기존 코드 확인 후 결정) |
+| 판정 엔진 | 브라우저 안 TypeScript 규칙 계산 (`web/src/utils/ruleEngine.ts`). Supabase의 검수 완료 규칙만 쓴다. 검수된 규칙은 아직 0건 |
+| 화면 프레임워크 | React 19 + Vite + TypeScript + Tailwind (`web/`, 2026-11-16 main 병합) |
 | AI 모델 | 미정 |
 | 협업 | GitHub, 기능별 브랜치 -> PR -> main |
 
@@ -71,6 +71,7 @@ AI 역할의 한계: 클릭·신청 이력 같은 사용 데이터가 없어 추
 | 문서 | 작업 | 담당 | 상태 |
 |---|---|---|---|
 | `docs/handoff/supabase_setup.md` | Supabase 세팅, 데이터 적재, AI 배치 준비 | 김주완 | 진행 중 |
+| `docs/handoff/supabase_schema.md` | 스키마, 적재, 판정 규칙 CSV, 화면 연결 (연결 순서 포함) | 김주완 | 코드 작성, 원격 미적용 |
 
 작업을 시작할 때 해당 문서를 지정해서 읽게 한다. 작업이 끝나면 상태를 "완료"로 바꾸고, 다른 작업에도 계속 필요한 결정은 이 파일로 옮긴다.
 

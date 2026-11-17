@@ -1,5 +1,7 @@
 # 작업 인수: Supabase 세팅·데이터 적재·AI 배치 준비
 
+> 2026-11-17: 1~3단계(테이블 설계, 마이그레이션, 적재 스크립트) 코드는 `docs/handoff/supabase_schema.md` 참고.
+
 기준일: 2026-11-12 · 담당: 김주완 · 정리: Claude(Cowork)
 
 > 공통 규칙(개인정보, 판정, 비밀값, 협업)은 저장소 맨 위 `CLAUDE.md`에 있다. 이 문서는 이 작업에만 해당하는 범위와 순서다. **제안**과 **미확인**은 확정이 아니다.
@@ -102,7 +104,7 @@
 
 ### API 필드와 코드값 (비공식)
 
-- 필드명·엔드포인트는 공식 명세가 아니라 공개 GitHub 저장소 코드 기준이다. 실측으로 응답 필드 61개를 확인했다.
+- 필드명·엔드포인트는 공식 명세가 아니라 공개 GitHub 저장소 코드 기준이다. 실측 응답 필드는 60개다(2026-11-12 재확인. 이전 기록 61은 field_coverage.csv의 헤더 포함 줄 수로 추정).
 - 엔드포인트: `https://www.youthcenter.go.kr/go/ythip/getPlcy` (파라미터 `apiKeyNm`, `pageNum`, `pageSize`, `rtnType=json`)
 - 판정 관련 필드: `plcyNo`, `plcyNm`, `zipCd`, `sprtTrgtMinAge`, `sprtTrgtMaxAge`, `sprtTrgtAgeLmtYn`, `earnCndSeCd`, `earnMinAmt`, `earnMaxAmt`, `earnEtcCn`, `schoolCd`, `jobCd`, `plcyMajorCd`, `mrgSttsCd`, `sbizCd`, `addAplyQlfcCndCn`, `ptcpPrpTrgtCn`, `aplyPrdSeCd`, `aplyYmd`, `sbmsnDcmntCn`, `aplyUrlAddr`, `refUrlAddr1`, `lastMdfcnDt`
 - 코드값 (공개 코드와 정책명 대조로 정리, 공식 코드표 아님):
