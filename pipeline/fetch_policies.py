@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import http.client
 import json
 import socket
 import sys
@@ -50,7 +51,8 @@ PAGE_SIZE = 100          # 2026-11-09 수집에서 100으로 정상 동작
 SLEEP_SEC = 0.5          # 호출 간격. 트래픽 제한 수치는 공개되지 않음
 TIMEOUT_SEC = 30
 RETRIES = 3              # 일시 오류(5xx, 시간 초과, 연결 끊김)만 다시 시도
-USER_AGENT = "youthpick-next-pipeline"
+MAX_PAGES_HARD = 1000    # 안전장치: 응답이 이상해도 이 페이지 수를 넘겨 부르지 않는다
+USER_AGENT = "youthpick-next-research"  # 2026-11-09 수집 때 통과한 요청과 같은 값
 
 # 2026-11-09 수집본의 필드 60개. 새 필드가 생기거나 빠지면 경고한다(형식 변경 감지용).
 KNOWN_FIELDS = frozenset([
@@ -103,12 +105,18 @@ def fetch_page(
 ) -> str:
     """한 페이지의 응답 본문(문자열)을 돌려준다. 키는 본문에 섞여 와도 가려서 돌려준다."""
     url = build_url(base_url, key, page, page_size)
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     last_problem = ""
     for attempt in range(1, retries + 1):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
-                return env_config.scrub(r.read().decode("utf-8"), key)
+                raw = r.read()
+            try:
+                return env_config.scrub(raw.decode("utf-8"), key)
+            except UnicodeDecodeError:
+                # 점검·차단 안내 페이지가 다른 문자셋(EUC-KR 등)으로 올 때. 원본을 고쳐 읽지 않고 멈춘다
+                head = env_config.scrub(raw[:80].decode("utf-8", errors="replace"), key)
+                raise FetchError(f"{page}페이지 응답이 UTF-8이 아님(안내 페이지일 수 있음. 앞부분: {head!r})") from None
         except urllib.error.HTTPError as e:
             e.close()  # 오류 응답 본문은 읽지 않는다(주소·키가 섞여 있을 수 있음)
             if e.code < 500:
@@ -116,7 +124,7 @@ def fetch_page(
                 hint = " (키가 맞는지, 이 PC에서 접속이 막히지 않았는지 확인하세요)" if e.code in (401, 403) else ""
                 raise FetchError(f"{page}페이지 요청이 거부됨: HTTP {e.code}{hint}") from None
             last_problem = f"HTTP {e.code}"
-        except (urllib.error.URLError, socket.timeout, TimeoutError, ConnectionError) as e:
+        except (urllib.error.URLError, http.client.HTTPException, socket.timeout, TimeoutError, ConnectionError) as e:
             reason = getattr(e, "reason", e)
             last_problem = f"연결 오류({type(reason).__name__})"
         if attempt < retries:
@@ -169,6 +177,7 @@ def fetch_all(
     """(정책 목록, API가 알려 준 전체 건수, 끝까지 받았는지)를 돌려준다."""
     records: list[dict] = []
     total: int | None = None
+    seen_numbers: set[str] = set()
     page = 1
     while True:
         body = fetch_page(base_url, key, page, page_size, sleep=sleep)
@@ -178,13 +187,24 @@ def fetch_all(
         rows, page_total = parse_page(body, page)
         if total is None:
             total = page_total
+        numbers = {n for n in (str(r.get("plcyNo", "")).strip() for r in rows) if n}
+        if numbers and numbers <= seen_numbers:
+            # pageNum이 먹히지 않으면 같은 페이지를 끝없이 부르게 된다. 바로 멈춘다
+            raise FetchError(f"{page}페이지가 앞에서 받은 정책만 다시 돌려줌(API가 pageNum을 무시하는 것 같음)")
+        seen_numbers |= numbers
         records.extend(rows)
         log(f"{page}페이지: {len(rows)}건 (누적 {len(records)}" + (f" / 전체 {total})" if total is not None else ")"))
-        complete = (total is not None and len(records) >= total) or not rows or len(rows) < page_size
+        if total is not None:
+            # 전체 건수를 알면 그 수를 채울 때까지 받는다(서버가 페이지 크기를 줄여도 빠뜨리지 않음)
+            complete = len(records) >= total or not rows
+        else:
+            complete = not rows or len(rows) < page_size
         if complete:
             return records, total, True
         if max_pages is not None and page >= max_pages:
             return records, total, False
+        if page >= MAX_PAGES_HARD:
+            raise FetchError(f"{MAX_PAGES_HARD}페이지를 받아도 끝나지 않음(응답 형식을 확인하세요)")
         page += 1
         sleep(sleep_sec)
 
@@ -274,7 +294,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     except FetchError as e:
         print(f"수집 실패: {env_config.scrub(str(e), key)}", file=sys.stderr)
-        print(f"받은 페이지까지는 {run_dir / 'raw'}에 남아 있습니다.", file=sys.stderr)
+        if (run_dir / "raw").exists():
+            print(f"받은 페이지까지는 {run_dir / 'raw'}에 남아 있습니다.", file=sys.stderr)
         return 2
 
     errors, warnings = validate(records, total, complete)

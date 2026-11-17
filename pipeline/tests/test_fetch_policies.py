@@ -41,6 +41,10 @@ class FakeApi:
         self.echo_key = echo_key
         self.fail_status: list[int] = []      # 앞에서부터 하나씩 꺼내 이 HTTP 상태로 응답
         self.result_code = "200"
+        self.page_cap = 0              # 서버가 페이지 크기를 이 수로 줄임(0이면 요청대로)
+        self.ignore_page = False       # pageNum을 무시하고 늘 1페이지를 돌려줌
+        self.no_total = False          # 전체 건수(pagging)를 주지 않음
+        self.raw_body: bytes | None = None  # JSON 대신 이 본문을 200으로 돌려줌(안내 페이지 흉내)
         self.requests: list[dict] = []
         api = self
 
@@ -60,17 +64,27 @@ class FakeApi:
                     self.send_response(401)
                     self.end_headers()
                     return
+                if api.raw_body is not None:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "text/html")
+                    self.end_headers()
+                    self.wfile.write(api.raw_body)
+                    return
                 page, size = int(q["pageNum"]), int(q["pageSize"])
+                if api.page_cap:
+                    size = min(size, api.page_cap)
+                if api.ignore_page:
+                    page = 1
                 rows = api.records[(page - 1) * size: page * size]
                 total = len(api.records)
+                result = {"youthPolicyList": rows}
+                if not api.no_total:
+                    result["pagging"] = {"totCount": str(total) if api.tot_as_str else total,
+                                         "pageNum": page, "pageSize": size}
                 body = {
                     "resultCode": api.result_code,
                     "resultMessage": f"요청 키 {q['apiKeyNm']}" if api.echo_key else "정상",
-                    "result": {
-                        "pagging": {"totCount": str(total) if api.tot_as_str else total,
-                                    "pageNum": page, "pageSize": size},
-                        "youthPolicyList": rows,
-                    },
+                    "result": result,
                 }
                 data = json.dumps(body, ensure_ascii=False).encode("utf-8")
                 self.send_response(200)
@@ -152,6 +166,25 @@ class FetchAllTest(FetchTestBase):
         self.assertEqual(code, 0)
         self.assertEqual(len(api.requests), 2)
 
+    def test_server_smaller_page_size_still_collects_all(self):
+        api = FakeApi(120)
+        api.page_cap = 50
+        self.addCleanup(api.close)
+        code, out, _ = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out"), "--sleep", "0"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(len(api.requests), 3)
+        (run,) = self.run_dirs()
+        self.assertEqual(len(json.loads((run / "policies_all.json").read_text(encoding="utf-8"))), 120)
+
+    def test_without_total_stops_on_short_page_and_warns(self):
+        api = FakeApi(150)
+        api.no_total = True
+        self.addCleanup(api.close)
+        code, out, _ = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out"), "--sleep", "0"])
+        self.assertEqual(code, 0, out)
+        self.assertEqual(len(api.requests), 2)
+        self.assertIn("건수 대조를 못 함", out)
+
     def test_max_pages_writes_sample_not_all(self):
         api = FakeApi(250)
         self.addCleanup(api.close)
@@ -218,6 +251,33 @@ class FetchErrorTest(FetchTestBase):
         code, _, err = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out")])
         self.assertEqual(code, 2)
         self.assertIn("resultCode=403", err)
+
+    def test_repeated_page_stops_instead_of_looping(self):
+        api = FakeApi(300)
+        api.ignore_page = True
+        api.no_total = True
+        self.addCleanup(api.close)
+        code, _, err = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out"), "--sleep", "0"])
+        self.assertEqual(code, 2)
+        self.assertEqual(len(api.requests), 2)
+        self.assertIn("pageNum", err)
+
+    def test_non_utf8_notice_page_is_reported_cleanly(self):
+        api = FakeApi(5)
+        api.raw_body = "<html><body>시스템 점검 중입니다</body></html>".encode("euc-kr")
+        self.addCleanup(api.close)
+        code, _, err = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out")])
+        self.assertEqual(code, 2)
+        self.assertIn("UTF-8이 아님", err)
+        self.assertNotIn("Traceback", err)
+
+    def test_html_notice_page_is_reported_cleanly(self):
+        api = FakeApi(5)
+        api.raw_body = b"<html><body>Access Denied</body></html>"
+        self.addCleanup(api.close)
+        code, _, err = self.run_main(["--base-url", api.url, "--out-dir", str(self.tmp / "out")])
+        self.assertEqual(code, 2)
+        self.assertIn("JSON이 아님", err)
 
     def test_missing_key(self):
         code, out, err = self.run_main(["--out-dir", str(self.tmp / "out")], env={})
@@ -334,6 +394,16 @@ class EnvConfigTest(unittest.TestCase):
     def test_scrub(self):
         self.assertEqual(env_config.scrub("a abcd1234 b", "abcd1234"), "a *** b")
         self.assertEqual(env_config.scrub("abc", ""), "abc")
+        # 주소에 실려 %XX로 바뀐 모양도 가린다
+        self.assertEqual(env_config.scrub("?apiKeyNm=ab%2Bcd%3D%3D&x=1", "ab+cd=="), "?apiKeyNm=***&x=1")
+
+    def test_reads_utf16_dotenv_made_by_powershell_redirect(self):
+        self.env_file.write_bytes("YTH_POLICY_KEY=from-utf16-3\r\n".encode("utf-16"))
+        self.assertEqual(env_config.read_env_file(self.env_file)["YTH_POLICY_KEY"], "from-utf16-3")
+
+    def test_reads_dotenv_with_non_utf8_comment(self):
+        self.env_file.write_bytes("# 한글 주석\nYTH_POLICY_KEY=from-cp949-4\n".encode("cp949"))
+        self.assertEqual(env_config.read_env_file(self.env_file)["YTH_POLICY_KEY"], "from-cp949-4")
 
 
 if __name__ == "__main__":

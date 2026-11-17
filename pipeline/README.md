@@ -32,6 +32,15 @@ $env:YTH_POLICY_KEY = "여기에_키"
 
 창을 닫으면 사라진다. 이 명령은 PowerShell 입력 기록에 남으므로 공용 PC에서는 방법 A를 쓴다. 둘 다 있으면 환경변수가 먼저다.
 
+Supabase 값 (적재할 때만 필요. Supabase 대시보드 Settings > API Keys)
+
+| `.env` 이름 | 넣을 값 |
+|---|---|
+| `SUPABASE_URL` | 프로젝트 주소 (`https://....supabase.co`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret key** (`sb_secret_...`). 예전 방식 프로젝트는 `service_role` 키. 화면에는 절대 넣지 않는다 |
+
+화면용 Publishable key(`sb_publishable_...`)는 여기가 아니라 `web/.env.local`의 `VITE_SUPABASE_ANON_KEY`에 넣는다. Supabase 문서 기준으로 예전 `anon`·`service_role` 키는 2026년 말까지만 동작하므로 새 프로젝트는 새 키를 쓴다.
+
 ## 2. 수집 순서
 
 ```powershell
@@ -77,6 +86,8 @@ data_raw/ythapi_20261117_1530/
 | 2 | 키 없음, 통신 오류, API 오류 응답. 받은 페이지까지는 `raw/`에 남는다 |
 
 일시 오류(5xx, 시간 초과)는 3번까지 다시 시도한다. 4xx(키 오류, 접속 차단)는 다시 시도하지 않는다. 오류 메시지에는 키와 키가 들어간 주소를 넣지 않는다.
+
+멈추는 경우(종료 코드 2): 같은 정책만 다시 돌려주는 페이지가 오면(API가 `pageNum`을 무시) 끝없이 부르지 않고 멈춘다. 1,000페이지를 넘겨 부르지 않는다. 응답이 JSON이 아니거나 UTF-8이 아니면(점검·차단 안내 페이지) 그 사실을 알리고 멈춘다.
 
 옵션: `--page-size`(기본 100), `--sleep`(페이지 사이 대기 초, 기본 0.5), `--out-dir`(기본 `data_raw`).
 

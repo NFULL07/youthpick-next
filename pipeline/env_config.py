@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +21,17 @@ PIPELINE_SETTINGS = {
     "SUPABASE_SERVICE_ROLE_KEY": "Supabase 관리자 키 (load_supabase.py 전용, 화면에 넣지 않음)",
 }
 
+UTF16_BOMS = (bytes([0xFF, 0xFE]), bytes([0xFE, 0xFF]))
+
+
+def _decode_env(data: bytes) -> str:
+    """.env 글자 읽기. PowerShell 5.1의 > 로 만들면 UTF-16이 된다. 한글 주석이 깨져도 KEY=VALUE 줄은 읽힌다."""
+    if data.startswith(UTF16_BOMS):
+        return data.decode("utf-16", errors="replace")
+    if bytes([0]) in data:  # BOM 없는 UTF-16
+        return data.decode("utf-16-le", errors="replace")
+    return data.decode("utf-8-sig", errors="replace")
+
 
 def read_env_file(path: Path | None = None) -> dict[str, str]:
     """KEY=VALUE 줄만 읽는다. 빈 줄, # 주석, 앞의 'export ', 값을 감싼 따옴표를 처리한다."""
@@ -27,7 +39,7 @@ def read_env_file(path: Path | None = None) -> dict[str, str]:
     values: dict[str, str] = {}
     if not path.exists():
         return values
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
+    for line in _decode_env(path.read_bytes()).splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
@@ -94,5 +106,7 @@ def scrub(text: str, *secrets: str) -> str:
     """텍스트에 비밀값이 섞여 있으면 *** 로 가린다(응답·오류 메시지 저장 전에 쓴다)."""
     for secret in secrets:
         if secret and len(secret) >= 4:
-            text = text.replace(secret, "***")
+            # 주소에 실려 온 모양(%XX로 바뀐 것)도 함께 가린다
+            for form in {secret, urllib.parse.quote(secret, safe=""), urllib.parse.quote_plus(secret)}:
+                text = text.replace(form, "***")
     return text
