@@ -6,3 +6,10 @@
 # 원본 데이터 (로컬 전용)
 data_raw/
 pipeline/ythapi_*/
+
+# Supabase CLI 로컬 파일
+supabase/.temp/
+supabase/.branches/
+
+# 파이썬 캐시
+pipeline/**/__pycache__/
