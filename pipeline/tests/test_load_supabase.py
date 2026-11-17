@@ -6,17 +6,27 @@ API 원본(policies_all.json)은 Git에 없으므로, 테스트용 원본 레코
 """
 import io
 import json
+import os
 import re
+import shutil
 import sys
+import tempfile
 import threading
 import unittest
+import urllib.error
 from contextlib import redirect_stdout
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import env_config  # noqa: E402
 import load_supabase as ls  # noqa: E402
 import rule_tables as rt  # noqa: E402
+
+# 테스트용 가짜 키(실제 키 아님). 새 키는 sb_로, 예전 JWT 키는 eyJ로 시작한다
+NEW_SECRET_KEY = "sb_secret_fake_for_test"
+LEGACY_JWT_KEY = "eyJ_fake_legacy_key_for_test"
 
 
 def fake_raw_from_match() -> list[dict]:
@@ -341,6 +351,195 @@ class RestTest(unittest.TestCase):
             else:
                 self.assertEqual(deletes, [])
                 self.assertIn("1건 (지우려면 --prune)", out.getvalue())
+
+    def test_key_header_depends_on_key_type(self):
+        # 새 키(sb_)는 apikey 헤더에만, 예전 JWT 키는 apikey + Authorization
+        self.assertEqual(ls.auth_headers(NEW_SECRET_KEY), {"apikey": NEW_SECRET_KEY})
+        self.assertEqual(ls.auth_headers("sb_publishable_fake_for_test"), {"apikey": "sb_publishable_fake_for_test"})
+        self.assertEqual(ls.auth_headers(LEGACY_JWT_KEY),
+                         {"apikey": LEGACY_JWT_KEY, "Authorization": f"Bearer {LEGACY_JWT_KEY}"})
+
+        seen = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                seen.append((self.headers.get("apikey"), self.headers.get("Authorization")))
+                self.send_response(201)
+                self.end_headers()
+
+            def log_message(self, *a):
+                pass
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            out = io.StringIO()
+            with redirect_stdout(out):
+                for key in (NEW_SECRET_KEY, LEGACY_JWT_KEY):
+                    ls.post_rows(f"http://127.0.0.1:{server.server_port}", key, "policy", [{"id": "A1"}], "id")
+        finally:
+            server.shutdown()
+            server.server_close()
+        self.assertEqual(seen, [(NEW_SECRET_KEY, None), (LEGACY_JWT_KEY, f"Bearer {LEGACY_JWT_KEY}")])
+        self.assertNotIn(NEW_SECRET_KEY, out.getvalue())
+        self.assertNotIn(LEGACY_JWT_KEY, out.getvalue())
+
+    def test_network_error_ends_with_one_line_and_hides_key(self):
+        failures = [
+            urllib.error.URLError(f"[Errno 11001] getaddrinfo failed for {NEW_SECRET_KEY}"),
+            TimeoutError("timed out"),
+            ConnectionResetError("connection reset"),
+        ]
+        for failure in failures:
+            with self.subTest(failure=type(failure).__name__), \
+                    mock.patch.object(ls.urllib.request, "urlopen", side_effect=failure), \
+                    self.assertRaises(SystemExit) as cm:
+                ls.post_rows("https://example.supabase.co", NEW_SECRET_KEY, "policy", [{"id": "A1"}], "id")
+            message = str(cm.exception.code)
+            self.assertTrue(message.startswith(
+                "연결이 끊겼어요. 다시 실행하면 이어서 됩니다(같은 행이 두 번 생기지 않음)."), message)
+            self.assertEqual(len(message.splitlines()), 1)
+            self.assertNotIn(NEW_SECRET_KEY, message)
+
+    def test_http_error_message_hides_key(self):
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                body = json.dumps({"message": f"bad key {self.headers.get('apikey')}"}).encode()
+                self.send_response(401)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *a):
+                pass
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            with self.assertRaises(SystemExit) as cm:
+                ls.post_rows(f"http://127.0.0.1:{server.server_port}", NEW_SECRET_KEY, "policy", [{"id": "A1"}], "id")
+        finally:
+            server.shutdown()
+            server.server_close()
+        self.assertIn("HTTP 401", str(cm.exception.code))
+        self.assertNotIn(NEW_SECRET_KEY, str(cm.exception.code))
+
+    def test_notice_prune_only_when_asked(self):
+        calls = []
+        existing = [{"id": 7, "notice_key": C1}, {"id": 3, "notice_key": C3}, {"id": 99, "notice_key": "Q9:20240101000000000001"}]
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                calls.append(("GET", self.path))
+                data = json.dumps(existing).encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def do_DELETE(self):
+                calls.append(("DELETE", self.path))
+                self.send_response(204)
+                self.end_headers()
+
+            def log_message(self, *a):
+                pass
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        base = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with redirect_stdout(io.StringIO()) as out:
+                ls.prune_notices(base, NEW_SECRET_KEY, {C1, C3}, prune=False)
+            self.assertEqual([c for c in calls if c[0] == "DELETE"], [])
+            self.assertIn("공고 1건 (지우려면 --prune)", out.getvalue())
+
+            calls.clear()
+            with redirect_stdout(io.StringIO()) as out:
+                ls.prune_notices(base, NEW_SECRET_KEY, {C1, C3}, prune=True)
+            self.assertEqual([c for c in calls if c[0] == "DELETE"], [("DELETE", "/rest/v1/policy_notice?id=in.(99)")])
+            self.assertIn("공고 1건 삭제", out.getvalue())
+
+            # 이번 실행에서 공고를 하나도 만들지 못했으면 아무것도 지우지 않는다
+            calls.clear()
+            ls.prune_notices(base, NEW_SECRET_KEY, set(), prune=True)
+            self.assertEqual(calls, [])
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_notice_prune_sql(self):
+        sql = ls.notice_prune_sql([C3, C1])
+        self.assertIn(f"delete from public.policy_notice where notice_key not in ('{C1}', '{C3}');", sql)
+        self.assertEqual(ls.notice_prune_sql([]), "")
+
+
+class EnvAndCollectedOnTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+
+    def test_load_env_reads_the_same_way_as_fetch_script(self):
+        env_file = self.tmp / ".env"
+        # PowerShell의 > 로 만든 UTF-16 파일, export 접두어, 따옴표: 수집 스크립트(env_config)와 같은 규칙으로 읽는다
+        env_file.write_bytes(
+            f'export SUPABASE_URL="https://example.supabase.co/"\r\nSUPABASE_SERVICE_ROLE_KEY=\'{NEW_SECRET_KEY}\'\r\n'
+            .encode("utf-16"))
+        with mock.patch.object(env_config, "ENV_FILE", env_file), mock.patch.dict(os.environ, {}, clear=False):
+            for name in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"):
+                os.environ.pop(name, None)
+            self.assertEqual(ls.load_env(), ("https://example.supabase.co", NEW_SECRET_KEY))
+            # 환경변수가 .env보다 먼저다
+            os.environ["SUPABASE_SERVICE_ROLE_KEY"] = LEGACY_JWT_KEY
+            self.assertEqual(ls.load_env(), ("https://example.supabase.co", LEGACY_JWT_KEY))
+
+    def test_load_env_missing_values_stop_without_printing_them(self):
+        env_file = self.tmp / ".env"
+        env_file.write_text("SUPABASE_URL=https://example.supabase.co\n", encoding="utf-8")
+        with mock.patch.object(env_config, "ENV_FILE", env_file), mock.patch.dict(os.environ, {}, clear=False):
+            for name in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"):
+                os.environ.pop(name, None)
+            with self.assertRaises(SystemExit) as cm:
+                ls.load_env()
+        self.assertIn("SUPABASE_SERVICE_ROLE_KEY가 없습니다", str(cm.exception.code))
+        self.assertNotIn("example.supabase.co", str(cm.exception.code))
+
+    def test_collected_on_basis(self):
+        raw = self.tmp / "policies_all.json"
+        raw.write_text("[]", encoding="utf-8")
+        os.utime(raw, (1794744000, 1794744000))  # 2026-11-15 12:00 UTC (어느 시간대에서도 같은 날짜)
+        day, basis = ls.collected_on_with_basis(raw, None)
+        self.assertEqual((day, basis), ("2026-11-15", "mtime"))
+        self.assertEqual(ls.collected_on_with_basis(raw, "2026-11-09"), ("2026-11-09", "option"))
+        dated = self.tmp / "ythapi_20261109_2115" / "policies_all.json"
+        self.assertEqual(ls.collected_on_with_basis(dated, None), ("2026-11-09", "folder"))
+
+    def run_dry(self, *args: str) -> tuple[int, str]:
+        out = io.StringIO()
+        with redirect_stdout(out):
+            code = ls.main([*args, "--dry-run"])
+        return code, out.getvalue()
+
+    def test_warns_only_when_collected_on_comes_from_file_time(self):
+        raw = self.tmp / "policies_all.json"
+        raw.write_text(json.dumps(fake_raw_from_match(), ensure_ascii=False), encoding="utf-8")
+        os.utime(raw, (1794744000, 1794744000))
+        code, out = self.run_dry("--raw", str(raw))
+        self.assertEqual(code, 0, out)
+        self.assertIn("수집일을 파일 수정일(2026-11-15)로 잡았어요. 다르면 --collected-on을 붙이세요", out)
+
+        code, out = self.run_dry("--raw", str(raw), "--collected-on", "2026-11-09")
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("파일 수정일", out)
+
+        dated = self.tmp / "ythapi_20261109_2115"
+        dated.mkdir()
+        shutil.copy(raw, dated / "policies_all.json")
+        code, out = self.run_dry("--raw", str(dated / "policies_all.json"))
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("파일 수정일", out)
 
 
 if __name__ == "__main__":

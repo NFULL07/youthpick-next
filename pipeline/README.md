@@ -39,7 +39,9 @@ Supabase 값 (적재할 때만 필요. Supabase 대시보드 Settings > API Keys
 | `SUPABASE_URL` | 프로젝트 주소 (`https://....supabase.co`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Secret key** (`sb_secret_...`). 예전 방식 프로젝트는 `service_role` 키. 화면에는 절대 넣지 않는다 |
 
-화면용 Publishable key(`sb_publishable_...`)는 여기가 아니라 `web/.env.local`의 `VITE_SUPABASE_ANON_KEY`에 넣는다. Supabase 문서 기준으로 예전 `anon`·`service_role` 키는 2026년 말까지만 동작하므로 새 프로젝트는 새 키를 쓴다.
+화면용 Publishable key(`sb_publishable_...`)는 여기가 아니라 `web/.env.local`의 `VITE_SUPABASE_ANON_KEY`에 넣는다. 예전 `anon`·`service_role` 키는 Supabase 문서 기준 2026년 말까지 폐기 예정. 대시보드에서 끄기 전까지는 동작한다. 새 프로젝트는 새 키를 쓴다.
+
+적재 스크립트는 `sb_`로 시작하는 키를 `apikey` 헤더에만 넣는다. 예전 JWT 키(`eyJ...`)는 `apikey`와 `Authorization: Bearer` 둘 다 넣는다.
 
 ## 2. 수집 순서
 
@@ -59,6 +61,18 @@ python pipeline/load_supabase.py --raw data_raw/ythapi_YYYYMMDD_HHMM/policies_al
 
 - youthcenter.go.kr은 클라우드 환경에서 403으로 막힌 적이 있다. 수집은 노트북에서 한다.
 - 결과는 실행할 때마다 새 폴더에 저장한다. 기존 `data_raw/policies_all.json`(11/9 수집본)은 건드리지 않는다. 새 수집본을 기준으로 쓸지는 주완이 정한다.
+
+적재 (Supabase 프로젝트를 만들고 `.env`에 Supabase 값을 넣은 뒤)
+
+```powershell
+# 기존 11/9 수집본으로 적재할 때는 수집일을 직접 적는다
+python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09 --dry-run
+python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09
+```
+
+- 수집일은 `--collected-on` > 폴더 이름(`ythapi_YYYYMMDD`) > 파일 수정일 순서로 정한다. 파일 수정일로 잡으면 경고가 나온다(파일을 복사·저장하면 날짜가 바뀌기 때문). 새로 수집한 폴더는 이름에 날짜가 있어 `--collected-on`이 필요 없다.
+- 적재 중 연결이 끊기면 한 줄 안내로 끝난다. 다시 실행하면 된다(같은 행이 두 번 생기지 않음).
+- `--prune`: CSV에 없는 판정 규칙·관계·제출서류와, 이번 적재에 없는 공고를 DB에서 지운다. 공고를 지우면 그 공고의 규칙·관계·제출서류도 함께 지워진다. `--prune` 없이 실행하면 지울 대상이 몇 건인지만 알려 준다.
 
 ## 3. 결과 폴더
 
