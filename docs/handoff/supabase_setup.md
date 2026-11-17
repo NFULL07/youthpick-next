@@ -58,7 +58,7 @@
 | `api_match_v0_1.csv` | 1차안 28건과 API 레코드 매칭표 | 노트북 `youthpick\ythapi_20261109_2115` + claude.ai 프로젝트 |
 | `policy_candidates_v0_1.csv` | 1차안 28·예비 10·제외 3건, 출처 URL, 중복·병행 문구 | claude.ai 프로젝트 (노트북 사본 위치 미확인) |
 | `personal_fields_v0_3_ko.md` | 개인화 항목 한국어 설명 | claude.ai 프로젝트 |
-| `youthpick_fetch_policies.py` | 수집 스크립트 (표준 라이브러리, 키는 환경변수 또는 .env) | 노트북 youthpick 폴더 + claude.ai 프로젝트 |
+| `pipeline/fetch_policies.py` | 수집 스크립트 (표준 라이브러리, 키는 환경변수 또는 저장소 맨 위 .env). 노트북 `youthpick_fetch_policies.py`를 실제 응답 구조에 맞춰 옮긴 것. 결과는 `data_raw/ythapi_<시각>/` | 저장소 (사용법 `pipeline/README.md`) |
 | 관계근거 시트(25건) | 정책 간 관계 근거 문구 | 정책후보 xlsx 안. 위치 미확인 |
 | 항목별 확인서류표(서류 39종) | 주완 작성 표 | 위치 미확인 |
 
@@ -66,6 +66,7 @@
 - 저장소에서는 CSV·xlsx를 `docs/data/`에, `policies_all.json`을 `data_raw/`(.gitignore로 Git 제외)에 둔다. raw JSON을 Git에 올릴지는 주완 결정.
 - `docs/data/policy_candidates_v0_1.csv`는 claude.ai 프로젝트 사본을 다시 만든 파일이다(41행·23열 구조 확인). 노트북에서 11/9 원본 파일을 찾으면 원본을 우선한다.
 - 클라우드 환경에서는 youthcenter.go.kr 접속이 403으로 막혔다. 수집은 노트북에서 실행한다.
+- 저장소의 수집 스크립트는 수집과 검증만 한다. 노트북 스크립트가 만들던 `policies_cn_national.csv`(지역 필터)와 후보 키워드 매칭은 옮기지 않았다.
 
 ### 1차안 28건과 API 매칭 (api_match_v0_1 기준)
 
