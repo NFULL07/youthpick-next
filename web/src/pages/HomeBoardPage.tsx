@@ -7,6 +7,7 @@ import {
   getComparedPoliciesForTab,
   getRecommendedPoliciesForProfile,
 } from '../utils/policyEngine';
+import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
 
 interface HomeBoardPageProps {
   profile: UserProfile;
@@ -307,6 +308,7 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               isSaved={savedIds.includes(policy.id)}
               isCompared={comparePolicyIds.includes(policy.id)}
               isPrepping={prepPolicyIds.includes(policy.id)}
+              unmetReasons={unmetCriteriaReasons(policy, profile)}
               onToggleSave={onToggleSave}
               onToggleCompare={onToggleCompare}
               onOpenDetail={(id) => onNavigate('detail', id)}

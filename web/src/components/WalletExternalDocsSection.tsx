@@ -12,20 +12,17 @@ export const WalletExternalDocsSection: React.FC = () => {
   return (
     <section
       aria-labelledby="wallet-external-docs-title"
-      className="card-soft rounded-3xl bg-white p-6 sm:p-8"
+      className="card-soft rounded-3xl bg-surface p-6 sm:p-8"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2
-          id="wallet-external-docs-title"
-          className="text-2xl font-extrabold text-[#1F2421]"
-        >
+        <h2 id="wallet-external-docs-title" className="t-section">
           지갑 밖 서류 (직접 준비)
         </h2>
-        <span className="rounded-lg border border-[#B8860B] bg-[#FFF0CC] px-3 py-1 text-[13px] font-bold text-[#1F2421]">
+        <span className="badge badge-warn">
           {externalDocs.length}종 · 직접 입력 기준
         </span>
       </div>
-      <p className="mt-2 text-[15px] leading-relaxed text-[#333333]">
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-2">
         카카오·네이버 지갑 공개 목록에서 연계가 확인되지 않은 서류예요. 발급처에서 직접
         받아 두고, 정책 상세 화면에서 필요한 값만 직접 입력해 주세요.
       </p>
@@ -35,32 +32,32 @@ export const WalletExternalDocsSection: React.FC = () => {
         {externalDocs.map((doc) => (
           <li
             key={doc.id}
-            className="rounded-2xl border border-[#DCD7C9] bg-[#FDFCF8] p-4"
+            className="inset p-4"
           >
             <details>
               <summary className="flex cursor-pointer items-start gap-2">
                 <FileText
-                  className="mt-0.5 h-4 w-4 shrink-0 text-[#333333]"
+                  className="mt-0.5 h-4 w-4 shrink-0 text-ink-2"
                   aria-hidden="true"
                 />
                 <span>
-                  <strong className="block text-[15px] font-extrabold text-[#1F2421]">
+                  <strong className="block text-[15px] font-extrabold text-ink">
                     {doc.name}
                   </strong>
-                  <span className="block text-[13px] text-[#4A4D49]">{doc.issuer}</span>
+                  <span className="block text-[13px] text-ink-3">{doc.issuer}</span>
                 </span>
               </summary>
-              <dl className="mt-3 space-y-2 text-[14px] leading-relaxed text-[#333333]">
+              <dl className="mt-3 space-y-2 text-[14px] leading-relaxed text-ink-2">
                 <div>
-                  <dt className="font-bold text-[#1F2421]">발급·확인 경로</dt>
+                  <dt className="font-bold text-ink">발급·확인 경로</dt>
                   <dd>{doc.issuePath}</dd>
                 </div>
                 <div>
-                  <dt className="font-bold text-[#1F2421]">확인할 수 있는 내용</dt>
+                  <dt className="font-bold text-ink">확인할 수 있는 내용</dt>
                   <dd>{doc.checkableContent}</dd>
                 </div>
                 <div>
-                  <dt className="font-bold text-[#1F2421]">쓰이는 항목</dt>
+                  <dt className="font-bold text-ink">쓰이는 항목</dt>
                   <dd>
                     {doc.relatedItemNumbers
                       .map((n) => ITEM_LABELS_BY_NUMBER[n])
@@ -69,8 +66,8 @@ export const WalletExternalDocsSection: React.FC = () => {
                   </dd>
                 </div>
                 <div>
-                  <dt className="font-bold text-[#1F2421]">주의</dt>
-                  <dd className="text-[#A33A1E]">{doc.limits}</dd>
+                  <dt className="font-bold text-ink">주의</dt>
+                  <dd className="text-bad">{doc.limits}</dd>
                 </div>
               </dl>
             </details>

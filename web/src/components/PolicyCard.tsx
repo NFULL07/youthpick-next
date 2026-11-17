@@ -1,12 +1,15 @@
 import React from 'react';
 import { ArrowRight, Bookmark, Check, Info } from 'lucide-react';
 import { PolicyItem } from '../types/policy';
+import { RecruitmentStatusBadge } from './RecruitmentStatusBadge';
 
 interface PolicyCardProps {
   policy: PolicyItem;
   isSaved: boolean;
   isCompared: boolean;
   isPrepping?: boolean;
+  /** 내 정보로 판정했을 때 X인 조건의 이유. 모집 중이면서 이 값이 있으면 상자가 빨강이 된다 */
+  unmetReasons?: string[];
   onToggleSave: (id: string) => void;
   onToggleCompare: (id: string) => void;
   onOpenDetail: (id: string) => void;
@@ -20,22 +23,18 @@ const ACCENT_BG: Record<PolicyItem['accentTheme'], string> = {
   sage: 'bg-[#E5ECD4]',
 };
 
-const STATUS_STYLE: Record<PolicyItem['recruitmentStatus'], string> = {
-  '모집 중': 'bg-[#D8F279] text-[#1F2421] border-[#262A27]',
-  마감: 'bg-[#EAE6DA] text-[#333333] border-[#9E998B]',
-  '공고 확인 필요': 'bg-[#FFF0CC] text-[#1F2421] border-[#B8860B]',
-};
-
 export const PolicyCard: React.FC<PolicyCardProps> = ({
   policy,
   isSaved,
   isCompared,
   isPrepping = false,
+  unmetReasons = [],
   onToggleSave,
   onToggleCompare,
   onOpenDetail,
   onStartPreparation,
 }) => {
+  const showUnmet = policy.recruitmentStatus === '모집 중' && unmetReasons.length > 0;
   return (
     <article className="card-tactile flex flex-col justify-between overflow-hidden rounded-3xl bg-white break-keep transition-transform duration-150 hover:-translate-y-0.5">
       {/* Pastel Ticket Top Strip */}
@@ -92,15 +91,22 @@ export const PolicyCard: React.FC<PolicyCardProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 pt-0.5">
-          <span
-            className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[13px] font-bold ${STATUS_STYLE[policy.recruitmentStatus]}`}
-          >
-            {policy.recruitmentStatus}
-          </span>
+          <RecruitmentStatusBadge
+            status={policy.recruitmentStatus}
+            hasUnmet={showUnmet}
+          />
           <span className="text-[13px] font-semibold text-[#333333]">
             {policy.deadlineLabel}
           </span>
         </div>
+
+        {/* 빨간 상자일 때는 왜 그런지(X 이유)를 바로 아래에 적는다 */}
+        {showUnmet && (
+          <p className="-mt-1 text-[13px] font-semibold leading-snug text-[#A33A1E]">
+            {unmetReasons[0]}
+            {unmetReasons.length > 1 && ` 외 ${unmetReasons.length - 1}건`}
+          </p>
+        )}
 
         <div className="flex items-start gap-2 border-t border-[#ECE8DC] pt-3 text-[13px] font-medium text-[#333333]">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#4A4D49]" aria-hidden="true" />

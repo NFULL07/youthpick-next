@@ -23,6 +23,7 @@ import {
   getComparedPoliciesForTab,
   paginatePolicies,
 } from '../utils/policyEngine';
+import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -372,6 +373,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                   isSaved={savedIds.includes(policy.id)}
                   isCompared={comparePolicyIds.includes(policy.id)}
                   isPrepping={prepPolicyIds.includes(policy.id)}
+                  unmetReasons={unmetCriteriaReasons(policy, profile)}
                   onToggleSave={onToggleSave}
                   onToggleCompare={onToggleCompare}
                   onOpenDetail={(id) => onNavigate('detail', id)}
