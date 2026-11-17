@@ -10,7 +10,7 @@
 |---|---|---|
 | 1 | 청년픽용 Supabase 프로젝트 만들기 (서울, 무료 플랜) | Supabase 대시보드 |
 | 2 | `supabase/migrations/`의 SQL 2개를 파일 이름 순서대로 실행 | SQL 편집기(붙여 넣기) 또는 `npx supabase db push` |
-| 3 | 적재: `python pipeline/load_supabase.py --raw data_raw/policies_all.json` | 노트북 (저장소 맨 위 `.env`에 URL과 service_role 키) |
+| 3 | 적재: `python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09` | 노트북 (저장소 맨 위 `.env`에 URL과 Secret key 또는 service_role 키. `pipeline/README.md` 1장) |
 | 4 | 점검: `supabase/checks/schema_checks.sql` 실행, 13개 모두 true | SQL 편집기 |
 | 5 | `web/.env.local`에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 넣고 `npm run dev` | 노트북 |
 | 6 | 배포 환경(Cloudflare)에도 같은 두 값을 환경변수로 넣고 다시 빌드 | Cloudflare 대시보드 |
@@ -99,7 +99,7 @@ CSV가 원본이다. 엑셀에서 고치고 UTF-8 CSV로 저장한 뒤 적재 �
 - `employment_status`: 재직, 자영업, 미취업, 프리랜서, 일용근로, 예비창업, 단기근로, 영농, 기타
 - 지역: `registered_sido_code`·`registered_city_code`(주민등록지), `campus_id`(학교 소재지), `employer_info`(근무지)에 `region_in`
 
-초안을 검수 완료로 올리는 순서: 원문과 대조 -> 값·문구 고치기 -> 근거 URL·근거 원문 인용 채우기 -> 검수 상태 '검수 완료', 검수자, 검수일 -> 적재. 하나라도 빠지면 적재 스크립트가 어느 행인지 알려 주고 멈춘다. CSV에서 지운 행을 DB에서도 지우려면 `--prune`을 붙인다.
+초안을 검수 완료로 올리는 순서: 원문과 대조 -> 값·문구 고치기 -> 근거 URL·근거 원문 인용 채우기 -> 검수 상태 '검수 완료', 검수자, 검수일 -> 적재. 하나라도 빠지면 적재 스크립트가 어느 행인지 알려 주고 멈춘다. CSV에서 지운 행을 DB에서도 지우려면 `--prune`을 붙인다. `--prune`은 이번 적재에 없는 공고도 지우며, 그 공고의 규칙·관계·제출서류가 함께 지워진다. 붙이지 않으면 지울 대상 건수만 알려 준다.
 
 정책 관계 CSV는 공고키 두 개와 관계(병행 제한 / 병행 가능 / 조건부 병행 / 선행조건 / 추가 확인)를 적는다. 검수 완료면 근거 URL과 인용이 필수이고, '추가 확인'만 인용 대신 확인할 내용을 적는다.
 

@@ -18,12 +18,18 @@
 초안을 검수 완료로 바꾸려면 근거 URL, 근거 원문 인용, 검수자, 검수일을 채워야 한다(없으면 적재를 멈춘다).
 
 실행 (저장소 맨 위 폴더에서)
-  미리보기(네트워크 안 씀):  python pipeline/load_supabase.py --raw data_raw/policies_all.json --dry-run
+  미리보기(네트워크 안 씀):  python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09 --dry-run
   SQL 파일로 만들기:         python pipeline/load_supabase.py --sql-out data_raw/load.sql --skip-raw
-  Supabase에 넣기:           python pipeline/load_supabase.py --raw data_raw/policies_all.json
+  Supabase에 넣기:           python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09
   API 값으로 규칙 초안 만들기: python pipeline/load_supabase.py --write-rule-drafts docs/data/eligibility_rules_v0_1.csv
-    필요한 값: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (환경변수 또는 저장소 맨 위 .env)
-    service_role 키는 이 스크립트에서만 쓴다. 화면 코드·커밋·출력에 넣지 않는다.
+    필요한 값: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (환경변수 또는 저장소 맨 위 .env. 읽는 방식은 env_config.py)
+    SUPABASE_SERVICE_ROLE_KEY에는 Secret key(sb_secret_...) 또는 예전 service_role 키를 넣는다.
+    이 키는 이 스크립트에서만 쓴다. 화면 코드·커밋·출력에 넣지 않는다.
+
+수집일: --collected-on > 폴더 이름 ythapi_YYYYMMDD > 파일 수정일(이때는 경고를 낸다).
+--prune: CSV에 없는 판정 규칙·관계·제출서류와, 이번 적재에 없는 공고를 DB에서 지운다.
+         공고를 지우면 그 공고의 규칙·관계·제출서류도 함께 지워진다(on delete cascade).
+         --prune 없이 실행하면 지울 대상이 몇 건인지만 알려 준다.
 
 다시 실행해도 같은 행이 두 번 생기지 않는다(키 기준 upsert).
 표준 라이브러리만 사용한다(Python 3.9+).
@@ -32,9 +38,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import http.client
 import json
-import os
 import re
+import socket
 import sys
 import urllib.error
 import urllib.request
@@ -43,6 +50,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import env_config  # noqa: E402
 import rule_tables as rt  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -101,18 +109,24 @@ def find_list(obj):
     return None
 
 
-def collected_on_from(path: Path | None, override: str | None) -> str:
-    """수집일: --collected-on > 폴더 이름 ythapi_YYYYMMDD > 파일 수정일."""
+def collected_on_with_basis(path: Path | None, override: str | None) -> tuple[str, str]:
+    """(수집일, 근거). 근거: 'option'(--collected-on) > 'folder'(폴더 이름 ythapi_YYYYMMDD) > 'mtime'(파일 수정일) > 'today'.
+    파일 수정일은 파일을 복사·저장하면 바뀌므로, 그때는 main이 경고를 낸다."""
     if override:
-        return date.fromisoformat(override).isoformat()
+        return date.fromisoformat(override).isoformat(), "option"
     if path is not None:
         for part in [path.name, *[p.name for p in path.parents]]:
             m = re.search(r"ythapi_(\d{8})", part)
             if m:
-                return datetime.strptime(m.group(1), "%Y%m%d").date().isoformat()
+                return datetime.strptime(m.group(1), "%Y%m%d").date().isoformat(), "folder"
         if path.exists():
-            return date.fromtimestamp(path.stat().st_mtime).isoformat()
-    return date.today().isoformat()
+            return date.fromtimestamp(path.stat().st_mtime).isoformat(), "mtime"
+    return date.today().isoformat(), "today"
+
+
+def collected_on_from(path: Path | None, override: str | None) -> str:
+    """수집일: --collected-on > 폴더 이름 ythapi_YYYYMMDD > 파일 수정일."""
+    return collected_on_with_basis(path, override)[0]
 
 
 # ---------------------------------------------------------------------------
@@ -469,22 +483,31 @@ DOCUMENT_COLUMNS = ["document_id", "name", "required", "note", "review_status"]
 
 
 def load_env() -> tuple[str, str]:
-    env: dict[str, str] = {}
-    env_file = ROOT / ".env"
-    if env_file.exists():
-        for line in env_file.read_text(encoding="utf-8").splitlines():
-            if "=" in line and not line.lstrip().startswith("#"):
-                k, v = line.split("=", 1)
-                env[k.strip()] = v.strip().strip('"').strip("'")
-    url = os.environ.get("SUPABASE_URL") or env.get("SUPABASE_URL", "")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or env.get("SUPABASE_SERVICE_ROLE_KEY", "")
+    """Supabase 주소와 키. 수집 스크립트와 같은 방식(env_config)으로 읽는다: 환경변수 먼저, 없으면 저장소 맨 위 .env.
+    값은 돌려주기만 하고 출력하지 않는다."""
+    url, _ = env_config.get_setting("SUPABASE_URL")
+    key, _ = env_config.get_setting("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
         sys.exit("SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY가 없습니다. 환경변수나 저장소 맨 위 .env에 넣어 주세요.")
     return url.rstrip("/"), key
 
 
+def auth_headers(key: str) -> dict[str, str]:
+    """Supabase 키를 어느 헤더에 넣을지 정한다.
+    새 키(sb_secret_, sb_publishable_)는 JWT가 아니라서 apikey 헤더에만 넣고 Authorization은 보내지 않는다
+    (Supabase API keys 문서: "Send publishable and secret keys on the apikey header, not on Authorization: Bearer.").
+    예전 JWT 키(eyJ로 시작하는 anon·service_role)는 apikey와 Authorization: Bearer 둘 다 넣는다."""
+    headers = {"apikey": key}
+    if not key.startswith("sb_"):
+        headers["Authorization"] = f"Bearer {key}"
+    return headers
+
+
+NETWORK_ERRORS = (urllib.error.URLError, http.client.HTTPException, socket.timeout, TimeoutError, ConnectionError)
+
+
 def _request(base_url: str, key: str, method: str, path: str, body=None, prefer: str | None = None):
-    headers = {"apikey": key, "Authorization": f"Bearer {key}"}
+    headers = auth_headers(key)
     data = None
     if body is not None:
         headers["Content-Type"] = "application/json"
@@ -498,7 +521,14 @@ def _request(base_url: str, key: str, method: str, path: str, body=None, prefer:
             return json.loads(raw) if raw else None
     except urllib.error.HTTPError as e:  # 응답 본문만 보여 준다(키는 출력하지 않음)
         detail = e.read().decode("utf-8", "replace")[:800]
-        sys.exit(f"{method} {path.split('?')[0]} 실패: HTTP {e.code} {detail}")
+        e.close()
+        sys.exit(env_config.scrub(f"{method} {path.split('?')[0]} 실패: HTTP {e.code} {detail}", key))
+    except NETWORK_ERRORS as e:  # 오류 추적 대신 한 줄로 끝낸다. upsert라서 다시 실행해도 안전하다
+        reason = getattr(e, "reason", e)
+        cause = reason if isinstance(reason, str) else f"{type(reason).__name__} {reason}"
+        sys.exit(env_config.scrub(
+            "연결이 끊겼어요. 다시 실행하면 이어서 됩니다(같은 행이 두 번 생기지 않음). "
+            f"(원인: {' '.join(str(cause).split())})", key))
 
 
 def post_rows(base_url: str, key: str, table: str, rows: list[dict], conflict: str) -> None:
@@ -523,6 +553,29 @@ def delete_ids(base_url: str, key: str, table: str, ids: list[int]) -> None:
     for i in range(0, len(ids), 200):
         chunk = ",".join(str(x) for x in ids[i:i + 200])
         _request(base_url, key, "DELETE", f"{table}?id=in.({chunk})", prefer="return=minimal")
+
+
+def prune_notices(base_url: str, key: str, wanted_keys: set[str], prune: bool) -> None:
+    """이번 실행에서 만든 공고 키에 없는 공고를 찾는다. --prune이면 지우고, 아니면 몇 건인지만 알린다.
+    공고를 지우면 그 공고의 규칙·관계·제출서류는 DB의 on delete cascade로 함께 지워진다."""
+    if not wanted_keys:  # 공고를 하나도 만들지 못한 실행에서는 지우지 않는다(전부 지워지는 사고 방지)
+        return
+    stale = [r["id"] for r in get_rows(base_url, key, "policy_notice", "id,notice_key")
+             if r["notice_key"] not in wanted_keys]
+    if stale and prune:
+        delete_ids(base_url, key, "policy_notice", stale)
+        print(f"  policy_notice: 이번 적재에 없는 공고 {len(stale)}건 삭제 (그 공고의 규칙·관계·제출서류도 함께 삭제)")
+    elif stale:
+        print(f"  policy_notice: DB에만 있고 이번 적재에 없는 공고 {len(stale)}건 (지우려면 --prune)")
+
+
+def notice_prune_sql(notice_keys: list[str]) -> str:
+    """--sql-out + --prune: 이번 적재에 없는 공고를 지우는 SQL."""
+    if not notice_keys:
+        return ""
+    keys = ", ".join(sql_literal(k) for k in sorted(notice_keys))
+    return ("-- 이번 적재에 없는 공고 삭제(--prune). 그 공고의 규칙·관계·제출서류는 on delete cascade로 함께 지워진다\n"
+            f"delete from public.policy_notice where notice_key not in ({keys});\n\n")
 
 
 def ordered_pair(relation: str, a: int, b: int) -> tuple[int, int]:
@@ -662,7 +715,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="네트워크를 쓰지 않고 행 수와 검증 결과만 출력")
     ap.add_argument("--preview-dir", type=Path, help="--dry-run 때 테이블별 행을 JSON으로 저장할 폴더")
     ap.add_argument("--sql-out", type=Path, help="Supabase 대신 SQL 파일로 저장(SQL 편집기에 붙여 넣기용)")
-    ap.add_argument("--prune", action="store_true", help="판정 규칙·관계·제출서류에서 CSV에 없는 행을 DB에서 지움")
+    ap.add_argument("--prune", action="store_true",
+                    help="CSV에 없는 판정 규칙·관계·제출서류와, 이번 적재에 없는 공고를 DB에서 지움(없으면 건수만 알림)")
     ap.add_argument("--rules-csv", type=Path, default=RULES_CSV, help="판정 규칙 CSV (기본: docs/data)")
     ap.add_argument("--relations-csv", type=Path, default=RELATIONS_CSV, help="정책 관계 CSV (기본: docs/data)")
     ap.add_argument("--documents-csv", type=Path, default=DOCUMENTS_CSV, help="제출서류 CSV (기본: docs/data)")
@@ -689,7 +743,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.raw:
         if not args.raw.exists():
             sys.exit(f"원본 파일이 없습니다: {args.raw}")
-        collected_on = collected_on_from(args.raw, args.collected_on)
+        collected_on, basis = collected_on_with_basis(args.raw, args.collected_on)
+        if basis == "mtime":
+            print(f"경고: 수집일을 파일 수정일({collected_on})로 잡았어요. 다르면 --collected-on을 붙이세요")
         raw_rows = build_raw(read_raw(args.raw), collected_on)
 
     raw_index = {r["plcy_no"]: r["payload"] for r in raw_rows}
@@ -749,6 +805,8 @@ def main(argv: list[str] | None = None) -> int:
         parts = ["-- load_supabase.py가 만든 파일. 다시 실행해도 같은 행이 두 번 생기지 않는다.\nbegin;\n\n"]
         for name, rows in tables.items():
             parts.append(to_sql(name, rows, ON_CONFLICT[name]))
+        if args.prune:
+            parts.append(notice_prune_sql([n["notice_key"] for n in notices]))
         parts.append(to_sql("source_document", sources, ON_CONFLICT["source_document"]))
         parts.append(rule_tables_sql(rules, relations, documents, args.prune))
         parts.append("commit;\n")
@@ -761,6 +819,8 @@ def main(argv: list[str] | None = None) -> int:
     for name, rows in tables.items():
         if rows:
             post_rows(base_url, key, name, rows, ON_CONFLICT[name])
+    # 공고를 먼저 정리한다. 지워진 공고의 규칙·관계·제출서류는 DB가 함께 지우므로 아래 단계의 집계에 섞이지 않는다
+    prune_notices(base_url, key, {n["notice_key"] for n in notices}, args.prune)
     post_rows(base_url, key, "source_document", sources, ON_CONFLICT["source_document"])
     load_rule_tables(base_url, key, rules, relations, documents, args.prune)
     print("적재 완료")
