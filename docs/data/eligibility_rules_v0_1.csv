@@ -1,0 +1,29 @@
+﻿공고키,규칙키,항목ID,연산자,값(JSON),OR묶음,화면 문구,불일치 이유,질문,선택지(JSON),단위,순서,근거 URL,근거 원문 인용,근거 위치,작성,검수 상태,검수자,검수일,메모
+A1:20250616005400110939,age,birth_year,age_between,"{""max"": 35}",,만 35세 이하,,,,,10,,API 연령 값: 1~35,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+A1:20250616005400110939,enrollment,enrollment_status,in,"[""재학""]",,학적: 재학,,,,,30,,API 학력 코드: 대학 재학,온통청년 API schoolCd,API 초안,초안,,,휴학생·수료생 포함 여부를 원문에서 확인
+A1:20250616005400110940,age,birth_year,age_between,"{""max"": 35}",,만 35세 이하,,,,,10,,API 연령 값: 1~35,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+A1:20250616005400110940,enrollment,enrollment_status,in,"[""재학"", ""대학원""]",,학적: 재학 · 대학원,,,,,30,,"API 학력 코드: 대학 재학, 석·박사",온통청년 API schoolCd,API 초안,초안,,,휴학생·수료생 포함 여부를 원문에서 확인
+A3:20260430005400212963,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+A3:20260430005400212963,enrollment,enrollment_status,in,"[""재학"", ""졸업예정"", ""졸업""]",,학적: 재학 · 졸업예정 · 졸업,,,,,30,,"API 학력 코드: 대학 재학, 대졸 예정, 대학 졸업",온통청년 API schoolCd,API 초안,초안,,,휴학생·수료생 포함 여부를 원문에서 확인
+A3:20260430005400212963,employment,employment_status,in,"[""미취업""]",,취업 상태: 미취업,,,,,40,,API 취업 코드: 미취업자,온통청년 API jobCd,API 초안,초안,,,단시간 근로·아르바이트 허용 범위를 원문에서 확인
+B1:20250114005400110236,enrollment,enrollment_status,in,"[""재학""]",,학적: 재학,,,,,30,,API 학력 코드: 대학 재학,온통청년 API schoolCd,API 초안,초안,,,휴학생·수료생 포함 여부를 원문에서 확인
+C1:20260319005400112218,age,birth_year,age_between,"{""min"": 19, ""max"": 34}",,만 19~34세,,,,,10,,API 연령 값: 19~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+C1:20261026005400114424,age,birth_year,age_between,"{""min"": 19, ""max"": 34}",,만 19~34세,,,,,10,,API 연령 값: 19~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+C2:20260922005400113544,age,birth_year,age_between,"{""min"": 19, ""max"": 34}",,만 19~34세,,,,,10,,API 연령 값: 19~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+C3:20261016005400113963,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+C4:20260430005400212968,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D1:20260710005400113256,age,birth_year,age_between,"{""min"": 15, ""max"": 69}",,만 15~69세,,,,,10,,API 연령 값: 15~69,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D1:20260710005400113256,employment,employment_status,in,"[""미취업""]",,취업 상태: 미취업,,,,,40,,API 취업 코드: 미취업자,온통청년 API jobCd,API 초안,초안,,,단시간 근로·아르바이트 허용 범위를 원문에서 확인
+D2:20250123005400110394,age,birth_year,age_between,"{""min"": 15, ""max"": 34}",,만 15~34세,,,,,10,,API 연령 값: 15~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D3:20260504005400113130,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D3:20260504005400113130,enrollment,enrollment_status,in,"[""졸업예정""]",,학적: 졸업예정,,,,,30,,API 학력 코드: 대졸 예정,온통청년 API schoolCd,API 초안,초안,,,휴학생·수료생 포함 여부를 원문에서 확인
+D3:20260504005400113130,employment,employment_status,in,"[""미취업""]",,취업 상태: 미취업,,,,,40,,API 취업 코드: 미취업자,온통청년 API jobCd,API 초안,초안,,,단시간 근로·아르바이트 허용 범위를 원문에서 확인
+D4:20260504005400213065,age,birth_year,age_between,"{""min"": 18, ""max"": 39}",,만 18~39세,,,,,10,,API 연령 값: 18~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D5:20260504005400213014,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+D5:20260504005400213014,employment,employment_status,in,"[""미취업""]",,취업 상태: 미취업,,,,,40,,API 취업 코드: 미취업자,온통청년 API jobCd,API 초안,초안,,,단시간 근로·아르바이트 허용 범위를 원문에서 확인
+E4:20260504005400213015,age,birth_year,age_between,"{""min"": 18, ""max"": 39}",,만 18~39세,,,,,10,,API 연령 값: 18~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+E5:20250123005400110393,age,birth_year,age_between,"{""min"": 15, ""max"": 75}",,만 15~75세,,,,,10,,API 연령 값: 15~75,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+F1:20260923005400113565,age,birth_year,age_between,"{""min"": 19, ""max"": 34}",,만 19~34세,,,,,10,,API 연령 값: 19~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+F1:20260605005400113228,age,birth_year,age_between,"{""min"": 19, ""max"": 34}",,만 19~34세,,,,,10,,API 연령 값: 19~34,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+F2:20260430005400113009,age,birth_year,age_between,"{""min"": 15, ""max"": 40}",,만 15~40세,,,,,10,,API 연령 값: 15~40,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
+F2:20260504005400113090,age,birth_year,age_between,"{""min"": 19, ""max"": 39}",,만 19~39세,,,,,10,,API 연령 값: 19~39,온통청년 API sprtTrgtMinAge·sprtTrgtMaxAge,API 초안,초안,,,"나이 기준일(공고일·신청일), 병역 기간 연장 여부를 원문에서 확인"
