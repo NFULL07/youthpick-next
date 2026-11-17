@@ -3,11 +3,8 @@ import { AiSherpaDrawer } from './components/AiSherpaDrawer';
 import { BottomNav } from './components/BottomNav';
 import { DemoDataBanner } from './components/DemoDataBanner';
 import { TopNav } from './components/TopNav';
-import {
-  DEFAULT_USER_PROFILE,
-  INITIAL_WALLET_DOCS,
-  POLICIES_DATA,
-} from './data/policies';
+import { DEFAULT_USER_PROFILE, INITIAL_WALLET_DOCS } from './data/policies';
+import { getPolicyCatalog } from './data/policyCatalog';
 import { ApplyReadyPage } from './pages/ApplyReadyPage';
 import { HomeBoardPage } from './pages/HomeBoardPage';
 import { LifeSwitchPage } from './pages/LifeSwitchPage';
@@ -73,6 +70,10 @@ function loadJson<T>(key: string, fallback: T): T {
 }
 
 export default function App() {
+  // 정책 목록: Supabase 설정이 있으면 받아 온 데이터, 없으면 시연용 예시 (data/policyCatalog.ts)
+  const catalog = getPolicyCatalog();
+  const policies = catalog.policies;
+
   const initialRoute = parseHashRoute();
   const [route, setRoute] = useState<RouteId>(initialRoute.route);
   const [detailPolicyId, setDetailPolicyId] = useState<string>(
@@ -83,9 +84,11 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile>(() =>
     sanitizeProfile(loadJson<unknown>(STORAGE_KEY_PROFILE, null), DEFAULT_USER_PROFILE)
   );
-  const [savedIds, setSavedIds] = useState<string[]>(() =>
+  const [storedSavedIds, setSavedIds] = useState<string[]>(() =>
     sanitizeStringList(loadJson<unknown>(STORAGE_KEY_SAVED, null), ['1'])
   );
+  // 지금 목록에 없는 정책(예: 예시 데이터에서 저장한 것)은 세지 않는다. 저장값 자체는 지우지 않는다
+  const savedIds = storedSavedIds.filter((id) => policies.some((p) => p.id === id));
   const [comparePolicyIds, setComparePolicyIds] = useState<string[]>([]);
   const [prepPolicyIds, setPrepPolicyIds] = useState<string[]>(() => {
     const loaded = loadJson<unknown>(STORAGE_KEY_PREP_POLICIES, []);
@@ -222,7 +225,7 @@ export default function App() {
   };
 
   const handleRemovePrepPolicy = (policyId: string) => {
-    const removedPolicy = POLICIES_DATA.find((p) => p.id === policyId);
+    const removedPolicy = policies.find((p) => p.id === policyId);
     if (removedPolicy) {
       const checklistIdsToRemove = new Set(removedPolicy.checklist.map((c) => c.id));
       const checkedForPolicy = completedChecklistIds.filter((id) =>
@@ -310,20 +313,25 @@ export default function App() {
     showToast(`'${fileName}' 파일 이름을 이 브라우저에 기록했어요. 파일 내용은 저장하지 않아요.`);
   };
 
-  const prepPolicies = POLICIES_DATA.filter((p) => prepPolicyIds.includes(p.id));
+  const prepPolicies = policies.filter((p) => prepPolicyIds.includes(p.id));
   const activePrepPolicy =
     prepPolicies.find((p) => p.id === activePrepPolicyId) ?? prepPolicies[0];
   const checkedPrepCount = countCheckedPrepPolicies(
     prepPolicies,
     completedChecklistIds
   );
-  const detailPolicy =
-    POLICIES_DATA.find((p) => p.id === detailPolicyId) ?? POLICIES_DATA[0];
+  const detailPolicy = policies.find((p) => p.id === detailPolicyId) ?? policies[0];
+  // 예시 서류가 지금 목록에 없는 정책(시연용 예시 정책)을 가리키면 그 이름을 보여 주지 않는다
+  const shownWalletDocs = walletDocs.map((doc) =>
+    policies.some((p) => p.id === doc.linkedPolicyId)
+      ? doc
+      : { ...doc, linkedPolicyTitle: '예시 서류 (연결된 정책 없음)' }
+  );
 
   const livingZoneLabel =
     profile.schoolRegion || profile.residence || '생활권 미설정';
-  const boardPolicies = getRecommendedPoliciesForProfile(POLICIES_DATA, profile, 3);
-  const explorePolicies = POLICIES_DATA;
+  const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
+  const explorePolicies = policies;
   const boardComparedPolicies = getComparedPoliciesForTab(
     boardPolicies,
     comparePolicyIds
@@ -345,7 +353,7 @@ export default function App() {
         본문으로 이동
       </a>
 
-      <DemoDataBanner />
+      <DemoDataBanner notice={catalog.notice} />
 
       <TopNav
         currentRoute={route}
@@ -363,7 +371,7 @@ export default function App() {
         {route === 'home' && (
           <HomeBoardPage
             profile={profile}
-            policies={POLICIES_DATA}
+            policies={policies}
             savedIds={savedIds}
             comparePolicyIds={comparePolicyIds}
             prepPolicyIds={prepPolicyIds}
@@ -380,7 +388,7 @@ export default function App() {
         {route === 'policies' && (
           <PoliciesExplorePage
             profile={profile}
-            policies={POLICIES_DATA}
+            policies={policies}
             savedIds={savedIds}
             comparePolicyIds={comparePolicyIds}
             prepPolicyIds={prepPolicyIds}
@@ -408,7 +416,7 @@ export default function App() {
         {route === 'switch' && (
           <LifeSwitchPage
             profile={profile}
-            policies={POLICIES_DATA}
+            policies={policies}
             onNavigate={handleNavigate}
           />
         )}
@@ -444,7 +452,7 @@ export default function App() {
         {route === 'wallet' && (
           <WalletPage
             profile={profile}
-            documents={walletDocs}
+            documents={shownWalletDocs}
             activePolicyTitle={activePrepPolicy?.title ?? ''}
             prepPolicyCount={prepPolicies.length}
             onUploadDocFile={handleUploadDocFile}
@@ -484,7 +492,7 @@ export default function App() {
         route={route}
         profile={profile}
         selectedPolicy={route === 'detail' ? detailPolicy : undefined}
-        policies={POLICIES_DATA}
+        policies={policies}
         hasCompareBar={hasCompareBar}
         onNavigate={(nextRoute, pId) => {
           handleNavigate(nextRoute, pId);

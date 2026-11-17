@@ -95,6 +95,8 @@ test('직접 입력 코드는 브라우저 저장소·URL에 값을 쓰지 않�
   const files = [
     new URL('../components/DirectInputSection.tsx', import.meta.url),
     new URL('./directInput.ts', import.meta.url),
+    new URL('./ruleEngine.ts', import.meta.url),
+    new URL('./ruleTypes.ts', import.meta.url),
   ];
   for (const file of files) {
     const src = readFileSync(file, 'utf-8');

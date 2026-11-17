@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { FileText, Info } from 'lucide-react';
-import { DIRECT_INPUT_SPECS } from '../data/directInputSpec';
 import type { DirectInputItem } from '../data/docRequirementTypes';
 import type { PolicyItem } from '../types/policy';
 import {
@@ -8,6 +7,7 @@ import {
   getDirectInputItemsForPolicy,
   getDirectInputResult,
   getDocsForItem,
+  getInputSpec,
 } from '../utils/directInput';
 
 interface DirectInputSectionProps {
@@ -85,7 +85,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
   values,
   onChange,
 }) => {
-  const spec = DIRECT_INPUT_SPECS[item.fieldId];
+  const spec = getInputSpec(item);
   const inputId = `direct-${policyId}-${item.fieldId}`;
   const docs = getDocsForItem(item);
 
@@ -95,7 +95,7 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
           .filter(Boolean)
           .join(' ~ ')
       : values[item.fieldId];
-  const { result, label } = getDirectInputResult(combinedValue);
+  const { result, label } = getDirectInputResult(combinedValue, item);
 
   return (
     <li className="rounded-2xl border border-[#DCD7C9] bg-[#FDFCF8] p-4 sm:p-5">

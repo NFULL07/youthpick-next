@@ -1,3 +1,5 @@
+import type { PolicyRuleSet } from '../utils/ruleTypes';
+
 export type PolicyCategory =
   | '일자리'
   | '주거'
@@ -83,6 +85,10 @@ export interface PolicyItem {
   requiredDocs: string[];
   /** 지갑 밖 서류로 직접 입력해야 하는 항목의 영문 ID (docs/data/doc_requirements_items_v1.csv) */
   directInputFieldIds?: string[];
+  /** 'supabase'면 Supabase에서 받은 정책. 없으면 시연용 예시 */
+  dataSource?: 'demo' | 'supabase';
+  /** Supabase 정책의 검수 완료 규칙·관계. 있으면 판정은 utils/ruleEngine.ts가 한다 */
+  ruleSet?: PolicyRuleSet;
   checklist: {
     id: string;
     title: string;
