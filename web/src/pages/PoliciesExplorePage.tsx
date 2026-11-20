@@ -24,6 +24,7 @@ import {
   paginatePolicies,
 } from '../utils/policyEngine';
 import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
+import { useVirtualWallet } from '../utils/virtualWalletContext';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -62,6 +63,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
   onStartPreparation,
   onOpenSherpaWithPrompt,
 }) => {
+  const wallet = useVirtualWallet();
   const [selectedCategory, setSelectedCategory] = useState<'전체' | PolicyCategory>(
     '전체'
   );
@@ -373,7 +375,7 @@ export const PoliciesExplorePage: React.FC<PoliciesExplorePageProps> = ({
                   isSaved={savedIds.includes(policy.id)}
                   isCompared={comparePolicyIds.includes(policy.id)}
                   isPrepping={prepPolicyIds.includes(policy.id)}
-                  unmetReasons={unmetCriteriaReasons(policy, profile)}
+                  unmetReasons={unmetCriteriaReasons(policy, profile, wallet)}
                   onToggleSave={onToggleSave}
                   onToggleCompare={onToggleCompare}
                   onOpenDetail={(id) => onNavigate('detail', id)}

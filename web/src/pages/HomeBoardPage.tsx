@@ -8,6 +8,7 @@ import {
   getRecommendedPoliciesForProfile,
 } from '../utils/policyEngine';
 import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
+import { useVirtualWallet } from '../utils/virtualWalletContext';
 
 interface HomeBoardPageProps {
   profile: UserProfile;
@@ -38,6 +39,7 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   onClearCompare,
   onStartPreparation,
 }) => {
+  const wallet = useVirtualWallet();
   const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
   const comparedPolicies = getComparedPoliciesForTab(
     boardPolicies,
@@ -308,7 +310,7 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               isSaved={savedIds.includes(policy.id)}
               isCompared={comparePolicyIds.includes(policy.id)}
               isPrepping={prepPolicyIds.includes(policy.id)}
-              unmetReasons={unmetCriteriaReasons(policy, profile)}
+              unmetReasons={unmetCriteriaReasons(policy, profile, wallet)}
               onToggleSave={onToggleSave}
               onToggleCompare={onToggleCompare}
               onOpenDetail={(id) => onNavigate('detail', id)}

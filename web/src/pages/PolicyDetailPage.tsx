@@ -3,6 +3,8 @@ import { ArrowLeft, ArrowRight, Bookmark, MessageCircle } from 'lucide-react';
 import { CRITERIA_RESULT_STYLE, PolicyItem, RouteId, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from '../utils/policyEngine';
 import { DirectInputSection } from '../components/DirectInputSection';
+import { useVirtualWallet } from '../utils/virtualWalletContext';
+import { walletPresetValues } from '../utils/walletAnswers';
 
 interface PolicyDetailPageProps {
   policy: PolicyItem;
@@ -23,7 +25,8 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
   onStartPreparation,
   onAskSherpaAboutPolicy,
 }) => {
-  const criteriaRows = evaluatePolicyCriteria(policy, profile);
+  const wallet = useVirtualWallet();
+  const criteriaRows = evaluatePolicyCriteria(policy, profile, wallet);
 
   return (
     <div className="space-y-8">
@@ -149,7 +152,15 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
           </div>
 
           {/* 정책이 바뀌면 key로 입력값을 비운다 */}
-          <DirectInputSection key={policy.id} policy={policy} />
+          <DirectInputSection
+            key={`${policy.id}:${wallet?.id ?? 'none'}`}
+            policy={policy}
+            presetValues={
+              wallet && policy.ruleSet
+                ? walletPresetValues(wallet, policy.ruleSet.inputItems, policy.ruleSet.rules)
+                : undefined
+            }
+          />
         </section>
 
         {/* Right Action Sidebar: lg 이상에서는 긴 조건표 옆에 따라오도록 sticky (lg 미만 배치는 그대로) */}

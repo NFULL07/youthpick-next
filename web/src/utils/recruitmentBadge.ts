@@ -1,5 +1,6 @@
 import type { PolicyItem, RecruitmentStatus, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from './policyEngine';
+import type { WalletFacts } from '../data/virtualWallet';
 
 /**
  * 정책 카드의 모집 상태 상자 (주완 결정, 2026-11-17)
@@ -43,8 +44,12 @@ export function recruitmentBadge(status: RecruitmentStatus, hasUnmet = false): R
 }
 
 /** 내 정보로 판정했을 때 X인 조건의 이유. X가 없으면 빈 배열(?는 넣지 않는다) */
-export function unmetCriteriaReasons(policy: PolicyItem, profile: UserProfile): string[] {
-  return evaluatePolicyCriteria(policy, profile)
+export function unmetCriteriaReasons(
+  policy: PolicyItem,
+  profile: UserProfile,
+  wallet: WalletFacts | null = null
+): string[] {
+  return evaluatePolicyCriteria(policy, profile, wallet)
     .filter((row) => row.result === 'X')
     .map((row) => row.reason ?? `${row.item} 조건을 충족하지 않아요.`);
 }

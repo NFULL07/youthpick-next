@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { ArrowRight, FileText, Search, Upload } from 'lucide-react';
 import { RouteId, UserProfile, WalletDocument } from '../types/policy';
 import { WalletExternalDocsSection } from '../components/WalletExternalDocsSection';
+import type { WalletFacts } from '../data/virtualWallet';
 
 interface WalletPageProps {
   profile: UserProfile;
@@ -10,6 +11,10 @@ interface WalletPageProps {
   prepPolicyCount: number;
   onUploadDocFile: (docId: string, fileName: string) => void;
   onNavigate: (route: RouteId, policyId?: string) => void;
+  /** 가상 지갑(시연용) */
+  personas?: readonly WalletFacts[];
+  activePersonaId?: string | null;
+  onSelectPersona?: (id: string | null) => void;
 }
 
 export const WalletPage: React.FC<WalletPageProps> = ({
@@ -19,6 +24,9 @@ export const WalletPage: React.FC<WalletPageProps> = ({
   prepPolicyCount,
   onUploadDocFile,
   onNavigate,
+  personas = [],
+  activePersonaId = null,
+  onSelectPersona,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<
@@ -56,6 +64,49 @@ export const WalletPage: React.FC<WalletPageProps> = ({
           내 정보와 서류를 잇고, 다음 신청 준비를 가볍게 시작해요.
         </p>
       </div>
+
+      {personas.length > 0 && onSelectPersona && (
+        <section
+          aria-labelledby="virtual-wallet-title"
+          className="card-tactile rounded-3xl bg-white p-6"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="virtual-wallet-title" className="t-section">
+              가상 지갑으로 시연하기
+            </h2>
+            <span className="rounded-lg border border-[#B8860B] bg-[#FFF0CC] px-3 py-1 text-[13px] font-bold text-ink">
+              가상 인물 · 저장 안 함
+            </span>
+          </div>
+          <p className="mt-2 text-[15px] text-ink-2">
+            서류에서 읽었다고 가정한 가상 인물의 정보로 정책 조건을 판정해 봐요. 켜 두는 동안 판정에만 쓰고,
+            내 정보는 바꾸지 않아요. 새로고침하면 꺼져요.
+          </p>
+          <ul className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {personas.map((persona) => {
+              const active = persona.id === activePersonaId;
+              return (
+                <li key={persona.id}>
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => onSelectPersona(active ? null : persona.id)}
+                    className={`h-full w-full cursor-pointer rounded-2xl border-[1.5px] px-4 py-3 text-left ${
+                      active ? 'border-[#262A27] bg-[#D8F279]' : 'border-[#DCD7C9] bg-[#FDFCF8] hover:border-[#262A27]'
+                    }`}
+                  >
+                    <strong className="block text-[15px] font-extrabold text-ink">{persona.name}</strong>
+                    <span className="mt-1 block text-[13px] font-semibold text-ink-2">{persona.summary}</span>
+                    <span className="mt-2 block text-[12px] font-bold text-ink">
+                      {active ? '켜짐 · 다시 누르면 꺼져요' : '이 지갑으로 판정하기'}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Left Wallet Card */}

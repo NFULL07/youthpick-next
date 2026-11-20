@@ -12,6 +12,8 @@ import {
 
 interface DirectInputSectionProps {
   policy: PolicyItem;
+  /** 가상 지갑을 켰을 때 미리 채울 값(메모리에서만). 바꾸려면 컴포넌트 key를 바꾼다 */
+  presetValues?: Record<string, string>;
 }
 
 /**
@@ -19,9 +21,10 @@ interface DirectInputSectionProps {
  * 개인정보 규칙: 입력값은 이 컴포넌트 상태(메모리)에만 둔다.
  * 브라우저 저장소·URL·토스트·콘솔에 값을 남기지 않는다.
  */
-export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy }) => {
+export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy, presetValues }) => {
   const items = getDirectInputItemsForPolicy(policy);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => ({ ...(presetValues ?? {}) }));
+  const fromWallet = presetValues !== undefined && Object.keys(presetValues).length > 0;
 
   if (items.length === 0) {
     return null;
@@ -56,6 +59,11 @@ export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy }
         <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
         <span>{DIRECT_INPUT_NOTICE}</span>
       </p>
+      {fromWallet && (
+        <p role="note" className="mt-2 rounded-xl bg-[#EEF1E3] px-4 py-2.5 text-[14px] font-semibold text-[#1F2421]">
+          가상 지갑의 가상 인물 정보로 미리 채웠어요. 고쳐서 다시 확인할 수 있어요.
+        </p>
+      )}
 
       <ul className="mt-5 space-y-4">
         {items.map((item) => (
