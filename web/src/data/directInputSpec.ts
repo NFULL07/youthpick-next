@@ -42,7 +42,7 @@ export const DIRECT_INPUT_SPECS: Readonly<Record<string, DirectInputSpec>> = {
   },
   housing_loan_product: {
     kind: 'select',
-    options: ['버팀목(청년전용)', '버팀목(신혼부부)', '신생아특례', '기타 전세대출', '없음'],
+    options: ['버팀목(일반)', '버팀목(청년전용)', '버팀목(신혼부부)', '신생아특례', '기타 전세대출', '없음'],
   },
   existing_support: {
     kind: 'select',
