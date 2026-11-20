@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowUpRight, Compass, RotateCcw, Send, X } from 'lucide-react';
 import { PolicyItem, RouteId, UserProfile } from '../types/policy';
+import { ExternalNoticeFinder } from './ExternalNoticeFinder';
 import {
   SherpaMessage,
   generateDeterministicSherpaReply,
@@ -40,6 +41,8 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
 }) => {
   const [messages, setMessages] = useState<SherpaMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
+  // 'guide': 규칙형 안내(외부 호출 없음) / 'external': 외부 공고 찾기(AI)
+  const [tab, setTab] = useState<'guide' | 'external'>('guide');
 
   const suggestedPrompts = getSuggestedPrompts(route);
 
@@ -96,7 +99,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
                   AI 내비게이터 (AI 셰르파)
                 </h2>
                 <p className="text-[12px] font-semibold text-[#333333]">
-                  내 조건·화면 맥락 기반 규칙형 안내
+                  {tab === 'guide' ? '내 조건·화면 맥락 기반 규칙형 안내' : '온통청년 밖 외부 공고 탐색 (AI)'}
                 </p>
               </div>
             </div>
@@ -111,6 +114,37 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
             </button>
           </div>
 
+          {/* 탭: 규칙형 안내 / 외부 공고 찾기 */}
+          <div role="tablist" aria-label="내비게이터 기능" className="flex gap-1 border-b border-[#E3DFD3] bg-[#FAF8F2] px-3 pt-2">
+            {(
+              [
+                ['guide', '정책 안내'],
+                ['external', '외부 공고 찾기 (AI)'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
+                className={`cursor-pointer rounded-t-lg border border-b-0 px-3 py-1.5 text-[12px] font-bold ${
+                  tab === id ? 'border-[#262A27] bg-white text-[#1F2421]' : 'border-transparent text-[#4A4D49] hover:text-[#1F2421]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {tab === 'external' && (
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <ExternalNoticeFinder profile={profile} />
+            </div>
+          )}
+
+          {tab === 'guide' && (
+          <>
           {/* Context Bar */}
           <div className="flex items-center justify-between gap-2 border-b border-[#E3DFD3] bg-white px-4 py-1.5 text-[12px] font-semibold text-[#333333]">
             <span className="min-w-0 truncate">
@@ -247,9 +281,11 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
               </button>
             </div>
             <p className="mt-1.5 text-center text-[11px] font-medium text-[#4A4D49]">
-              내 입력 조건 기반 규칙형 안내 · 외부 AI API를 호출하지 않습니다
+              내 입력 조건 기반 규칙형 안내 · 이 탭은 외부 AI API를 호출하지 않습니다
             </p>
           </form>
+          </>
+          )}
         </aside>
       )}
 
