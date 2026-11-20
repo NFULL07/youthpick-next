@@ -33,13 +33,23 @@ export function getDocsForItem(item: DirectInputItem): RequirementDoc[] {
     .filter((doc): doc is RequirementDoc => Boolean(doc));
 }
 
-/** 직접 입력 칸의 입력 방식. 정해 둔 방식이 없으면 규칙에서 만든다 */
+/**
+ * 직접 입력 칸의 입력 방식. 정해 둔 방식이 없으면 규칙에서 만든다.
+ * 정해 둔 방식(보기·단위)을 쓰더라도 규칙의 질문은 보여 준다.
+ * 예: '기존 지원'은 정책마다 묻는 사업이 달라 질문이 없으면 무엇에 답하는지 알 수 없다.
+ */
 export function getInputSpec(item: DirectInputItem): DirectInputSpec | undefined {
   const known = DIRECT_INPUT_SPECS[item.fieldId];
-  if (known || !isRuleItem(item)) {
+  if (!isRuleItem(item)) {
     return known;
   }
-  return inputSpecForRules(item.rules, item.regionNames);
+  if (!known) {
+    return inputSpecForRules(item.rules, item.regionNames);
+  }
+  const question = [...item.rules]
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    .find((rule) => rule.question)?.question;
+  return question ? { ...known, hint: [question, known.hint].filter(Boolean).join(' ') } : known;
 }
 
 /**

@@ -16,7 +16,9 @@ import {
   DIRECT_INPUT_NOTICE,
   getDirectInputItemsForPolicy,
   getDirectInputResult,
+  getInputSpec,
 } from './directInput';
+import type { EligibilityRule, RuleInputItem } from './ruleTypes';
 
 test('지갑 밖 서류는 확인서류표 기준 14종', () => {
   assert.deepEqual(
@@ -104,4 +106,23 @@ test('직접 입력 코드는 브라우저 저장소·URL에 값을 쓰지 않�
       assert.ok(!src.includes(banned), `${file.pathname}: ${banned}`);
     }
   }
+});
+
+test('정해 둔 입력 방식이 있는 항목도 규칙의 질문을 보여줌(보기는 그대로)', () => {
+  const rule: EligibilityRule = {
+    id: 1, ruleKey: 'existing_support', fieldId: 'existing_support', fieldName: '기존 지원',
+    operator: 'in', value: ['해당 없음', '참여·수급 종료'], anyOfGroup: null, label: '실업급여 수급 중이 아님',
+    failReason: null, question: '지금 실업급여를 받고 있나요?', choices: null, unit: null, sortOrder: 10,
+    sourceQuote: null, sourceLocator: null, sourceTitle: null, sourceUrl: null,
+  };
+  const item: RuleInputItem = {
+    number: 0, label: '기존 지원', fieldId: 'existing_support', storage: '공고별 일시 입력', docsLabel: '',
+    issuer: '', checkMethod: '', checkContent: '', caution: '', docIds: [], rules: [rule], docs: [], regionNames: {},
+  };
+  const spec = getInputSpec(item);
+  assert.ok(spec && spec.kind === 'select');
+  assert.deepEqual(spec.options, DIRECT_INPUT_SPECS.existing_support.kind === 'select' ? DIRECT_INPUT_SPECS.existing_support.options : []);
+  assert.ok(spec.hint?.startsWith('지금 실업급여를 받고 있나요?'));
+  const noQuestion: RuleInputItem = { ...item, rules: [{ ...rule, question: null }] };
+  assert.equal(getInputSpec(noQuestion), DIRECT_INPUT_SPECS.existing_support);
 });
