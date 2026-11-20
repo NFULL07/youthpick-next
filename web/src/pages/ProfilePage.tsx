@@ -31,12 +31,14 @@ type AddressFieldKey = 'residence' | 'schoolRegion' | 'workRegion';
 const MIN_AGE = 15;
 const MAX_AGE = 49;
 
-function clampAge(raw: string, fallback: number): number {
+export const AGE_RANGE_MESSAGE = `만 ${MIN_AGE}~${MAX_AGE}세 사이로 입력해 주세요. 범위 밖이면 저장하지 않아요.`;
+
+/** 나이 입력 검사. 범위 밖 값을 조용히 바꾸지 않는다(바꾸면 다른 나이로 판정됨) */
+export function parseAgeInput(raw: string): number | null {
   const trimmed = raw.trim();
-  if (!trimmed) return fallback;
+  if (!/^\d+$/.test(trimmed)) return null;
   const parsed = Number(trimmed);
-  if (Number.isNaN(parsed)) return fallback;
-  return Math.max(MIN_AGE, Math.min(MAX_AGE, Math.round(parsed)));
+  return parsed >= MIN_AGE && parsed <= MAX_AGE ? parsed : null;
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -48,11 +50,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 }) => {
   const [draft, setDraft] = useState<UserProfile>(profile);
   const [ageInput, setAgeInput] = useState<string>(String(profile.age));
+  const [ageError, setAgeError] = useState<string | null>(null);
   const [modalField, setModalField] = useState<AddressFieldKey | null>(null);
 
   useEffect(() => {
     setDraft(profile);
     setAgeInput(String(profile.age));
+    setAgeError(null);
   }, [profile]);
 
   const toggleInterest = (category: PolicyCategory) => {
@@ -121,9 +125,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            const validAge = clampAge(ageInput, profile.age);
+            const validAge = parseAgeInput(ageInput);
+            if (validAge === null) {
+              setAgeError(AGE_RANGE_MESSAGE);
+              document.getElementById('profile-age')?.focus();
+              return;
+            }
             const nextProfile: UserProfile = { ...draft, age: validAge };
-            setAgeInput(String(validAge));
+            setAgeError(null);
             setDraft(nextProfile);
             onSaveProfile(nextProfile);
           }}
@@ -174,16 +183,23 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                       }
                     }}
                     onBlur={() => {
-                      const validAge = clampAge(ageInput, profile.age);
-                      setAgeInput(String(validAge));
-                      setDraft((prev) => ({ ...prev, age: validAge }));
+                      const validAge = parseAgeInput(ageInput);
+                      setAgeError(validAge === null ? AGE_RANGE_MESSAGE : null);
+                      if (validAge !== null) setDraft((prev) => ({ ...prev, age: validAge }));
                     }}
+                    aria-invalid={ageError !== null}
+                    aria-describedby={ageError ? 'profile-age-error' : undefined}
                     className="w-full bg-transparent text-[16px] font-bold text-[#1F2421] tabular-nums focus:outline-none"
                   />
                   <span className="shrink-0 text-[14px] font-semibold text-[#4A4D49]">
                     만 나이
                   </span>
                 </div>
+                {ageError && (
+                  <p id="profile-age-error" role="alert" className="mt-1.5 text-[13px] font-semibold text-[#B42318]">
+                    {ageError}
+                  </p>
+                )}
               </div>
 
               {/* Current Status */}

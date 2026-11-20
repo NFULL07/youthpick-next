@@ -17,6 +17,7 @@ import {
   sanitizeProfile,
   sanitizeStringList,
   sanitizeWalletDocs,
+  saveJson,
 } from './utils/storedState';
 import {
   clearCompareIdsForTab,
@@ -159,7 +160,7 @@ export default function App() {
       const next = prev.includes(id)
         ? prev.filter((item) => item !== id)
         : [...prev, id];
-      window.localStorage.setItem(STORAGE_KEY_SAVED, JSON.stringify(next));
+      saveJson(STORAGE_KEY_SAVED, next);
       showToast(
         next.includes(id)
           ? '정책을 저장 목록에 담았어요.'
@@ -183,7 +184,7 @@ export default function App() {
 
   const handleSaveProfile = (next: UserProfile) => {
     setProfile(next);
-    window.localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(next));
+    saveJson(STORAGE_KEY_PROFILE, next);
     showToast('내 정보와 관심 분야가 저장되었어요.');
   };
 
@@ -192,7 +193,7 @@ export default function App() {
       const next = prev.includes(itemId)
         ? prev.filter((id) => id !== itemId)
         : [...prev, itemId];
-      window.localStorage.setItem(STORAGE_KEY_CHECKLIST, JSON.stringify(next));
+      saveJson(STORAGE_KEY_CHECKLIST, next);
       return next;
     });
   };
@@ -200,7 +201,7 @@ export default function App() {
   const handleSaveTargetDate = (policyId: string, date: string) => {
     setTargetDates((prev) => {
       const next = { ...prev, [policyId]: date };
-      window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+      saveJson(STORAGE_KEY_DATES, next);
       return next;
     });
     showToast('준비 목표일이 저장되었어요.');
@@ -212,7 +213,7 @@ export default function App() {
       setPrepPolicyIds((prev) => {
         if (prev.includes(policyId)) return prev;
         const next = [...prev, policyId];
-        window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(next));
+        saveJson(STORAGE_KEY_PREP_POLICIES, next);
         return next;
       });
       showToast('신청 준비 목록에 담았어요.');
@@ -240,14 +241,14 @@ export default function App() {
 
       setCompletedChecklistIds((prev) => {
         const next = prev.filter((id) => !checklistIdsToRemove.has(id));
-        window.localStorage.setItem(STORAGE_KEY_CHECKLIST, JSON.stringify(next));
+        saveJson(STORAGE_KEY_CHECKLIST, next);
         return next;
       });
     }
 
     const nextPrepIds = prepPolicyIds.filter((id) => id !== policyId);
     setPrepPolicyIds(nextPrepIds);
-    window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(nextPrepIds));
+    saveJson(STORAGE_KEY_PREP_POLICIES, nextPrepIds);
 
     if (activePrepPolicyId === policyId) {
       setActivePrepPolicyId(nextPrepIds[0] ?? '');
@@ -257,7 +258,7 @@ export default function App() {
       if (!(policyId in prev)) return prev;
       const next = { ...prev };
       delete next[policyId];
-      window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+      saveJson(STORAGE_KEY_DATES, next);
       return next;
     });
 
@@ -270,14 +271,14 @@ export default function App() {
 
     setPrepPolicyIds((prev) => {
       const next = prev.includes(policyId) ? prev : [...prev, policyId];
-      window.localStorage.setItem(STORAGE_KEY_PREP_POLICIES, JSON.stringify(next));
+      saveJson(STORAGE_KEY_PREP_POLICIES, next);
       return next;
     });
 
     if (checkedChecklistIds.length > 0) {
       setCompletedChecklistIds((prev) => {
         const merged = Array.from(new Set([...prev, ...checkedChecklistIds]));
-        window.localStorage.setItem(STORAGE_KEY_CHECKLIST, JSON.stringify(merged));
+        saveJson(STORAGE_KEY_CHECKLIST, merged);
         return merged;
       });
     }
@@ -285,7 +286,7 @@ export default function App() {
     if (targetDate) {
       setTargetDates((prev) => {
         const next = { ...prev, [policyId]: targetDate };
-        window.localStorage.setItem(STORAGE_KEY_DATES, JSON.stringify(next));
+        saveJson(STORAGE_KEY_DATES, next);
         return next;
       });
     }
@@ -307,7 +308,7 @@ export default function App() {
             }
           : doc
       );
-      window.localStorage.setItem(STORAGE_KEY_DOCS, JSON.stringify(next));
+      saveJson(STORAGE_KEY_DOCS, next);
       return next;
     });
     showToast(`'${fileName}' 파일 이름을 이 브라우저에 기록했어요. 파일 내용은 저장하지 않아요.`);
@@ -365,7 +366,7 @@ export default function App() {
       <main
         id="main"
         className={`mx-auto max-w-[1280px] px-5 pt-8 md:px-8 md:pt-10 ${
-          hasCompareBar ? 'pb-52 lg:pb-28' : 'pb-40 lg:pb-10'
+          hasCompareBar ? 'pb-52 lg:pb-44' : 'pb-40 lg:pb-28'
         }`}
       >
         {route === 'home' && (

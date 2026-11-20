@@ -1,14 +1,8 @@
 import React from 'react';
 import { ArrowLeft, ArrowRight, Bookmark, MessageCircle } from 'lucide-react';
-import { CriteriaResult, PolicyItem, RouteId, UserProfile } from '../types/policy';
+import { CRITERIA_RESULT_STYLE, PolicyItem, RouteId, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from '../utils/policyEngine';
 import { DirectInputSection } from '../components/DirectInputSection';
-
-const CRITERIA_RESULT_STYLE: Record<CriteriaResult, string> = {
-  O: 'border-[#262A27] bg-[#D8F279] text-[#1F2421]',
-  X: 'border-[#A33A1E] bg-[#FBE1D6] text-[#1F2421]',
-  '?': 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]',
-};
 
 interface PolicyDetailPageProps {
   policy: PolicyItem;

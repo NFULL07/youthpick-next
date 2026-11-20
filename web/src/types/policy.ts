@@ -48,6 +48,13 @@ export type CriteriaResult = 'O' | 'X' | '?';
 
 export type CriteriaStatusLabel = '충족 가능' | '추가 확인' | '조건 불일치';
 
+/** O/X/? 표시 색 (조건표·직접 입력 결과에 같이 쓴다) */
+export const CRITERIA_RESULT_STYLE: Record<CriteriaResult, string> = {
+  O: 'border-[#262A27] bg-[#D8F279] text-[#1F2421]',
+  X: 'border-[#A33A1E] bg-[#FBE1D6] text-[#1F2421]',
+  '?': 'border-[#B8860B] bg-[#FFF0CC] text-[#1F2421]',
+};
+
 export const CRITERIA_STATUS_LABEL: Record<CriteriaResult, CriteriaStatusLabel> = {
   O: '충족 가능',
   X: '조건 불일치',

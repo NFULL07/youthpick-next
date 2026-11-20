@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Info } from 'lucide-react';
 import type { DirectInputItem } from '../data/docRequirementTypes';
-import type { PolicyItem } from '../types/policy';
+import { CRITERIA_RESULT_STYLE, type PolicyItem } from '../types/policy';
 import {
   DIRECT_INPUT_NOTICE,
   getDirectInputItemsForPolicy,
@@ -103,7 +103,10 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
         <label htmlFor={inputId} className="text-[16px] font-extrabold text-[#1F2421]">
           {item.label}
         </label>
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#B8860B] bg-[#FFF0CC] px-2.5 py-1 text-[13px] font-bold text-[#1F2421]">
+        <span
+          data-result={result}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-bold ${CRITERIA_RESULT_STYLE[result]}`}
+        >
           <span aria-hidden="true" className="font-mono-num">
             {result}
           </span>
