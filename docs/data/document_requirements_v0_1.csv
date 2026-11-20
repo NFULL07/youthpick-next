@@ -1,1 +1,26 @@
 ﻿공고키,서류ID,서류명,구분,메모,근거 URL,검수 상태
+A3:20260430005400212963,,신청서,필수,온통청년 API 제출서류 문구 기준,https://news.tf.co.kr/read/national/2167119.htm,초안
+A3:20260430005400212963,,개인정보관련동의서,필수,온통청년 API 제출서류 문구 기준,https://news.tf.co.kr/read/national/2167119.htm,초안
+A3:20260430005400212963,D02,주민등록초본,필수,온통청년 API 제출서류 문구 기준,https://news.tf.co.kr/read/national/2167119.htm,초안
+A3:20260430005400212963,D06,재학·휴학·졸업예정증명서,필수,온통청년 API 제출서류 문구 기준,https://news.tf.co.kr/read/national/2167119.htm,초안
+C1:20260319005400112218,,월세지원 신청서,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,,서약서,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,D34,소득·재산 신고서,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,D25,임대차계약서,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,D26,최근 3개월 월세 이체 증빙,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,,통장 사본,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C1:20260319005400112218,D03,가족관계증명서,필수,API 제출서류 문구 기준(끝에 '등'이 있음 → 공고 원문으로 전체 목록 확인),https://www.korea.kr/news/policyNewsView.do?newsId=148961039,초안
+C4:20260430005400212968,,신청서,필수,온통청년 API 제출서류 문구 기준,https://www.cheonan.go.kr/go_now/contents/dwelling-policy,초안
+C4:20260430005400212968,,개인정보관련동의서,필수,온통청년 API 제출서류 문구 기준,https://www.cheonan.go.kr/go_now/contents/dwelling-policy,초안
+C4:20260430005400212968,D01,주민등록등본,필수,온통청년 API 제출서류 문구 기준,https://www.cheonan.go.kr/go_now/contents/dwelling-policy,초안
+C4:20260430005400212968,D12,건강보험자격득실확인서,필수,온통청년 API 제출서류 문구 기준,https://www.cheonan.go.kr/go_now/contents/dwelling-policy,초안
+C4:20260430005400212968,D08,성적증명서,필수,온통청년 API 제출서류 문구 기준,https://www.cheonan.go.kr/go_now/contents/dwelling-policy,초안
+E3:manual,D02,주민등록초본(천안 거주로 신청할 때),해당자,후보표 '거주·소속 요건' 열 기준,https://www.ch2030youth.kr/bbs/board.php?bo_table=notice&wr_id=585,초안
+E3:manual,D06,재학·졸업예정증명서(천안 소재 학교 재학으로 신청할 때),해당자,후보표 '거주·소속 요건' 열 기준,https://www.ch2030youth.kr/bbs/board.php?bo_table=notice&wr_id=585,초안
+E4:20260504005400213015,,신분증,필수,온통청년 API 제출서류 문구 기준,https://www.asan.go.kr/naeil/page/?page=030100,초안
+E4:20260504005400213015,D18,면접 증빙자료,해당자,API 제출서류 문구 기준. 면접 정장 대여 시,https://www.asan.go.kr/naeil/page/?page=030100,초안
+E4:20260504005400213015,,경·조사 증빙서류,해당자,API 제출서류 문구 기준. 조문·하객 정장 대여 시,https://www.asan.go.kr/naeil/page/?page=030100,초안
+F2:20260430005400113009,,신분증,필수,API 레코드 20260504005400113090의 제출서류 문구(끝에 '등'). 규칙을 붙인 공고키에 둠,https://m.bokjiro.go.kr/ssis-tem/cms/mob/customer/notice/1309680_1155.html,초안
+F2:20260430005400113009,D03,가족관계증명서,필수,API 레코드 20260504005400113090의 제출서류 문구(끝에 '등'). 규칙을 붙인 공고키에 둠,https://m.bokjiro.go.kr/ssis-tem/cms/mob/customer/notice/1309680_1155.html,초안
+F2:20260430005400113009,D34,소득·재산 신고서,필수,API 레코드 20260504005400113090의 제출서류 문구(끝에 '등'). 규칙을 붙인 공고키에 둠,https://m.bokjiro.go.kr/ssis-tem/cms/mob/customer/notice/1309680_1155.html,초안
+F2:20260430005400113009,D16,재직증명서 또는 사업소득 증빙자료,필수,API 레코드 20260504005400113090의 제출서류 문구(끝에 '등'). 규칙을 붙인 공고키에 둠,https://m.bokjiro.go.kr/ssis-tem/cms/mob/customer/notice/1309680_1155.html,초안
