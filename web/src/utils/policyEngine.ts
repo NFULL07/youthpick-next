@@ -1,6 +1,8 @@
 import { compareRegion, matchesRegion } from './regionMatch';
 import type { RegionMatch } from './regionMatch';
 import { analyzeRuleChange, buildCriteriaRows, profileToInputs } from './ruleEngine';
+import { walletInputs } from './walletAnswers';
+import type { WalletFacts } from '../data/virtualWallet';
 import {
   CriteriaResult,
   CRITERIA_STATUS_LABEL,
@@ -94,11 +96,16 @@ const REGION_NOTE: Record<RegionMatch, string> = {
 
 export function evaluatePolicyCriteria(
   policy: PolicyItem,
-  profile: UserProfile
+  profile: UserProfile,
+  wallet: WalletFacts | null = null
 ): PolicyCriteriaRow[] {
   // Supabase 정책은 검수 완료 규칙으로만 판정한다. 아래 계산은 시연용 예시 정책 전용이다
   if (policy.ruleSet) {
-    return buildCriteriaRows(policy.ruleSet, profileToInputs(profile));
+    // 가상 지갑을 켜면 지갑의 사실로 직접 입력 항목까지 채운다(메모리에서만)
+    const inputs = wallet
+      ? { ...profileToInputs(profile), ...walletInputs(wallet, policy.ruleSet.rules) }
+      : profileToInputs(profile);
+    return buildCriteriaRows(policy.ruleSet, inputs);
   }
 
   // 연령: 값이 없으면 ?, 범위 안이면 O, 범위 밖이면 X

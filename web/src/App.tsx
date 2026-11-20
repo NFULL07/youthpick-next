@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { AiSherpaDrawer } from './components/AiSherpaDrawer';
 import { BottomNav } from './components/BottomNav';
 import { DemoDataBanner } from './components/DemoDataBanner';
+import { VirtualWalletBanner } from './components/VirtualWalletBanner';
 import { TopNav } from './components/TopNav';
 import { DEFAULT_USER_PROFILE, INITIAL_WALLET_DOCS } from './data/policies';
 import { getPolicyCatalog } from './data/policyCatalog';
+import { findPersona, VIRTUAL_PERSONAS } from './data/virtualWallet';
+import { VirtualWalletContext } from './utils/virtualWalletContext';
 import { ApplyReadyPage } from './pages/ApplyReadyPage';
 import { HomeBoardPage } from './pages/HomeBoardPage';
 import { LifeSwitchPage } from './pages/LifeSwitchPage';
@@ -85,6 +88,11 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile>(() =>
     sanitizeProfile(loadJson<unknown>(STORAGE_KEY_PROFILE, null), DEFAULT_USER_PROFILE)
   );
+  // 가상 지갑(시연용): 고른 가상 인물 id만 메모리에 둔다. 새로고침하면 꺼진다
+  const [virtualPersonaId, setVirtualPersonaId] = useState<string | null>(null);
+  const virtualWallet = findPersona(virtualPersonaId);
+  // 화면 판정에 쓰는 내 정보. 가상 지갑을 켜면 가상 인물의 정보(저장하지 않음)
+  const viewProfile = virtualWallet?.profile ?? profile;
   const [storedSavedIds, setSavedIds] = useState<string[]>(() =>
     sanitizeStringList(loadJson<unknown>(STORAGE_KEY_SAVED, null), ['1'])
   );
@@ -330,8 +338,8 @@ export default function App() {
   );
 
   const livingZoneLabel =
-    profile.schoolRegion || profile.residence || '생활권 미설정';
-  const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
+    viewProfile.schoolRegion || viewProfile.residence || '생활권 미설정';
+  const boardPolicies = getRecommendedPoliciesForProfile(policies, viewProfile, 3);
   const explorePolicies = policies;
   const boardComparedPolicies = getComparedPoliciesForTab(
     boardPolicies,
@@ -355,6 +363,9 @@ export default function App() {
       </a>
 
       <DemoDataBanner notice={catalog.notice} />
+      {virtualWallet && (
+        <VirtualWalletBanner wallet={virtualWallet} onTurnOff={() => setVirtualPersonaId(null)} />
+      )}
 
       <TopNav
         currentRoute={route}
@@ -363,6 +374,7 @@ export default function App() {
         livingZoneLabel={livingZoneLabel}
       />
 
+      <VirtualWalletContext.Provider value={virtualWallet}>
       <main
         id="main"
         className={`mx-auto max-w-[1280px] px-5 pt-8 md:px-8 md:pt-10 ${
@@ -371,7 +383,7 @@ export default function App() {
       >
         {route === 'home' && (
           <HomeBoardPage
-            profile={profile}
+            profile={viewProfile}
             policies={policies}
             savedIds={savedIds}
             comparePolicyIds={comparePolicyIds}
@@ -388,7 +400,7 @@ export default function App() {
 
         {route === 'policies' && (
           <PoliciesExplorePage
-            profile={profile}
+            profile={viewProfile}
             policies={policies}
             savedIds={savedIds}
             comparePolicyIds={comparePolicyIds}
@@ -405,7 +417,7 @@ export default function App() {
         {route === 'detail' && (
           <PolicyDetailPage
             policy={detailPolicy}
-            profile={profile}
+            profile={viewProfile}
             isSaved={savedIds.includes(detailPolicy.id)}
             onToggleSave={handleToggleSave}
             onNavigate={handleNavigate}
@@ -416,7 +428,7 @@ export default function App() {
 
         {route === 'switch' && (
           <LifeSwitchPage
-            profile={profile}
+            profile={viewProfile}
             policies={policies}
             onNavigate={handleNavigate}
           />
@@ -452,12 +464,15 @@ export default function App() {
 
         {route === 'wallet' && (
           <WalletPage
-            profile={profile}
+            profile={viewProfile}
             documents={shownWalletDocs}
             activePolicyTitle={activePrepPolicy?.title ?? ''}
             prepPolicyCount={prepPolicies.length}
             onUploadDocFile={handleUploadDocFile}
             onNavigate={handleNavigate}
+            personas={VIRTUAL_PERSONAS}
+            activePersonaId={virtualPersonaId}
+            onSelectPersona={setVirtualPersonaId}
           />
         )}
 
@@ -469,6 +484,7 @@ export default function App() {
           <span className="font-mono-num tracking-wider">A NEXT:UP PROJECT</span>
         </footer>
       </main>
+      </VirtualWalletContext.Provider>
 
       <BottomNav
         currentRoute={route}
@@ -491,7 +507,7 @@ export default function App() {
         isOpen={isSherpaOpen}
         onToggle={() => setIsSherpaOpen((prev) => !prev)}
         route={route}
-        profile={profile}
+        profile={viewProfile}
         selectedPolicy={route === 'detail' ? detailPolicy : undefined}
         policies={policies}
         hasCompareBar={hasCompareBar}
