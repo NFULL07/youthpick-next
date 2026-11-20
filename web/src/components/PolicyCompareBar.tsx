@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PolicyItem } from '../types/policy';
 
 interface PolicyCompareBarProps {
@@ -11,6 +11,22 @@ export const PolicyCompareBar: React.FC<PolicyCompareBarProps> = ({
   onClearCompare,
 }) => {
   const [showCompareModal, setShowCompareModal] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+
+  // 비교표 창: 열리면 닫기 버튼으로 포커스, Esc로 닫고 여는 버튼으로 포커스 되돌림 (리뷰 R8)
+  useEffect(() => {
+    if (!showCompareModal) return;
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowCompareModal(false);
+        openButtonRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showCompareModal]);
 
   if (comparedPolicies.length === 0) {
     return null;
@@ -38,6 +54,7 @@ export const PolicyCompareBar: React.FC<PolicyCompareBarProps> = ({
             선택 비우기
           </button>
           <button
+            ref={openButtonRef}
             type="button"
             onClick={() => setShowCompareModal(true)}
             className="btn-primary-lime cursor-pointer whitespace-nowrap rounded-xl px-4 py-2 text-[13px]"
@@ -65,6 +82,7 @@ export const PolicyCompareBar: React.FC<PolicyCompareBarProps> = ({
                 선택한 정책 조건 한눈에 비교하기
               </h2>
               <button
+                ref={closeButtonRef}
                 type="button"
                 onClick={() => setShowCompareModal(false)}
                 className="btn-secondary-outline shrink-0 cursor-pointer whitespace-nowrap rounded-xl px-3.5 py-1.5 text-sm"

@@ -84,3 +84,18 @@ export function sanitizeWalletDocs(
   );
   return valid.length === value.length && valid.length > 0 ? valid : fallback;
 }
+
+/** 저장이 막힌 환경(사파리 개인정보 보호 모드, 용량 초과 등)에서도 버튼 동작이 멈추지 않게 저장 실패를 삼킨다 */
+export function saveJson(
+  key: string,
+  value: unknown,
+  storage: Pick<Storage, 'setItem'> | null = typeof window !== 'undefined' ? window.localStorage : null
+): boolean {
+  try {
+    if (!storage) return false;
+    storage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}

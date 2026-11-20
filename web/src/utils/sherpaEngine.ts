@@ -68,7 +68,8 @@ export function generateDeterministicSherpaReply(
     };
   }
 
-  if (lower.includes('주거') || lower.includes('월세') || lower.includes('천안')) {
+  // 지역 이름('천안' 등)은 주제가 아니라서 분기 조건에 쓰지 않는다 (리뷰 R3)
+  if (lower.includes('주거') || lower.includes('월세') || lower.includes('전세') || lower.includes('기숙사')) {
     return {
       id: `ast-${Date.now()}`,
       sender: 'assistant',
@@ -92,7 +93,7 @@ export function generateDeterministicSherpaReply(
     return {
       id: `ast-${Date.now()}`,
       sender: 'assistant',
-      text: `졸업(${ctx.profile.status} → 졸업)이나 타 지역 전입은 청년 정책 자격에 큰 영향을 줘요.\n\n• 긍정 변화: 재학생 참여가 제한되던 국민취업지원·취업수당 및 천안시 정주 청년 주거·문화 지원이 새로 열릴 수 있어요.\n• 주의할 점: 기존 거주지(예: ${residence})의 계속 거주 기간 요건은 전출 시 해제될 수 있어요.\n\n<생활변화 비교> 페이지에서 변경 전후 태그와 영향을 받는 정책 카드를 바로 확인해 보세요.`,
+      text: `졸업(${ctx.profile.status} → 졸업)이나 타 지역 전입은 청년 정책 자격에 큰 영향을 줘요.\n\n• 졸업하면 미취업자 대상 사업(예: 국민취업지원제도)을 새로 검토할 수 있지만, 실제 자격은 공고 확인이 필요해요.\n• 주의할 점: 기존 거주지(예: ${residence})의 '계속 거주 기간' 요건은 전출하면 다시 세야 할 수 있어요.\n\n<생활변화 비교> 페이지에서 변경 전후 태그와 영향을 받는 정책 카드를 바로 확인해 보세요.`,
       actionLabel: '생활변화 비교하기',
       targetRoute: 'switch',
     };
