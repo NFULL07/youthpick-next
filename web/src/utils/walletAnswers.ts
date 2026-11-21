@@ -53,7 +53,20 @@ function enrolledNow(f: WalletFacts): boolean {
 }
 
 /** special_target_status: 정책마다 질문이 다르다. 아는 질문만 답한다 */
+/** 주택도시기금 소득 예외: 6천만원 대상과 7.5천만원(신혼가구) 대상 */
+const INCOME_6000_GROUPS = ['혁신도시 이전 공공기관 종사자', '재개발 구역 이주 세입자', '다자녀', '2자녀'];
+
 function specialTarget(f: WalletFacts, q: string): boolean | undefined {
+  if (q.includes('선취업 후진학자')) {
+    // 질문: 만 36~45세이면서 선취업 후진학자 등인가
+    return f.specialGroups === undefined ? undefined : f.specialGroups.includes('선취업 후진학자') && f.profile.age <= 45;
+  }
+  if (q.includes('혁신도시')) {
+    if (f.specialGroups === undefined || f.annualIncomeWon === undefined) return undefined;
+    const upTo6000 = f.specialGroups.some((g) => INCOME_6000_GROUPS.includes(g)) && f.annualIncomeWon <= 60_000_000;
+    const upTo7500 = f.specialGroups.includes('신혼') && f.annualIncomeWon <= 75_000_000;
+    return upTo6000 || upTo7500;
+  }
   if (q.includes('공무원')) return f.publicServant;
   if (q.includes('중소·중견')) return f.employerSize === undefined ? undefined : ['중소', '중견', '사회적기업 등'].includes(f.employerSize);
   if (q.includes('졸업예정자(4학년 2학기')) {
@@ -128,9 +141,32 @@ export function walletAnswer(
     case 'credits_earned':
       return f.creditsLastTerm?.toString();
     case 'gpa_value': {
+      if (choices.includes('B학점(80점) 이상')) {
+        // 보기로 묻는 성적 기준(국가장학금): 예외 대상 -> B학점 -> 기초·차상위(C학점 점수 기준을 몰라 답하지 않음)
+        if (f.specialGroups?.some((g) => g === '장애' || g === '자립준비청년')) return '장애인·자립준비청년(성적 기준 없음)';
+        if (f.gpaLastTerm100 === undefined) return undefined;
+        if (f.gpaLastTerm100 >= 80) return 'B학점(80점) 이상';
+        if (f.welfare === undefined || f.specialGroups === undefined) return undefined;
+        return /기초|차상위/.test(f.welfare) ? undefined : '위에 해당 없음';
+      }
       const value = q.includes('4.5') ? f.gpaLastTerm45 : q.includes('전 학년') ? f.gpaTotal100 : f.gpaLastTerm100;
       return value?.toString();
     }
+    case 'academic_year': {
+      // 질문: 졸업학년이거나 소속 대학 최소 이수학점 이상인가. 대학별 최소 학점은 지갑이 모르므로 졸업학년일 때만 답한다
+      if (!q.includes('졸업학년')) return undefined;
+      const finalYear = f.enrollment === '졸업예정' || (f.yearsToGraduation !== undefined && f.yearsToGraduation <= 1);
+      return finalYear ? YES : undefined;
+    }
+    case 'birth_date': {
+      const range = q.match(/(\d{4})년 1월 1일~(\d{4})년 12월 31일/);
+      if (!range || f.birthYear === undefined) return undefined;
+      return yesNo(f.birthYear >= Number(range[1]) && f.birthYear <= Number(range[2]));
+    }
+    case 'household_size':
+      // 질문: 단독세대주인가. 세대주가 아니면 '아니오', 세대주면 세대원 수를 몰라 답하지 않는다
+      if (!q.includes('단독세대주') || f.householdHead === undefined) return undefined;
+      return f.householdHead === '세대주' ? undefined : NO;
     case 'score_period': {
       const threshold = Number(q.match(/(\d\.\d)\s*이상/)?.[1]);
       if (!Number.isFinite(threshold) || f.gpaLastTerm45 === undefined) return undefined;

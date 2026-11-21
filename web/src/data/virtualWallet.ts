@@ -60,6 +60,8 @@ export interface WalletFacts {
   examDate?: string;
   examAfterMoveIn?: boolean;
   militaryMonths?: number;
+  /** 출생연도 (주민등록초본). 출생일 기준 공고의 경계 판정에만 쓴다 */
+  birthYear?: number;
 
   // 가구·복지 (가족관계증명서, 건강보험료 납부확인서, 수급자 증명)
   welfare?: string;
@@ -69,6 +71,7 @@ export interface WalletFacts {
   familyMedianPct?: number;
   netAssetManwon?: number;
   familyAssetManwon?: number;
+  /** 해당하는 특화 대상. 예: '다자녀', '2자녀', '신혼', '장애', '자립준비청년', '선취업 후진학자' */
   specialGroups?: string[];
   sameHouseholdApplicant?: boolean;
 
@@ -127,6 +130,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     examDate: '2026-03-14',
     examAfterMoveIn: true,
     militaryMonths: 0,
+    birthYear: 2002,
     welfare: '해당 없음',
     householdMedianPct: 110,
     familyMedianPct: 110,
@@ -174,6 +178,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     publicServant: false,
     interview: '해당 없음',
     militaryMonths: 18,
+    birthYear: 1999,
     welfare: '해당 없음',
     householdMedianPct: 105,
     familyMedianPct: 140,
@@ -223,6 +228,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     examDate: '2026-05-23',
     examAfterMoveIn: true,
     militaryMonths: 21,
+    birthYear: 1997,
     welfare: '해당 없음',
     householdMedianPct: 45,
     familyMedianPct: 95,
