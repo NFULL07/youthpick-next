@@ -9,23 +9,24 @@
    - `--prune`은 CSV에 없는 규칙(11/20에 넣은 API 초안 28행 가운데 지금 CSV에 없는 행)을 지운다
    - 끝나면 규칙 153행(검수 완료 0)이라 화면의 O/X는 아직 안 나온다. 사람 검수 반영 뒤 다시 적재한다
 
-## 1. Cloudflare Pages (대시보드)
+## 1. Cloudflare (Worker 프로젝트 `youthpick-next`, 대시보드)
 
-1. Workers & Pages > Create application > Pages > Connect to Git
-2. GitHub > Install & Authorize (저장소 `NFULL07/youthpick-next`만 허용해도 됨) > Begin setup
-3. Set up builds and deployments
-   - Project name: 주소가 `<이름>.pages.dev`가 된다 (기본은 저장소 이름)
-   - Production branch: `main`
+2026-11-22에 Pages가 아니라 **Worker**로 만들어 GitHub(`NFULL07/youthpick-next`, main)와 연결했다. 그대로 쓴다.
+`web/wrangler.jsonc`가 정적 파일(`./dist`)만 올리는 설정이고, 이름을 Worker 이름 `youthpick-next`와 맞췄다.
+
+1. Workers & Pages > youthpick-next > **Settings** > 오른쪽 목록 **Builds**
+2. Build configuration
    - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Root directory (advanced) > Path: `web`
-   - Environment variables:
-     - `VITE_SUPABASE_URL`: `web/.env.local`의 값
-     - `VITE_SUPABASE_ANON_KEY`: `web/.env.local`의 값 (공개 키 sb_publishable_ 또는 anon만. service_role·sb_secret_ 금지)
-     - `VITE_AI_NAVIGATOR`: `live` (AI 키를 넣기 전이면 빼 둔다. 빼면 예시 응답)
-     - `NODE_VERSION`: `22` (package.json engines가 Node 22 이상)
-4. Save and Deploy. 끝나면 `https://<이름>.pages.dev` 주소가 나온다
-5. 환경 변수를 나중에 바꾸면 Deployments에서 다시 배포해야 화면에 반영된다(Vite가 빌드 때 값을 넣음)
+   - Deploy command: `npx wrangler deploy` (기본값 그대로)
+   - Root directory: `web`
+3. 같은 Builds 영역의 **Build variables and secrets** (Settings 맨 위 'Runtime variables and secrets'가 아님. Vite는 빌드 때 값을 넣는다)
+   - `VITE_SUPABASE_URL`: `web/.env.local`의 값
+   - `VITE_SUPABASE_ANON_KEY`: `web/.env.local`의 값 (공개 키 sb_publishable_ 또는 anon만. service_role·sb_secret_ 금지)
+   - `VITE_AI_NAVIGATOR`: `live` (AI 키를 넣기 전이면 빼 둔다. 빼면 예시 응답)
+   - Node 버전 변수는 넣지 않았다. Workers Builds 기본은 Node 24(Cloudflare 변경 기록 2026-07-30)이고 `web/package.json`은 Node 22 이상이면 된다. 첫 빌드 기록에서 Node 버전을 보고, 22보다 낮으면 `NODE_VERSION` = `22`를 Build variables에 넣는다
+4. 설정은 **다음 빌드**부터 적용된다. main에 병합(push)하면 빌드가 돈다. Deployments 탭에서 빌드 기록·오류를 본다
+5. 주소: Overview에 'No URLs enabled'면 Domains 탭에서 workers.dev 주소를 켠다. 주소 모양은 `https://youthpick-next.<계정 하위 도메인>.workers.dev`
+6. 환경 변수를 바꾸면 다시 빌드해야 화면에 반영된다
 
 ## 2. Supabase 비밀값 (대시보드: Edge Functions > Secrets)
 
@@ -33,9 +34,9 @@
 |---|---|
 | `ANTHROPIC_API_KEY` | Anthropic 콘솔에서 만든 키 (채팅·저장소에 붙여 넣지 않는다) |
 | `AI_MODEL` | `claude-sonnet-5-5` |
-| `ALLOWED_ORIGINS` | `https://<이름>.pages.dev,http://localhost:3000` |
+| `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
 
-- Anthropic 콘솔에서 월 사용 한도를 먼저 걸어 둔다(누구나 호출할 수 있는 주소)
+- **AI 키를 넣기 전에** Anthropic 콘솔에서 월 사용 한도를 먼저 건다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
 
 ## 3. 확인
 

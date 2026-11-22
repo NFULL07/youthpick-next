@@ -7,7 +7,10 @@
 - `ai-navigator` 배포: Supabase MCP로 올림, 버전 1, **verify_jwt = false**
   - 이유: 화면은 공개 키(sb_publishable_)를 `apikey` 헤더로만 보낸다. 새 공개 키는 JWT가 아니어서 JWT 검사를 켜면 요청이 막힌다
   - CLI로 다시 배포할 때도 반드시 `supabase functions deploy ai-navigator --no-verify-jwt` (빼면 JWT 검사가 켜져 화면 호출이 막힘)
-  - 대신 함수 안의 보호: 정해진 칸만 받기, 주소(IP)별 분당 5회, ALLOWED_ORIGINS. 누구나 호출할 수 있는 주소라 AI 요금 한도를 Anthropic 콘솔에서 걸어 둔다
+  - 함수 안의 보호는 정해진 칸만 받기와 주소(IP)별 분당 5회뿐이다(같은 함수 인스턴스 안에서만 셈)
+  - ALLOWED_ORIGINS는 브라우저 응답 설정(CORS)에만 쓰인다. 다른 사이트의 브라우저 요청은 사전 확인(preflight)에서 막히지만, 브라우저가 아닌 곳(curl 등)에서 직접 부르는 요청은 막지 못한다
+  - JWT 검사를 켜도 크게 나아지지 않는다: 공개 키는 배포된 화면 코드에 들어 있어 누구나 볼 수 있다
+  - 그래서 **AI 키를 넣기 전에 Anthropic 콘솔에서 월 사용 한도를 반드시 건다.** 시연 뒤 계속 쓰면 로그인 사용자만 부르게 하거나 하루 전체 호출 수 제한을 둔다(VS Code 검토 의견, 2026-11-22)
 - 모델: `claude-sonnet-5-5` (주완 결정. 입력 100만 토큰당 2달러, 출력 10달러. Claude 문서 2026-11-22 확인). 웹 검색 도구를 이 모델이 받는지는 문서에서 확인하지 못함 → 첫 실제 호출로 확인
 - 비밀값은 Supabase 화면(Edge Functions > Secrets)에서 주완이 직접 넣는다: `ANTHROPIC_API_KEY`, `AI_MODEL`, `ALLOWED_ORIGINS`(배포 주소, 쉼표로 여러 개)
 - 아직 안 한 것: 실제 AI 호출(키 입력 후), 응답 JSON이 여러 글 조각으로 나뉘어 올 때 정리가 되는지 확인

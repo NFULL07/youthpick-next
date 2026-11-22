@@ -20,7 +20,7 @@
 |---|---|
 | DB·인증·API | Supabase(PostgreSQL). 사용자 요청을 받는 별도 백엔드 서버는 두지 않는다. **예외(2026-11-21 결정): AI 내비게이터 외부 공고 탐색용 Supabase Edge Function 1개**(`supabase/functions/ai-navigator`). AI 키만 보관하고, 요청을 저장·기록하지 않는다 |
 | PostgreSQL 선택 이유 | 공고마다 형태가 다른 판정 규칙을 jsonb로 저장, RLS로 본인 데이터만 조회, pgvector로 유사 공고 검색 |
-| 화면 배포 | Cloudflare Pages |
+| 화면 배포 | Cloudflare Workers (정적 파일, Worker 이름 youthpick-next) |
 | AI 배치 | Python 3, 모두의 AI 실험실 클라우드(이용기간 1개월 고정). 공개 공고만 처리하고 사용자 요청은 받지 않는다 |
 | 판정 엔진 | 브라우저 안 TypeScript 규칙 계산 (`web/src/utils/ruleEngine.ts`). Supabase의 검수 완료 규칙만 쓴다. 검수된 규칙은 아직 0건 |
 | 화면 프레임워크 | React 19 + Vite + TypeScript + Tailwind (`web/`, 2026-11-16 main 병합) |
