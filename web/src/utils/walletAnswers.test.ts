@@ -167,6 +167,59 @@ test('팀 결정(2026-11-21): 예외 조건이 X·O를 틀리게 만들지 않�
   assert.equal(verdict(vary(b, { campusCity: '아산시' }, { age: 45, residence: '충청남도 천안시' }), 'E4').result, 'O');
 });
 
+test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () => {
+  const a = findPersona('persona-a')!;
+  const b = findPersona('persona-b')!;
+  const c = findPersona('persona-c')!;
+  const row = (p: WalletFacts, id: string, key: string) =>
+    verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
+
+  // A1 장애인은 학점 기준 적용 예외
+  assert.equal(verdict(vary(a, { creditsLastTerm: 9, enrollment: '재학', yearsToGraduation: 2.5, specialGroups: ['장애'] }), 'A1').result, 'O');
+
+  // C1 출생연도 기준(2026년 1991~2007년생): 만 35세 1991년생은 O, 1990년생은 X
+  assert.equal(row(vary(c, { birthYear: 1991 }, { age: 35 }), 'C1', 'age'), 'O');
+  assert.equal(row(vary(c, { birthYear: 1990 }, { age: 36 }), 'C1', 'age'), 'X');
+  // C1 한시 특별지원 24개월을 모두 받았으면 끝났어도 X
+  assert.equal(verdict(vary(c, { pastSupports: ['청년월세 한시 특별지원 24개월'] }), 'C1').result, 'X');
+
+  // C2 쉐어하우스는 세대주 요건 예외
+  assert.equal(row(vary(c, { householdHead: '세대원' }), 'C2', 'head'), 'X');
+  assert.equal(row(vary(c, { householdHead: '세대원', shareHouse: true }), 'C2', 'head'), 'O');
+  // C2 성년 세대원 가운데 기금대출 이용자가 있으면 X
+  assert.equal(row(vary(c, { householdFundLoan: true }), 'C2', 'fund_household'), 'X');
+  assert.equal(row(b, 'C2', 'fund_household'), 'X', '버팀목 이용 중');
+  // C2 병역 연장은 중소·중견기업 재직자 등만: 창업 지원 여부를 모르면 ?
+  assert.equal(row(vary(c, { militaryMonths: 21 }, { age: 37 }), 'C2', 'age'), 'X', '1년 빼도 만 36세');
+  assert.equal(row(vary(c, { militaryMonths: 36 }, { age: 37 }), 'C2', 'age'), '?');
+  assert.equal(row(vary(c, { militaryMonths: 36, employerSize: '중소' }, { age: 37 }), 'C2', 'age'), 'O');
+  assert.equal(row(vary(c, { militaryMonths: 72, employerSize: '중소' }, { age: 40 }), 'C2', 'age'), 'X', '최대 만 39세');
+
+  // E1 판단 시점은 시험응시일: 지금 재직 중이어도 X가 아니라 ?
+  assert.equal(row(b, 'E1', 'employment'), '?');
+  assert.equal(row(c, 'E1', 'employment'), 'O');
+
+  // F1 소득 없음은 X, 병 급여가 있으면 소득 묶음 O, 금융소득 종합과세 대상자는 X
+  assert.equal(row(a, 'F1', 'income_salary'), 'X');
+  assert.equal(row(vary(a, { specialGroups: ['병 급여'] }), 'F1', 'income_salary'), 'O');
+  assert.equal(row(vary(c, { financialIncomeTaxed: true }), 'F1', 'financial_income'), 'X');
+  // F1 병역 인정은 최대 6년
+  assert.equal(row(vary(c, { militaryMonths: 96 }, { age: 41 }), 'F1', 'age'), 'X');
+  assert.equal(row(vary(c, { militaryMonths: 72 }, { age: 40 }), 'F1', 'age'), 'O');
+
+  // H1 참여 대상 기업: 중소 5인 이상 O, 대기업 X, 1~4인은 업종을 몰라 ?
+  assert.equal(row(b, 'H1', 'employer_size'), 'O');
+  assert.equal(row(vary(b, { employerSize: '대기업' }), 'H1', 'employer_size'), 'X');
+  assert.equal(row(vary(b, { employerHeadcount: 3 }), 'H1', 'employer_size'), '?');
+  // H1 보수 기준 3,846,357원
+  assert.equal(row(vary(b, { monthlyIncomeWon: 3_500_000 }), 'H1', 'pay'), 'O');
+  assert.equal(row(vary(b, { monthlyIncomeWon: 3_900_000 }), 'H1', 'pay'), 'X');
+
+  // E5 고등학생은 학년을 몰라 답하지 않음
+  const e5 = RULES.get('E5')!.find((r) => r.ruleKey === 'student')!;
+  assert.equal(walletAnswer(vary(a, { enrollment: undefined, highSchoolEnrolled: true }), e5), undefined);
+});
+
 test('반려한 행은 시험용 판정에도 쓰지 않음', () => {
   const rejected = csv.filter((r) => r['검수 상태'] === '반려').map((r) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`);
   assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment']);
