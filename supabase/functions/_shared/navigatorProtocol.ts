@@ -156,10 +156,16 @@ function cleanList(v: unknown, maxItems: number, maxLen: number): string[] {
   return Array.isArray(v) ? v.map((x) => cleanText(x, maxLen)).filter(Boolean).slice(0, maxItems) : [];
 }
 
+/** 검색 도구가 붙이는 추적용 값(utm_source=openai 등)을 뗀다 */
+function dropTracking(url: URL): URL {
+  for (const k of [...url.searchParams.keys()]) if (k.toLowerCase().startsWith('utm_')) url.searchParams.delete(k);
+  return url;
+}
+
 function safeUrl(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   try {
-    const url = new URL(v.trim());
+    const url = dropTracking(new URL(v.trim()));
     if (url.protocol !== 'https:') return null;
     if (url.hostname.endsWith('.go.kr') || url.hostname === 'go.kr') return null; // 정부 공고는 규칙 판정 쪽에서 다룬다
     return url.toString();
@@ -168,10 +174,10 @@ function safeUrl(v: unknown): string | null {
   }
 }
 
-/** 주소 비교용 정리: 뒤쪽 # 조각과 끝의 / 를 뗀다. 주소가 아니면 null */
+/** 주소 비교용 정리: 추적용 값(utm_*), 뒤쪽 # 조각, 끝의 / 를 뗀다. 주소가 아니면 null */
 export function normalizeUrl(v: string): string | null {
   try {
-    const url = new URL(v.trim());
+    const url = dropTracking(new URL(v.trim()));
     url.hash = '';
     const s = url.toString();
     return s.endsWith('/') ? s.slice(0, -1) : s;
@@ -200,6 +206,21 @@ export function collectSearchedUrls(blocks: unknown[]): Set<string> {
     if (block.type === 'text' && Array.isArray(block.citations)) {
       for (const c of block.citations) if (isRecord(c)) add(c.url);
     }
+  }
+  return out;
+}
+
+/**
+ * OpenAI 형식(chat/completions + web_search_options) 응답의 인용 주소 모음.
+ * message.annotations 의 { type: 'url_citation', url_citation: { url } }
+ */
+export function collectCitedUrls(annotations: unknown[]): Set<string> {
+  const out = new Set<string>();
+  for (const a of annotations) {
+    if (!isRecord(a) || a.type !== 'url_citation') continue;
+    const inner = isRecord(a.url_citation) ? a.url_citation.url : a.url;
+    const n = typeof inner === 'string' ? normalizeUrl(inner) : null;
+    if (n) out.add(n);
   }
   return out;
 }

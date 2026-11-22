@@ -5,6 +5,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildPrompt,
+  collectCitedUrls,
   collectSearchedUrls,
   keepSearchedOnly,
   sanitizeResult,
@@ -139,4 +140,20 @@ test('검색 결과에 실제로 나온 주소만 남김 (모델이 기억으로
   assert.deepEqual(keepSearchedOnly(items, searched).map((i) => i.title), ['검색에 나온 공고', '인용된 공고']);
   // 검색을 안 했으면(게이트웨이 시험처럼 text 블록만) 아무것도 남지 않음
   assert.equal(keepSearchedOnly(items, collectSearchedUrls([{ type: 'text', text: '{}' }])).length, 0);
+});
+
+test('OpenAI 형식 인용(url_citation) 주소만 남기고, 추적용 utm 값은 떼서 비교·표시', () => {
+  const annotations = [
+    { type: 'url_citation', url_citation: { url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40&utm_source=openai', title: 'A' } },
+    { type: 'file_citation', file_id: 'x' },
+  ];
+  const cited = collectCitedUrls(annotations);
+  assert.deepEqual([...cited], ['https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40']);
+  const items = sanitizeResult({ items: [
+    { title: '인용된 공고', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40&utm_source=openai' },
+    { title: '지어낸 공고', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=41' },
+  ] });
+  assert.equal(items[0].url, 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40', '표시 주소에서 utm 값을 뗌');
+  assert.deepEqual(keepSearchedOnly(items, cited).map((i) => i.title), ['인용된 공고']);
+  assert.equal(collectCitedUrls([]).size, 0);
 });

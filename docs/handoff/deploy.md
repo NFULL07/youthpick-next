@@ -30,13 +30,19 @@
 
 ## 2. Supabase 비밀값 (대시보드: Edge Functions > Secrets)
 
+실험실 크레딧으로 쓸 때 (주완 결정 2026-11-22)
+
 | 이름 | 값 |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic 콘솔에서 만든 키 (실험실 게이트웨이 키는 웹 검색이 안 돼서 쓰지 않음. 채팅·저장소에 붙여 넣지 않는다) |
-| `AI_MODEL` | `claude-opus-5-5` |
+| `AI_PROVIDER` | `openai` |
+| `AI_API_URL` | `https://gateway.aitestbed.kr/v1` |
+| `AI_API_KEY` | 실험실 팀 공유 키 (채팅·저장소에 붙여 넣지 않는다) |
+| `AI_MODEL` | `gpt-6.1-sol` (이 게이트웨이에서 웹 검색이 되는 모델. Claude·Gemini는 검색이 안 됨) |
 | `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
 
-- **AI 키를 넣기 전에** Anthropic 콘솔에서 월 사용 한도를 먼저 건다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
+개인 Anthropic 키로 쓸 때: `AI_PROVIDER`를 빼거나 `anthropic`, `AI_API_KEY`(또는 `ANTHROPIC_API_KEY`) = Anthropic 키, `AI_MODEL` = `claude-sonnet-5-5` 또는 `claude-opus-5-5`, `AI_API_URL`은 쓰지 않음
+
+- **AI 키를 넣기 전에** 사용 한도를 먼저 정한다(실험실 크레딧은 크레딧 자체가 상한, Anthropic 키는 콘솔 월 한도). 팀 공유 키라 남이 부르면 팀 크레딧이 줄어든다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
 
 ## 3. 확인
 

@@ -61,7 +61,7 @@ AI 내비게이터 외부 공고 탐색 (2026-11-21 결정)
 
 ## 5. 비밀값
 
-- 키: `YTH_POLICY_KEY`(온통청년), Supabase URL·anon key·service_role key, AI 키(`ANTHROPIC_API_KEY` 등, Edge Function 비밀값으로만).
+- 키: `YTH_POLICY_KEY`(온통청년), Supabase URL·anon key·service_role key, AI 키(`AI_API_KEY`·`ANTHROPIC_API_KEY`, Edge Function 비밀값으로만. 로컬 시험용 실험실 키는 `.env`의 `AIGW_KEY`).
 - AI 키는 Supabase Edge Function 비밀값(`supabase secrets set`)에만 둔다. `VITE_`로 시작하는 변수에 넣지 않는다(화면 코드에 그대로 들어감).
 - 코드·커밋·터미널 출력·문서에 키 값을 넣지 않는다. `.env`는 `.gitignore`에 넣고, `.env.example`에는 변수 이름만 둔다.
 - **service_role 키는 로컬 적재 스크립트에서만 쓴다. 프론트 코드에는 절대 넣지 않는다.**
@@ -80,12 +80,12 @@ AI 내비게이터 외부 공고 탐색 (2026-11-21 결정)
 | `docs/handoff/supabase_setup.md` | Supabase 세팅, 데이터 적재, AI 배치 준비 | 김주완 | 진행 중 |
 | `docs/handoff/supabase_schema.md` | 스키마, 적재, 판정 규칙 CSV, 화면 연결 (연결 순서 포함) | 김주완 | 원격 적용·적재 완료(11/20). 규칙 검수 진행 중 |
 | `docs/handoff/rule_review_guide.md` | 1차안 28개 판정 규칙 초안 검수, 팀 결정(11/21), 교차검증 반영(11/22), 1차 검수 대상 14개 | 김주완 | 초안 149행·반려 4행, 검수 완료 0 |
-| `docs/handoff/ai_navigator.md` | AI 내비게이터 외부 공고 탐색(함수·화면·배포) | 김주완 | 코드 작성, 키 없음(예시 응답) |
+| `docs/handoff/ai_navigator.md` | AI 내비게이터 외부 공고 탐색(함수·화면·배포) | 김주완 | 함수 배포(11/22), 실험실 게이트웨이 gpt-6.1-sol로 정함, 비밀값 입력 전 |
 
 작업을 시작할 때 해당 문서를 지정해서 읽게 한다. 작업이 끝나면 상태를 "완료"로 바꾸고, 다른 작업에도 계속 필요한 결정은 이 파일로 옮긴다.
 
 ## 8. 프로젝트 전체 미확인
 
-- AI 모델·공급사와 비용 한도, Edge Function 호출 보호 방법(배포 때 확인)
+- AI 실제 호출의 응답 시간·결과 품질, Edge Function 호출 보호 방법(지금은 입력 검사와 IP별 분당 5회뿐)
 - 지역코드 공식 코드표, 온통청년 API 공식 명세
-- Supabase 처리위탁 고지 범위(법률 검토)
+- 처리위탁 고지 범위(법률 검토): Supabase, 모두의 AI 실험실 게이트웨이와 그 뒤의 OpenAI(AI 공고 찾기에 시·군·상태·나이대·관심 분야·짧은 질문이 감)

@@ -1,6 +1,6 @@
 # AI 내비게이터 외부 공고 탐색 (2026-11-21)
 
-정리: Claude(Cowork). 결정: 김주완. 상태: Edge Function 배포됨(2026-11-22). AI 키·모델 비밀값 입력 전(입력 전에는 함수가 503 '키 연결 전'을 돌려준다).
+정리: Claude(Cowork). 결정: 김주완. 상태: Edge Function 배포됨(2026-11-22, OpenAI 호환 공급사 지원 포함). AI 키·모델 비밀값 입력 전(입력 전에는 함수가 503 '키 연결 전'을 돌려준다).
 
 ## 배포 기록 (2026-11-22)
 
@@ -10,12 +10,21 @@
   - 함수 안의 보호는 정해진 칸만 받기와 주소(IP)별 분당 5회뿐이다(같은 함수 인스턴스 안에서만 셈)
   - ALLOWED_ORIGINS는 브라우저 응답 설정(CORS)에만 쓰인다. 다른 사이트의 브라우저 요청은 사전 확인(preflight)에서 막히지만, 브라우저가 아닌 곳(curl 등)에서 직접 부르는 요청은 막지 못한다
   - JWT 검사를 켜도 크게 나아지지 않는다: 공개 키는 배포된 화면 코드에 들어 있어 누구나 볼 수 있다
-  - 그래서 **AI 키를 넣기 전에 Anthropic 콘솔에서 월 사용 한도를 반드시 건다.** 시연 뒤 계속 쓰면 로그인 사용자만 부르게 하거나 하루 전체 호출 수 제한을 둔다(VS Code 검토 의견, 2026-11-22)
-- 모델: AI 공고 찾기는 웹 검색이 되는 **Anthropic API 키**로 부른다. 모델은 `AI_MODEL`로 정한다(`claude-opus-5-5` 또는 `claude-sonnet-5-5`, Claude 문서 2026-11-22: Opus 입력·출력 100만 토큰당 4·20달러, Sonnet 2·10달러)
-- 모두의 AI 실험실 게이트웨이(OpenAI 호환, 2026-11-22 VS Code 시험): chat/completions의 `web_search_options`, messages의 `web_search` 도구 모두 200을 주지만 검색 흔적(인용, `web_search_tool_result`)이 없고, 모델이 기억으로 쓴 그럴듯한 주소를 냈다 → AI 공고 찾기에는 쓰지 않는다. 검색이 필요 없는 배치 작업(정답셋 등)에 쓴다
-- 그래서 함수는 **웹 검색 결과(`web_search_tool_result`)와 인용(citations)에 실제로 나온 주소의 공고만** 화면에 보낸다(`keepSearchedOnly`). 검색을 안 했으면 결과는 0개
-- 비밀값은 Supabase 화면(Edge Functions > Secrets)에서 주완이 직접 넣는다: `ANTHROPIC_API_KEY`, `AI_MODEL`, `ALLOWED_ORIGINS`(배포 주소, 쉼표로 여러 개)
-- 아직 안 한 것: 실제 AI 호출(키 입력 후), 응답 JSON이 여러 글 조각으로 나뉘어 올 때 정리가 되는지 확인
+  - 그래서 **AI 키를 넣기 전에 사용 한도를 반드시 건다**(Anthropic 콘솔, 또는 실험실 크레딧 자체가 상한). 시연 뒤 계속 쓰면 로그인 사용자만 부르게 하거나 하루 전체 호출 수 제한을 둔다(VS Code 검토 의견, 2026-11-22)
+- 그래서 함수는 **웹 검색 결과에 실제로 나온 주소의 공고만** 화면에 보낸다(`keepSearchedOnly`). 검색을 안 했으면 결과는 0개
+  - Anthropic 형식: `web_search_tool_result` 결과와 `citations` 주소
+  - OpenAI 형식: `message.annotations`의 `url_citation` 주소. 검색 도구가 붙이는 `utm_*` 값은 떼고 비교·표시
+- 공급사 두 가지를 비밀값 `AI_PROVIDER`로 고른다(코드는 같음)
+  - `openai`: OpenAI 호환 chat/completions + `web_search_options`. **모두의 AI 실험실 게이트웨이 + `gpt-6.1-sol`** (주완 결정 2026-11-22: 실험실 크레딧만 쓰기)
+  - `anthropic`(기본): Anthropic messages + `web_search` 도구. 개인 Anthropic 키가 있을 때
+- 실험실 게이트웨이 시험(VS Code, 2026-11-22, 모델 31개)
+  - `gpt-6.1-sol` + `web_search_options`: 200, `url_citation` 있음(주소 끝에 `utm_source=openai`) → 실제 웹 검색
+  - `claude-opus-5-5` + `web_search_options` 또는 messages `web_search` 도구: 200이지만 검색 흔적 없음, 모델이 기억으로 쓴 주소를 냄
+  - `gemini-4-argon` + `web_search_options`: 200, 인용 없음. `tools: google_search`: 500(LiteLLM이 지원하지 않는 도구)
+  - 게이트웨이는 LiteLLM으로 요청을 OpenAI 형식으로 바꿔 전달하는 것으로 보임(오류 문구 기준)
+- 처리위탁: 실험실 게이트웨이를 쓰면 AI에 보내는 항목(시·군, 상태, 나이대, 관심 분야, 짧은 질문)이 게이트웨이 운영 쪽과 OpenAI로 간다. 고지 범위는 CLAUDE.md 8장 미확인 항목
+- 비밀값은 Supabase 화면(Edge Functions > Secrets)에서 주완이 직접 넣는다(`deploy.md` 2장)
+- 아직 안 한 것: 실제 AI 호출(키 입력 후), 응답 시간, 결과 품질(주소가 실제 공고 글인지)
 
 ## 무엇을 하나
 
