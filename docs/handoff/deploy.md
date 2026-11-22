@@ -32,8 +32,8 @@
 
 | 이름 | 값 |
 |---|---|
-| `ANTHROPIC_API_KEY` | Anthropic 콘솔에서 만든 키 (채팅·저장소에 붙여 넣지 않는다) |
-| `AI_MODEL` | `claude-sonnet-5-5` |
+| `ANTHROPIC_API_KEY` | 모두의 AI 실험실에서 받은 API 키 (채팅·저장소에 붙여 넣지 않는다) |
+| `AI_MODEL` | `claude-opus-5-5` |
 | `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
 
 - **AI 키를 넣기 전에** Anthropic 콘솔에서 월 사용 한도를 먼저 건다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
