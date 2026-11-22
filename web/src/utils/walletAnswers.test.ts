@@ -36,6 +36,7 @@ const REGION_NAMES = { '44': '충청남도', '44130': '충청남도 천안시', 
 /** 초안 규칙을 '검수 완료'라고 가정한 판정 (시험용. 화면은 검수 완료 규칙만 쓴다) */
 const RULES = new Map<string, EligibilityRule[]>();
 csv.forEach((r, i) => {
+  if (r['검수 상태'] === '반려') return; // 반려한 행은 판정에 쓰지 않는다
   const policyId = r['공고키'].split(':')[0];
   const rule: EligibilityRule = {
     id: i + 1, ruleKey: r['규칙키'], fieldId: r['항목ID'], fieldName: r['항목ID'],
@@ -120,4 +121,107 @@ test('가상 지갑 코드는 브라우저 저장소에 값을 쓰지 않음', (
       assert.ok(!src.includes(banned), `${file}: ${banned}`);
     }
   }
+});
+
+/** 가상 인물의 일부 사실만 바꾼 사례 */
+function vary(base: WalletFacts, facts: Partial<WalletFacts>, profile: Partial<WalletFacts['profile']> = {}): WalletFacts {
+  return { ...base, ...facts, profile: { ...base.profile, ...profile } };
+}
+
+test('팀 결정(2026-11-21): 예외 조건이 X·O를 틀리게 만들지 않음', () => {
+  const a = findPersona('persona-a')!;
+  const b = findPersona('persona-b')!;
+  const c = findPersona('persona-c')!;
+
+  // A1 졸업학년은 12학점 미만이어도 학점 기준 제외. 졸업학년이 아니면 대학 최소 학점을 몰라 ?
+  assert.equal(verdict(vary(a, { creditsLastTerm: 9 }), 'A1').result, 'O');
+  assert.equal(verdict(vary(a, { creditsLastTerm: 9, enrollment: '재학', yearsToGraduation: 2.5 }), 'A1').result, '?');
+  // A1 만 36~45세는 선취업 후진학자 등일 때만
+  assert.equal(verdict(vary(a, { specialGroups: ['선취업 후진학자'] }, { age: 40 }), 'A1').result, 'O');
+  assert.equal(verdict(vary(a, {}, { age: 40 }), 'A1').result, 'X');
+
+  // B1 성적: 80점 미만이면 X, 장애인·자립준비청년은 성적 기준 없음, 기초·차상위는 C학점 점수 기준을 몰라 ?
+  assert.equal(verdict(vary(a, { gpaLastTerm100: 75 }), 'B1').result, 'X');
+  assert.equal(verdict(vary(a, { gpaLastTerm100: 75, specialGroups: ['장애'] }), 'B1').result, 'O');
+  assert.equal(verdict(vary(a, { gpaLastTerm100: 75, welfare: '차상위' }), 'B1').result, '?');
+
+  // C2 만 25세 미만 세대주: 60㎡ 초과면 단독세대주 여부를 몰라 ?, 60㎡ 이하면 면적 조건 충족
+  const young = vary(c, { areaM2: 70 }, { age: 23 });
+  const area25 = (p: WalletFacts) => verdict(p, 'C2').rows.find((r) => r.rules.some((x) => x.ruleKey === 'area25'))!.outcome.result;
+  assert.equal(area25(young), '?');
+  assert.equal(area25(vary(young, { areaM2: 50 })), 'O');
+  assert.equal(area25(vary(c, { areaM2: 70 })), 'O', '만 25세 이상은 85㎡ 기준만');
+  // C2 소득: 5천만원 초과는 예외 대상일 때만
+  const income = (p: WalletFacts) => verdict(p, 'C2').rows.find((r) => r.rules.some((x) => x.ruleKey === 'income'))!.outcome.result;
+  assert.equal(income(vary(c, { annualIncomeWon: 70_000_000 })), 'X');
+  assert.equal(income(vary(c, { annualIncomeWon: 70_000_000, specialGroups: ['신혼'] })), 'O');
+  assert.equal(income(vary(c, { annualIncomeWon: 70_000_000, specialGroups: ['다자녀'] })), 'X');
+  assert.equal(income(vary(c, { annualIncomeWon: 58_000_000, specialGroups: ['다자녀'] })), 'O');
+
+  // C3 출생일 기준: 만 40세여도 1986년생이면 대상
+  assert.equal(verdict(vary(b, { birthYear: 1986 }, { age: 40 }), 'C3').result, 'O');
+  assert.equal(verdict(vary(b, { birthYear: 1985 }, { age: 40 }), 'C3').result, 'X');
+
+  // E4 나이는 아산 주소로 신청할 때만: 40대 아산 캠퍼스 졸업생은 O, 40대 아산 주민(학교 조건 없음)은 X
+  assert.equal(verdict(vary(b, {}, { age: 45 }), 'E4').result, 'X');
+  assert.equal(verdict(vary(b, { campusCity: '아산시' }, { age: 45, residence: '충청남도 천안시' }), 'E4').result, 'O');
+});
+
+test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () => {
+  const a = findPersona('persona-a')!;
+  const b = findPersona('persona-b')!;
+  const c = findPersona('persona-c')!;
+  const row = (p: WalletFacts, id: string, key: string) =>
+    verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
+
+  // A1 장애인은 학점 기준 적용 예외
+  assert.equal(verdict(vary(a, { creditsLastTerm: 9, enrollment: '재학', yearsToGraduation: 2.5, specialGroups: ['장애'] }), 'A1').result, 'O');
+
+  // C1 출생연도 기준(2026년 1991~2007년생): 만 35세 1991년생은 O, 1990년생은 X
+  assert.equal(row(vary(c, { birthYear: 1991 }, { age: 35 }), 'C1', 'age'), 'O');
+  assert.equal(row(vary(c, { birthYear: 1990 }, { age: 36 }), 'C1', 'age'), 'X');
+  // C1 한시 특별지원 24개월을 모두 받았으면 끝났어도 X
+  assert.equal(verdict(vary(c, { pastSupports: ['청년월세 한시 특별지원 24개월'] }), 'C1').result, 'X');
+
+  // C2 쉐어하우스는 세대주 요건 예외
+  assert.equal(row(vary(c, { householdHead: '세대원' }), 'C2', 'head'), 'X');
+  assert.equal(row(vary(c, { householdHead: '세대원', shareHouse: true }), 'C2', 'head'), 'O');
+  // C2 성년 세대원 가운데 기금대출 이용자가 있으면 X
+  assert.equal(row(vary(c, { householdFundLoan: true }), 'C2', 'fund_household'), 'X');
+  assert.equal(row(b, 'C2', 'fund_household'), 'X', '버팀목 이용 중');
+  // C2 병역 연장은 중소·중견기업 재직자 등만: 창업 지원 여부를 모르면 ?
+  assert.equal(row(vary(c, { militaryMonths: 21 }, { age: 37 }), 'C2', 'age'), 'X', '1년 빼도 만 36세');
+  assert.equal(row(vary(c, { militaryMonths: 36 }, { age: 37 }), 'C2', 'age'), '?');
+  assert.equal(row(vary(c, { militaryMonths: 36, employerSize: '중소' }, { age: 37 }), 'C2', 'age'), 'O');
+  assert.equal(row(vary(c, { militaryMonths: 72, employerSize: '중소' }, { age: 40 }), 'C2', 'age'), 'X', '최대 만 39세');
+
+  // E1 판단 시점은 시험응시일: 지금 재직 중이어도 X가 아니라 ?
+  assert.equal(row(b, 'E1', 'employment'), '?');
+  assert.equal(row(c, 'E1', 'employment'), 'O');
+
+  // F1 소득 없음은 X, 병 급여가 있으면 소득 묶음 O, 금융소득 종합과세 대상자는 X
+  assert.equal(row(a, 'F1', 'income_salary'), 'X');
+  assert.equal(row(vary(a, { specialGroups: ['병 급여'] }), 'F1', 'income_salary'), 'O');
+  assert.equal(row(vary(c, { financialIncomeTaxed: true }), 'F1', 'financial_income'), 'X');
+  // F1 병역 인정은 최대 6년
+  assert.equal(row(vary(c, { militaryMonths: 96 }, { age: 41 }), 'F1', 'age'), 'X');
+  assert.equal(row(vary(c, { militaryMonths: 72 }, { age: 40 }), 'F1', 'age'), 'O');
+
+  // H1 참여 대상 기업: 중소 5인 이상 O, 대기업 X, 1~4인은 업종을 몰라 ?
+  assert.equal(row(b, 'H1', 'employer_size'), 'O');
+  assert.equal(row(vary(b, { employerSize: '대기업' }), 'H1', 'employer_size'), 'X');
+  assert.equal(row(vary(b, { employerHeadcount: 3 }), 'H1', 'employer_size'), '?');
+  // H1 보수 기준 3,846,357원
+  assert.equal(row(vary(b, { monthlyIncomeWon: 3_500_000 }), 'H1', 'pay'), 'O');
+  assert.equal(row(vary(b, { monthlyIncomeWon: 3_900_000 }), 'H1', 'pay'), 'X');
+
+  // E5 고등학생은 학년을 몰라 답하지 않음
+  const e5 = RULES.get('E5')!.find((r) => r.ruleKey === 'student')!;
+  assert.equal(walletAnswer(vary(a, { enrollment: undefined, highSchoolEnrolled: true }), e5), undefined);
+});
+
+test('반려한 행은 시험용 판정에도 쓰지 않음', () => {
+  const rejected = csv.filter((r) => r['검수 상태'] === '반려').map((r) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`);
+  assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment']);
+  assert.ok(!(RULES.get('D3') ?? []).some((r) => r.ruleKey === 'employment'));
 });

@@ -53,6 +53,8 @@ export interface WalletFacts {
   businessRevenueWon?: number | null;
   employerCity?: string;
   employerSize?: '중소' | '중견' | '대기업' | '공공' | '사회적기업 등';
+  /** 직장의 상시근로자 수 */
+  employerHeadcount?: number;
   monthsSinceHire?: number;
   publicServant?: boolean;
   interview?: '면접 예정' | '면접 합격(1개월 이내)' | '해당 없음';
@@ -60,6 +62,8 @@ export interface WalletFacts {
   examDate?: string;
   examAfterMoveIn?: boolean;
   militaryMonths?: number;
+  /** 출생연도 (주민등록초본). 출생일 기준 공고의 경계 판정에만 쓴다 */
+  birthYear?: number;
 
   // 가구·복지 (가족관계증명서, 건강보험료 납부확인서, 수급자 증명)
   welfare?: string;
@@ -69,6 +73,9 @@ export interface WalletFacts {
   familyMedianPct?: number;
   netAssetManwon?: number;
   familyAssetManwon?: number;
+  /** 직전 3개년도 중 금융소득 종합과세 대상자였던 적이 있는가 */
+  financialIncomeTaxed?: boolean;
+  /** 해당하는 특화 대상. 예: '다자녀', '2자녀', '신혼', '장애', '자립준비청년', '선취업 후진학자', '비과세 육아휴직급여', '병 급여' */
   specialGroups?: string[];
   sameHouseholdApplicant?: boolean;
 
@@ -80,6 +87,10 @@ export interface WalletFacts {
   depositWon?: number;
   areaM2?: number;
   housingLoan?: '버팀목(일반)' | '버팀목(청년전용)' | '버팀목(신혼부부)' | '신생아특례' | '기타 전세대출' | '없음';
+  /** 성년 세대원(본인 포함) 가운데 주택도시기금 대출 이용자가 있는가 */
+  householdFundLoan?: boolean;
+  /** 대출받아 들어갈 집이 채권양도협약기관 소유 쉐어하우스인가 */
+  shareHouse?: boolean;
   dormitory?: '천안행복기숙사' | '수도권 기숙사' | '기타 기숙사' | '해당 없음';
   capitalCommute?: '통학' | '통근' | '없음';
 
@@ -127,11 +138,13 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     examDate: '2026-03-14',
     examAfterMoveIn: true,
     militaryMonths: 0,
+    birthYear: 2002,
     welfare: '해당 없음',
     householdMedianPct: 110,
     familyMedianPct: 110,
     netAssetManwon: 500,
     familyAssetManwon: 35000,
+    financialIncomeTaxed: false,
     specialGroups: [],
     sameHouseholdApplicant: false,
     independent: false,
@@ -139,6 +152,8 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     householdHead: '세대원',
     rental: '해당 없음',
     housingLoan: '없음',
+    householdFundLoan: false,
+    shareHouse: false,
     dormitory: '해당 없음',
     capitalCommute: '없음',
     currentSupports: [],
@@ -170,15 +185,18 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     businessRevenueWon: null,
     employerCity: '아산시',
     employerSize: '중소',
+    employerHeadcount: 30,
     monthsSinceHire: 3,
     publicServant: false,
     interview: '해당 없음',
     militaryMonths: 18,
+    birthYear: 1999,
     welfare: '해당 없음',
     householdMedianPct: 105,
     familyMedianPct: 140,
     netAssetManwon: 6000,
     familyAssetManwon: 50000,
+    financialIncomeTaxed: false,
     specialGroups: [],
     sameHouseholdApplicant: false,
     independent: true,
@@ -188,6 +206,8 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     depositWon: 100000000,
     areaM2: 33,
     housingLoan: '버팀목(청년전용)',
+    householdFundLoan: true,
+    shareHouse: false,
     dormitory: '해당 없음',
     capitalCommute: '없음',
     currentSupports: ['전세자금대출'],
@@ -223,11 +243,13 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     examDate: '2026-05-23',
     examAfterMoveIn: true,
     militaryMonths: 21,
+    birthYear: 1997,
     welfare: '해당 없음',
     householdMedianPct: 45,
     familyMedianPct: 95,
     netAssetManwon: 1500,
     familyAssetManwon: 30000,
+    financialIncomeTaxed: false,
     specialGroups: [],
     sameHouseholdApplicant: false,
     independent: true,
@@ -237,6 +259,8 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     depositWon: 5000000,
     areaM2: 26,
     housingLoan: '없음',
+    householdFundLoan: false,
+    shareHouse: false,
     dormitory: '해당 없음',
     capitalCommute: '없음',
     currentSupports: [],

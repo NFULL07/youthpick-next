@@ -48,12 +48,45 @@ function supportStatus(f: WalletFacts, question: string): string {
   return '해당 없음';
 }
 
+/** 지금 받거나 받았던 지원 가운데 word가 들어간 것이 있는가. 지원 목록이 없으면 모름 */
+function hadSupport(f: WalletFacts, ...words: string[]): boolean | undefined {
+  if (f.currentSupports === undefined && f.pastSupports === undefined) return undefined;
+  const all = [...(f.currentSupports ?? []), ...(f.pastSupports ?? [])];
+  return all.some((s) => words.some((w) => s.includes(w)));
+}
+
 function enrolledNow(f: WalletFacts): boolean {
   return f.enrollment === '재학' || f.enrollment === '졸업예정' || f.enrollment === '휴학' || f.enrollment === '대학원';
 }
 
+/** 주택도시기금 소득 예외: 6천만원 대상과 7.5천만원(신혼가구) 대상 */
+const INCOME_6000_GROUPS = ['혁신도시 이전 공공기관 종사자', '타 지역 이주 재개발 구역 세입자', '다자녀', '2자녀'];
+
 /** special_target_status: 정책마다 질문이 다르다. 아는 질문만 답한다 */
 function specialTarget(f: WalletFacts, q: string): boolean | undefined {
+  if (q.includes('응시한 날 미취업')) {
+    // 지금 미취업이면 응시한 날도 미취업으로 본다. 지금 재직 중이면 응시일과 입사일의 앞뒤를 몰라 답하지 않는다
+    if (f.employment === undefined) return undefined;
+    return f.employment === '미취업' ? true : undefined;
+  }
+  if (q.includes('한시 특별지원을 24개월')) return hadSupport(f, '한시 특별지원 24개월');
+  if (q.includes('재능키움')) return hadSupport(f, '재능키움', '충남평생교육진흥원');
+  if (q.includes('종합소득이 6,300만원')) {
+    // 총급여·연매출 경로가 안 될 때의 길. 비과세 육아휴직급여·병 급여가 있으면 예, 소득이 아예 없으면 아니오
+    if (f.specialGroups?.some((g) => g === '비과세 육아휴직급여' || g === '병 급여')) return true;
+    if (f.annualIncomeWon === 0 && f.businessRevenueWon === null) return false;
+    return undefined;
+  }
+  if (q.includes('선취업 후진학자')) {
+    // 질문: 만 36~45세이면서 선취업 후진학자 등인가
+    return f.specialGroups === undefined ? undefined : f.specialGroups.includes('선취업 후진학자') && f.profile.age <= 45;
+  }
+  if (q.includes('혁신도시')) {
+    if (f.specialGroups === undefined || f.annualIncomeWon === undefined) return undefined;
+    const upTo6000 = f.specialGroups.some((g) => INCOME_6000_GROUPS.includes(g)) && f.annualIncomeWon <= 60_000_000;
+    const upTo7500 = f.specialGroups.includes('신혼') && f.annualIncomeWon <= 75_000_000;
+    return upTo6000 || upTo7500;
+  }
   if (q.includes('공무원')) return f.publicServant;
   if (q.includes('중소·중견')) return f.employerSize === undefined ? undefined : ['중소', '중견', '사회적기업 등'].includes(f.employerSize);
   if (q.includes('졸업예정자(4학년 2학기')) {
@@ -76,6 +109,18 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
   return undefined;
 }
 
+/** 아산 청년내일카드 참여 대상 기업 보기 (회사 규모·형태와 상시근로자 수로 고른다) */
+function employerChoice(f: WalletFacts, choices: string[]): string | undefined {
+  const sme = choices.find((c) => c.startsWith('중소·중견기업(상시근로자 5인 이상)'));
+  if (!sme || f.employerSize === undefined) return undefined;
+  if (f.employerSize === '공공') return choices.find((c) => c.startsWith('제외 대상'));
+  if (f.employerSize === '대기업') return choices.find((c) => c === '그 밖의 기업');
+  if (f.employerHeadcount === undefined) return undefined;
+  if (f.employerSize === '사회적기업 등') return f.employerHeadcount >= 1 ? choices.find((c) => c.startsWith('사회적기업')) : undefined;
+  // 1~4인 기업은 지정 업종인지 몰라 답하지 않는다
+  return f.employerHeadcount >= 5 ? sme : undefined;
+}
+
 function graduationChoice(f: WalletFacts, choices: string[]): string | undefined {
   if (choices.includes('졸업 후 2년 이내 · 미취업')) {
     if (f.enrollment === undefined) return undefined;
@@ -85,6 +130,8 @@ function graduationChoice(f: WalletFacts, choices: string[]): string | undefined
     return f.employment === '미취업' ? '졸업 후 2년 이내 · 미취업' : '졸업 후 2년 이내 · 취업';
   }
   if (choices.includes('졸업까지 2년 미만 남음')) {
+    // 고등학생은 학년을 몰라 답하지 않는다(고등학교 1~2학년은 제외 대상)
+    if (choices.includes('고등학교 1~2학년') && f.highSchoolEnrolled) return undefined;
     if (f.enrollment === undefined) return undefined;
     if (!enrolledNow(f) || f.enrollment === '휴학') {
       if (f.enrollment === '휴학') return f.yearsToGraduation === undefined ? undefined : f.yearsToGraduation < 2 ? '졸업까지 2년 미만 남음' : '졸업까지 2년 이상 남음';
@@ -102,7 +149,19 @@ function militaryAnswer(f: WalletFacts, rule: EligibilityRule, rules: Eligibilit
   const ageRule = rules.find((r) => r.operator === 'age_between' && r.anyOfGroup === rule.anyOfGroup);
   const max = (ageRule?.value as { max?: number } | null)?.max;
   if (max === undefined) return undefined;
-  return f.profile.age - Math.floor(f.militaryMonths / 12) <= max ? YES : NO;
+  const q = rule.question ?? '';
+  // 질문에 상한이 있으면 반영: "(최대 6년)" 인정 연수, "실제 나이가 만 39세 이하"
+  const capYears = Number(q.match(/최대 (\d+)년/)?.[1]);
+  const years = Math.min(Math.floor(f.militaryMonths / 12), Number.isFinite(capYears) ? capYears : Infinity);
+  const hardMax = Number(q.match(/실제 나이가 만 (\d+)세 이하/)?.[1]);
+  if (Number.isFinite(hardMax) && f.profile.age > hardMax) return NO;
+  if (f.profile.age - years > max) return NO;
+  if (q.includes('중소·중견')) {
+    // 주택도시기금: 중소·중견기업 재직자 또는 창업 보증·자금 지원을 받는 사람만. 창업 지원 여부는 지갑이 몰라 재직자만 예
+    if (f.employerSize === undefined) return undefined;
+    return f.employerSize === '중소' || f.employerSize === '중견' ? YES : undefined;
+  }
+  return YES;
 }
 
 /** 규칙 하나에 대한 가상 지갑의 답(직접 입력 칸에 넣는 글자와 같은 모양) */
@@ -128,9 +187,33 @@ export function walletAnswer(
     case 'credits_earned':
       return f.creditsLastTerm?.toString();
     case 'gpa_value': {
+      if (choices.includes('B학점(80점) 이상')) {
+        // 보기로 묻는 성적 기준(국가장학금): 예외 대상 -> B학점 -> 기초·차상위(C학점 점수 기준을 몰라 답하지 않음)
+        if (f.specialGroups?.some((g) => g === '장애' || g === '자립준비청년')) return '장애인·자립준비청년(성적 기준 없음)';
+        if (f.gpaLastTerm100 === undefined) return undefined;
+        if (f.gpaLastTerm100 >= 80) return 'B학점(80점) 이상';
+        if (f.welfare === undefined || f.specialGroups === undefined) return undefined;
+        return /기초|차상위/.test(f.welfare) ? undefined : '위에 해당 없음';
+      }
       const value = q.includes('4.5') ? f.gpaLastTerm45 : q.includes('전 학년') ? f.gpaTotal100 : f.gpaLastTerm100;
       return value?.toString();
     }
+    case 'academic_year': {
+      // 질문: 졸업학년이거나 소속 대학 최소 이수학점 이상인가. 대학별 최소 학점은 지갑이 모르므로 졸업학년일 때만 답한다
+      if (!q.includes('졸업학년')) return undefined;
+      if (q.includes('장애인') && f.specialGroups?.includes('장애')) return YES;
+      const finalYear = f.enrollment === '졸업예정' || (f.yearsToGraduation !== undefined && f.yearsToGraduation <= 1);
+      return finalYear ? YES : undefined;
+    }
+    case 'birth_date': {
+      const range = q.match(/(\d{4})년 1월 1일~(\d{4})년 12월 31일/);
+      if (!range || f.birthYear === undefined) return undefined;
+      return yesNo(f.birthYear >= Number(range[1]) && f.birthYear <= Number(range[2]));
+    }
+    case 'household_size':
+      // 질문: 단독세대주인가. 세대주가 아니면 '아니오', 세대주면 세대원 수를 몰라 답하지 않는다
+      if (!q.includes('단독세대주') || f.householdHead === undefined) return undefined;
+      return f.householdHead === '세대주' ? undefined : NO;
     case 'score_period': {
       const threshold = Number(q.match(/(\d\.\d)\s*이상/)?.[1]);
       if (!Number.isFinite(threshold) || f.gpaLastTerm45 === undefined) return undefined;
@@ -168,9 +251,23 @@ export function walletAnswer(
       return f.homeOwner === undefined ? undefined : f.homeOwner ? '주택 소유(분양권·입주권 포함)' : '무주택';
     case 'household_head_status':
       return f.householdHead;
-    case 'rental_situation':
+    case 'rental_situation': {
+      const share = choices.find((c) => c.includes('쉐어하우스'));
+      if (share) {
+        // 주택도시기금: 대출받아 들어갈 집(쉐어하우스 여부)과 지금 공공임대주택 거주 여부를 한 질문으로 묻는다
+        if (f.shareHouse === true) return share;
+        if (f.rental === undefined || f.shareHouse === undefined || f.rental === '공공임대주택 거주') return undefined;
+        return choices.find((c) => c.startsWith('일반 주택 임차'));
+      }
       if (!f.rental) return undefined;
+      if (f.rental === '공공임대주택 거주') return choices.find((c) => c.startsWith('공공임대')) ?? undefined;
       return choices.includes(f.rental) ? f.rental : choices.includes('해당 없음') ? '해당 없음' : undefined;
+    }
+    case 'household_scope':
+      // 질문: 성년 세대원 가운데 주택도시기금 대출 이용자가 있는가
+      return q.includes('주택도시기금 대출') ? yesNo(f.householdFundLoan) : undefined;
+    case 'income_definition':
+      return q.includes('금융소득 종합과세') ? yesNo(f.financialIncomeTaxed) : undefined;
     case 'rental_deposit_amount':
       return f.depositWon?.toString();
     case 'housing_area':
@@ -221,6 +318,8 @@ export function walletAnswer(
       if (f.capitalCommute === '통근') return '예(통근 등, 철도 정기승차권 이용)';
       return '아니오';
     case 'special_target_status':
+      // 보기로 묻는 질문(아산 청년내일카드 참여 대상 기업)과 예·아니오 질문
+      if (choices.length > 0) return employerChoice(f, choices);
       return yesNo(specialTarget(f, q));
     default:
       return undefined;
