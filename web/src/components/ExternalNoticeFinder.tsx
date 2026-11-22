@@ -104,6 +104,12 @@ export const ExternalNoticeFinder: React.FC<{ profile: UserProfile }> = ({ profi
         </div>
       </form>
 
+      {loading && (
+        <p role="status" className="rounded-xl bg-white px-3 py-2 text-[12px] font-semibold text-[#333333]">
+          웹에서 공고를 찾는 중이에요. 30초쯤 걸릴 수 있어요.
+        </p>
+      )}
+
       {error && (
         <p role="alert" className="rounded-xl bg-[#FBE1D6] px-3 py-2 text-[12px] font-semibold text-[#1F2421]">
           {error}

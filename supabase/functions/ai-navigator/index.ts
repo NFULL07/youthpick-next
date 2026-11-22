@@ -32,7 +32,8 @@ import {
 const MAX_BODY_BYTES = 2048;
 const MAX_SEARCHES = 5;
 const MAX_TURNS = 3;
-const TIMEOUT_MS = 90_000;
+/** 모델 응답 시간 제한. Edge Function 요청 한도(무료 플랜 150초) 안에서 여유를 둔다 */
+const TIMEOUT_MS = 140_000;
 /** 같은 함수 인스턴스 안에서 주소(IP)별로 1분에 몇 번까지 받을지 (간단한 남용 막기) */
 const PER_MINUTE = 5;
 const recent = new Map<string, number[]>();
@@ -100,7 +101,9 @@ async function callOpenAICompatible(system: string, user: string): Promise<Model
         { role: 'user', content: user },
       ],
       web_search_options: {},
-      max_tokens: 4000,
+      // 2026-11-22 게이트웨이 측정(gpt-6.1-sol, 1회씩): 기본 27.5초, reasoning_effort low 19.8초로 가장 빠름
+      reasoning_effort: 'low',
+      max_tokens: 1500,
     }),
   });
   if (!res.ok) throw new Error(`model ${res.status}`);

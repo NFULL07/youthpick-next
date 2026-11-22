@@ -52,7 +52,7 @@ test('나이는 5세 단위 나이대로만, 지역은 시·군까지만 보냄'
   }
 });
 
-test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 5개, 정해진 칸만', () => {
+test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 3개, 정해진 칸만', () => {
   const items = sanitizeResult({
     items: [
       { title: 'A', url: 'https://example.org/a', organizer: 'o', summary: 's', whyMatched: ['x'], checkConditions: ['y'], period: '', secret: 'z' },
@@ -63,7 +63,7 @@ test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 5개, 정해
       ...Array.from({ length: 8 }, (_, i) => ({ title: `F${i}`, url: `https://example.org/f${i}` })),
     ],
   });
-  assert.equal(items.length, 5);
+  assert.equal(items.length, 3);
   assert.equal(items[0].url, 'https://example.org/a');
   assert.ok(!('secret' in items[0]));
   assert.ok(items.every((i) => i.url.startsWith('https://') && !i.url.includes('.go.kr')));
@@ -156,4 +156,14 @@ test('OpenAI 형식 인용(url_citation) 주소만 남기고, 추적용 utm 값�
   assert.equal(items[0].url, 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40', '표시 주소에서 utm 값을 뗌');
   assert.deepEqual(keepSearchedOnly(items, cited).map((i) => i.title), ['인용된 공고']);
   assert.equal(collectCitedUrls([]).size, 0);
+});
+
+test('주소 비교: www·쿼리 순서·끝 / 만 다른 같은 페이지는 같게 보고, 다른 글 번호는 다르게 봄', () => {
+  const cited = collectCitedUrls([{ type: 'url_citation', url_citation: { url: 'https://www.cayf.example.org/bbs/board.php?wr_id=40&bo_table=notice' } }]);
+  const base = { organizer: '', summary: '', whyMatched: [], checkConditions: [], period: '' };
+  const items = [
+    { ...base, title: '같은 글', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40' },
+    { ...base, title: '다른 글', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=41' },
+  ];
+  assert.deepEqual(keepSearchedOnly(items, cited).map((i) => i.title), ['같은 글']);
 });

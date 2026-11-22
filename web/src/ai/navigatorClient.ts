@@ -114,7 +114,7 @@ export async function searchExternalNotices(
       // 공개(publishable) 키만 쓴다. 새 키는 apikey 헤더로 보낸다(Supabase 안내)
       headers: { 'content-type': 'application/json', apikey: env.VITE_SUPABASE_ANON_KEY! },
       body: JSON.stringify(req),
-      signal: AbortSignal.timeout(options.timeoutMs ?? 100_000),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 150_000),
     });
     const body = (await res.json().catch(() => null)) as { items?: unknown; error?: unknown } | null;
     if (!res.ok) {
