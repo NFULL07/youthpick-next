@@ -241,8 +241,9 @@ API 데이터에서 확인한 한계: 연령 값은 52.7%, 취업·학력 코드
 - [x] 가상 지갑(시연): 가상 인물 3명의 사실로 규칙 질문에 답해 판정
 - [x] AI 내비게이터 외부 공고 찾기: 화면·Edge Function 코드 (AI 키 연결 전, 예시 응답으로 동작)
 - [ ] 판정 규칙 사람 검수 -> 검수 완료 행 적재 (화면에 O/X가 나오려면 필요)
-- [ ] AI 키 연결과 Edge Function 배포
-- [ ] Cloudflare Pages 배포
+- [x] AI 외부 공고 찾기 Edge Function 배포 (2026-11-22, `docs/handoff/ai_navigator.md`)
+- [ ] AI 키·모델 비밀값 입력과 실제 호출 확인
+- [ ] Cloudflare Pages 배포 (`docs/handoff/deploy.md`)
 - [ ] 가상 사례 정답셋과 사용자 테스트
 - [ ] (미룸) AI 배치: 임베딩·유사 공고 묶음
 
@@ -274,6 +275,7 @@ python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on
 
 - `web/.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`(공개 키만). 없으면 시연용 예시 데이터로 동작
 - Cloudflare Pages 설정: 루트 디렉터리 `web`, 빌드 명령 `npm run build`, 출력 디렉터리 `dist`, 환경 변수 `VITE_SUPABASE_URL`·`VITE_SUPABASE_ANON_KEY`(·`VITE_AI_NAVIGATOR`). 화면 이동이 `#` 주소라 별도 리다이렉트 설정은 필요 없음
+- 배포 순서(Cloudflare Pages·비밀값·확인): `docs/handoff/deploy.md`
 - AI 외부 공고 찾기 배포: `docs/handoff/ai_navigator.md`
 - 비밀값(service_role·Secret key, AI 키)은 화면 환경 변수에 넣지 않습니다
 
