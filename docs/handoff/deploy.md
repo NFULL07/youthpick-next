@@ -23,6 +23,7 @@
    - `VITE_SUPABASE_URL`: `web/.env.local`의 값
    - `VITE_SUPABASE_ANON_KEY`: `web/.env.local`의 값 (공개 키 sb_publishable_ 또는 anon만. service_role·sb_secret_ 금지)
    - `VITE_AI_NAVIGATOR`: `live` (AI 키를 넣기 전이면 빼 둔다. 빼면 예시 응답)
+   - Node 버전 변수는 넣지 않았다. Workers Builds 기본은 Node 24(Cloudflare 변경 기록 2026-07-30)이고 `web/package.json`은 Node 22 이상이면 된다. 첫 빌드 기록에서 Node 버전을 보고, 22보다 낮으면 `NODE_VERSION` = `22`를 Build variables에 넣는다
 4. 설정은 **다음 빌드**부터 적용된다. main에 병합(push)하면 빌드가 돈다. Deployments 탭에서 빌드 기록·오류를 본다
 5. 주소: Overview에 'No URLs enabled'면 Domains 탭에서 workers.dev 주소를 켠다. 주소 모양은 `https://youthpick-next.<계정 하위 도메인>.workers.dev`
 6. 환경 변수를 바꾸면 다시 빌드해야 화면에 반영된다

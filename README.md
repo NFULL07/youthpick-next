@@ -114,14 +114,14 @@ flowchart TB
 
 |Frontend|Backend · DB|Data · AI|Infra|Collaboration|
 |:------:|:------:|:------:|:------:|:------:|
-|<img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=black"/><br><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white"/>|<img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=Supabase&logoColor=white"/><br><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=PostgreSQL&logoColor=white"/><br><img src="https://img.shields.io/badge/pgvector-336791?style=flat-square"/>|<img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=Python&logoColor=white"/>|<img src="https://img.shields.io/badge/Cloudflare%20Pages-F38020?style=flat-square&logo=cloudflarepages&logoColor=white"/>|<img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=GitHub&logoColor=white"/>|
+|<img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=React&logoColor=black"/><br><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=TypeScript&logoColor=white"/>|<img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=Supabase&logoColor=white"/><br><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=PostgreSQL&logoColor=white"/><br><img src="https://img.shields.io/badge/pgvector-336791?style=flat-square"/>|<img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=Python&logoColor=white"/>|<img src="https://img.shields.io/badge/Cloudflare%20Workers-F38020?style=flat-square&logo=cloudflare&logoColor=white"/>|<img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=GitHub&logoColor=white"/>|
 
 ```
 - Frontend   : React (후보), TypeScript, Web Crypto API (가상지갑 서명 검증, 후보)
 - Backend    : Supabase (PostgreSQL, Auth, RLS, REST API), SQL
 - Database   : PostgreSQL + pgvector (유사 공고 검색)
 - Data / AI  : Python 3 (온통청년 API 수집·정제, 임베딩·조건 후보 초안 배치 작업)
-- Deployment : Cloudflare Pages (화면), 모두의 AI 실험실 클라우드 (AI 배치, 이용기간 1개월)
+- Deployment : Cloudflare Workers 정적 배포 (화면), Supabase Edge Functions (AI 외부 공고 찾기), 모두의 AI 실험실 클라우드 (AI 배치, 이용기간 1개월)
 - Tool       : GitHub (기능별 브랜치 -> PR -> main)
 
 (후보) = 기존 코드 확인 후 결정
@@ -142,7 +142,7 @@ flowchart TB
 - 사용자 브라우저 : 화면(React, 후보) + 판정 엔진(TypeScript). 공고별 세부 입력과 VC 검증 결과는 서버로 보내지 않음
 - DB·인증·API : Supabase. 사용자 요청을 받는 별도 백엔드 서버는 두지 않음
 - 가상지갑 : DID 기반 검증가능 증명(VC) 시연. 정부사업 단계에서 정부 전자지갑으로 대체(계획)
-- 배포 : GitHub push -> Cloudflare Pages 정적 배포
+- 배포 : GitHub main 병합 -> Cloudflare Workers Builds가 빌드·정적 배포
 ```
 
 구조도 원본은 [`docs/architecture.drawio`](docs/architecture.drawio)이며 [diagrams.net](https://app.diagrams.net)에서 열어 고칠 수 있습니다. 기술 로고는 [devicon](https://devicon.dev)(MIT)을 사용했습니다.
@@ -152,7 +152,7 @@ flowchart TB
 <br>
 
 - **DB는 MySQL 대신 PostgreSQL(Supabase)** : 공고마다 형태가 다른 판정 규칙을 `jsonb`로 저장하고, RLS로 본인 데이터만 보이게 하며, pgvector로 유사 공고를 DB 안에서 찾습니다.
-- **서버는 역할별로 나눔** : 화면은 Cloudflare Pages, DB·인증·API는 Supabase, AI 배치 작업은 모두의 AI 실험실 클라우드에서 돌립니다.
+- **서버는 역할별로 나눔** : 화면은 Cloudflare Workers(정적 파일), DB·인증·API는 Supabase, AI 배치 작업은 모두의 AI 실험실 클라우드에서 돌립니다.
 - **실험실 클라우드** : 이용기간이 1개월 고정입니다. 외부 공개 주소를 열 수 있는지는 확인하지 못했지만, 배치 작업은 외부 접속을 받지 않으므로 필요 없습니다. 시연 뒤에도 운영하면 AWS 등으로 옮깁니다.
 - **AI 역할** : 클릭·신청 이력 같은 사용 데이터가 아직 없어 추천 모델은 학습시키지 않습니다. AI는 공개 공고 데이터로 유사 공고 묶음과 조건 후보 초안만 만들고, 판정은 검수된 규칙으로 브라우저에서 합니다. 사용할 모델은 미정입니다.
 
@@ -275,7 +275,7 @@ python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on
 
 - `web/.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`(공개 키만). 없으면 시연용 예시 데이터로 동작
 - Cloudflare 설정(Worker `youthpick-next`): Root directory `web`, Build command `npm run build`, Deploy command `npx wrangler deploy`, Build variables `VITE_SUPABASE_URL`·`VITE_SUPABASE_ANON_KEY`(·`VITE_AI_NAVIGATOR`). 정적 파일은 `web/wrangler.jsonc`의 `./dist`. 화면 이동이 `#` 주소라 별도 리다이렉트 설정은 필요 없음
-- 배포 순서(Cloudflare Pages·비밀값·확인): `docs/handoff/deploy.md`
+- 배포 순서(Cloudflare·비밀값·확인): `docs/handoff/deploy.md`
 - AI 외부 공고 찾기 배포: `docs/handoff/ai_navigator.md`
 - 비밀값(service_role·Secret key, AI 키)은 화면 환경 변수에 넣지 않습니다
 
@@ -315,7 +315,7 @@ python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on
 <!--
 구현이 진행되면 추가할 것
 - 📹 Demo: 시연 화면 캡처 또는 GIF
-- 배포 주소 (Cloudflare Pages)
+- 배포 주소 (Cloudflare Workers)
 - ERD 이미지 (Supabase 테이블 생성 후)
 - 📂 Directory Structure (코드 구조 확정 후)
 - 결과: 판정 정확도 등 실제 측정값 (가설과 구분해 기록)
