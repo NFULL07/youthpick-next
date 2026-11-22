@@ -35,7 +35,7 @@
 | `AI_MODEL` | `claude-sonnet-5-5` |
 | `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
 
-- Anthropic 콘솔에서 월 사용 한도를 먼저 걸어 둔다(누구나 호출할 수 있는 주소)
+- **AI 키를 넣기 전에** Anthropic 콘솔에서 월 사용 한도를 먼저 건다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
 
 ## 3. 확인
 
