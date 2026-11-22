@@ -6,7 +6,7 @@
 // 지키는 것 (CLAUDE.md 2·3·5장)
 // - AI 키는 Edge Function 비밀값에만 둔다(supabase secrets set). 화면 코드에 넣지 않는다.
 // - 요청 내용을 저장하거나 로그에 쓰지 않는다. 로그에는 상태 코드와 걸린 시간만.
-// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 출처 주소가 있는 것만(sanitizeResult).
+// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 웹 검색 결과에 실제로 나온 주소만(keepSearchedOnly).
 // - 결과는 검수 전 정보다. 화면은 O/X 없이 'AI 추천 · 조건 확인 필요'로만 보여 준다.
 //
 // 비밀값 (이름만. 값은 저장소에 넣지 않는다)
@@ -18,7 +18,9 @@
 
 import {
   buildPrompt,
+  collectSearchedUrls,
   extractJson,
+  keepSearchedOnly,
   sanitizeResult,
   validateRequest,
 } from '../_shared/navigatorProtocol.ts';
@@ -69,12 +71,14 @@ interface ContentBlock {
   text?: string;
 }
 
-async function callModel(system: string, user: string): Promise<string> {
+/** 모델 호출. 마지막 글과, 모든 차례에서 받은 블록(검색 결과 주소를 모으려고)을 돌려준다 */
+async function callModel(system: string, user: string): Promise<{ text: string; blocks: unknown[] }> {
   const key = env('ANTHROPIC_API_KEY');
   const model = env('AI_MODEL');
   const messages: { role: string; content: unknown }[] = [{ role: 'user', content: user }];
   const tool = { type: env('AI_WEB_SEARCH_TOOL', 'web_search_20250305'), name: 'web_search', max_uses: MAX_SEARCHES };
   let text = '';
+  const allBlocks: unknown[] = [];
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -89,6 +93,7 @@ async function callModel(system: string, user: string): Promise<string> {
     if (!res.ok) throw new Error(`model ${res.status}`);
     const data = (await res.json()) as { content?: ContentBlock[]; stop_reason?: string };
     const blocks = data.content ?? [];
+    allBlocks.push(...blocks);
     text = blocks
       .filter((b) => b.type === 'text' && typeof b.text === 'string')
       .map((b) => b.text)
@@ -97,7 +102,7 @@ async function callModel(system: string, user: string): Promise<string> {
     if (data.stop_reason !== 'pause_turn') break;
     messages.push({ role: 'assistant', content: blocks });
   }
-  return text;
+  return { text, blocks: allBlocks };
 }
 
 Deno.serve(async (req) => {
@@ -129,9 +134,11 @@ Deno.serve(async (req) => {
   const today = new Date().toISOString().slice(0, 10);
   const { system, user } = buildPrompt(checked.value, today);
   try {
-    const text = await callModel(system, user);
-    const items = sanitizeResult(extractJson(text));
-    console.log(`ai-navigator ok ${items.length} items ${Date.now() - started}ms`);
+    const { text, blocks } = await callModel(system, user);
+    const parsed = sanitizeResult(extractJson(text));
+    // 웹 검색 결과에 실제로 나온 주소만 남긴다(모델이 기억으로 쓴 주소는 버림)
+    const items = keepSearchedOnly(parsed, collectSearchedUrls(blocks));
+    console.log(`ai-navigator ok ${items.length}/${parsed.length} items ${Date.now() - started}ms`);
     return json({ items, searchedAt: new Date().toISOString() }, 200, origin);
   } catch (e) {
     // 오류 내용에 요청 값이 섞이지 않게 종류만 남긴다

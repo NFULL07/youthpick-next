@@ -168,6 +168,50 @@ function safeUrl(v: unknown): string | null {
   }
 }
 
+/** 주소 비교용 정리: 뒤쪽 # 조각과 끝의 / 를 뗀다. 주소가 아니면 null */
+export function normalizeUrl(v: string): string | null {
+  try {
+    const url = new URL(v.trim());
+    url.hash = '';
+    const s = url.toString();
+    return s.endsWith('/') ? s.slice(0, -1) : s;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 웹 검색으로 실제로 나온 주소 모음.
+ * - web_search_tool_result 블록의 검색 결과 주소
+ * - 글 블록의 인용(citations) 주소
+ * 모델이 기억으로 쓴 주소는 여기에 없다(게이트웨이 시험 2026-11-22: 검색 없이도 그럴듯한 주소를 씀).
+ */
+export function collectSearchedUrls(blocks: unknown[]): Set<string> {
+  const out = new Set<string>();
+  const add = (v: unknown) => {
+    const n = typeof v === 'string' ? normalizeUrl(v) : null;
+    if (n) out.add(n);
+  };
+  for (const block of blocks) {
+    if (!isRecord(block)) continue;
+    if (block.type === 'web_search_tool_result' && Array.isArray(block.content)) {
+      for (const r of block.content) if (isRecord(r)) add(r.url);
+    }
+    if (block.type === 'text' && Array.isArray(block.citations)) {
+      for (const c of block.citations) if (isRecord(c)) add(c.url);
+    }
+  }
+  return out;
+}
+
+/** 검색 결과에 실제로 나온 주소의 공고만 남긴다 */
+export function keepSearchedOnly(items: ExternalNotice[], searched: Set<string>): ExternalNotice[] {
+  return items.filter((item) => {
+    const n = normalizeUrl(item.url);
+    return n !== null && searched.has(n);
+  });
+}
+
 /** 모델 결과 정리: 정해진 칸만 남기고, 출처 주소가 없거나 https가 아니면 버린다 */
 export function sanitizeResult(raw: unknown): ExternalNotice[] {
   const items = isRecord(raw) && Array.isArray(raw.items) ? raw.items : [];

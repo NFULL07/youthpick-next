@@ -5,6 +5,8 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildPrompt,
+  collectSearchedUrls,
+  keepSearchedOnly,
   sanitizeResult,
   toAgeBand,
   validateRequest,
@@ -116,4 +118,25 @@ test('AI 내비게이터 코드는 저장소에 값을 남기지 않고, 키를 
   }
   const fn = readFileSync(new URL('../../../supabase/functions/ai-navigator/index.ts', import.meta.url), 'utf-8');
   assert.ok(!/console\.log\([^)]*(raw|body|checked|user|system)\b/.test(fn), '요청 값을 로그에 쓰지 않음');
+});
+
+test('검색 결과에 실제로 나온 주소만 남김 (모델이 기억으로 쓴 주소는 버림)', () => {
+  const blocks = [
+    { type: 'server_tool_use', name: 'web_search', input: { query: '천안 청년 장학금' } },
+    { type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://found.example.org/notice/1', title: 'A' }] },
+    { type: 'text', text: '...', citations: [{ type: 'web_search_result_location', url: 'https://cited.example.org/b#top' }] },
+    { type: 'text', text: '{"items":[]}' },
+  ];
+  const searched = collectSearchedUrls(blocks);
+  assert.ok(searched.has('https://found.example.org/notice/1'));
+  assert.ok(searched.has('https://cited.example.org/b'));
+  const base = { organizer: '', summary: '', whyMatched: [], checkConditions: [], period: '' };
+  const items = [
+    { ...base, title: '검색에 나온 공고', url: 'https://found.example.org/notice/1/' },
+    { ...base, title: '인용된 공고', url: 'https://cited.example.org/b' },
+    { ...base, title: '지어낸 공고', url: 'https://made-up.example.org/view?id=1' },
+  ];
+  assert.deepEqual(keepSearchedOnly(items, searched).map((i) => i.title), ['검색에 나온 공고', '인용된 공고']);
+  // 검색을 안 했으면(게이트웨이 시험처럼 text 블록만) 아무것도 남지 않음
+  assert.equal(keepSearchedOnly(items, collectSearchedUrls([{ type: 'text', text: '{}' }])).length, 0);
 });

@@ -32,7 +32,7 @@
 
 | 이름 | 값 |
 |---|---|
-| `ANTHROPIC_API_KEY` | 모두의 AI 실험실에서 받은 API 키 (채팅·저장소에 붙여 넣지 않는다) |
+| `ANTHROPIC_API_KEY` | Anthropic 콘솔에서 만든 키 (실험실 게이트웨이 키는 웹 검색이 안 돼서 쓰지 않음. 채팅·저장소에 붙여 넣지 않는다) |
 | `AI_MODEL` | `claude-opus-5-5` |
 | `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
 

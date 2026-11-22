@@ -11,8 +11,9 @@
   - ALLOWED_ORIGINS는 브라우저 응답 설정(CORS)에만 쓰인다. 다른 사이트의 브라우저 요청은 사전 확인(preflight)에서 막히지만, 브라우저가 아닌 곳(curl 등)에서 직접 부르는 요청은 막지 못한다
   - JWT 검사를 켜도 크게 나아지지 않는다: 공개 키는 배포된 화면 코드에 들어 있어 누구나 볼 수 있다
   - 그래서 **AI 키를 넣기 전에 Anthropic 콘솔에서 월 사용 한도를 반드시 건다.** 시연 뒤 계속 쓰면 로그인 사용자만 부르게 하거나 하루 전체 호출 수 제한을 둔다(VS Code 검토 의견, 2026-11-22)
-- 모델: `claude-opus-5-5` (주완 결정 2026-11-22. 모두의 AI 실험실 API 크레딧 100만원, 12월 회수 → 성능 우선. Opus 5.5는 입력 100만 토큰당 4달러, 출력 20달러로 Sonnet 5.5의 2배. Claude 문서 2026-11-22 확인). 웹 검색 도구를 받는지와 응답 시간(화면 대기 100초 안)은 첫 실제 호출로 확인. 느리면 `AI_MODEL`만 `claude-sonnet-5-5`로 바꾼다
-- 실험실 API 요청 주소가 api.anthropic.com이 아니면 함수에 주소 설정을 추가해야 한다(지금 코드는 api.anthropic.com 고정)
+- 모델: AI 공고 찾기는 웹 검색이 되는 **Anthropic API 키**로 부른다. 모델은 `AI_MODEL`로 정한다(`claude-opus-5-5` 또는 `claude-sonnet-5-5`, Claude 문서 2026-11-22: Opus 입력·출력 100만 토큰당 4·20달러, Sonnet 2·10달러)
+- 모두의 AI 실험실 게이트웨이(OpenAI 호환, 2026-11-22 VS Code 시험): chat/completions의 `web_search_options`, messages의 `web_search` 도구 모두 200을 주지만 검색 흔적(인용, `web_search_tool_result`)이 없고, 모델이 기억으로 쓴 그럴듯한 주소를 냈다 → AI 공고 찾기에는 쓰지 않는다. 검색이 필요 없는 배치 작업(정답셋 등)에 쓴다
+- 그래서 함수는 **웹 검색 결과(`web_search_tool_result`)와 인용(citations)에 실제로 나온 주소의 공고만** 화면에 보낸다(`keepSearchedOnly`). 검색을 안 했으면 결과는 0개
 - 비밀값은 Supabase 화면(Edge Functions > Secrets)에서 주완이 직접 넣는다: `ANTHROPIC_API_KEY`, `AI_MODEL`, `ALLOWED_ORIGINS`(배포 주소, 쉼표로 여러 개)
 - 아직 안 한 것: 실제 AI 호출(키 입력 후), 응답 JSON이 여러 글 조각으로 나뉘어 올 때 정리가 되는지 확인
 
