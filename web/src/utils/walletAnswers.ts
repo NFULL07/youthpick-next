@@ -263,6 +263,8 @@ export function walletAnswer(
     case 'enrollment_status':
       // 보기로 자세히 묻는 학적(학자금대출)은 보기에 맞춰 답한다
       if (choices.some((c) => c.startsWith('신입·편입·재입학·복학 예정'))) return loanEnrollChoice(f, choices);
+      // 예·아니오로 묻는 학적 증명서 질문(D4 졸업예정증명서, E4 재학·졸업증명서)은 질문별로 답한다
+      if (choices.includes('예') && choices.includes('아니오')) return yesNo(specialTarget(f, q));
       return f.enrollment;
     case 'employment_status':
       return f.employment;

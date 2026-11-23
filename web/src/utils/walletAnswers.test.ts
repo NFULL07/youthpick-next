@@ -106,7 +106,12 @@ test('지갑에 없는 사실이나 해석 못 한 질문은 답하지 않음(= 
       const answer = walletAnswer(empty, rule, rules);
       if (rule.fieldId === 'registered_move_in_date' || rule.fieldId === 'parent_registered_duration') {
         assert.ok(answer === undefined || answer.endsWith('주민등록 없음'));
-      } else if (rule.fieldId !== 'existing_support' && rule.fieldId !== 'special_target_status') {
+      } else if (
+        rule.fieldId !== 'existing_support' &&
+        rule.fieldId !== 'special_target_status' &&
+        // 예·아니오로 묻는 학적 증명서 질문(D4)은 '타지역 거주'를 '내 정보'의 주소로 판단해 아니오가 나올 수 있다
+        !(rule.fieldId === 'enrollment_status' && rule.choices?.includes('예'))
+      ) {
         assert.equal(answer, undefined, `${rule.fieldId}`);
       }
     }
@@ -296,6 +301,12 @@ test('사람 검수 v2-2(2026-11-23 이해찬): 수정 지시를 반영한 규�
   assert.equal(row(vary(c, { campusCity: '아산시' }, outside), 'E4', 'target_school'), 'O');
   assert.equal(row(vary(c, { campusCity: '천안시', highSchoolCity: '아산시', highSchoolEnrolled: true }, outside), 'E4', 'target_school'), 'X');
   assert.equal(row(vary(c, { campusCity: undefined }, outside), 'E4', 'target_school'), '?');
+  // D4·E4 증명서 질문은 '학적 상태' 항목(2026-11-24): 칸 이름·서류 안내만 바뀌고 판정은 같음
+  for (const [id, key] of [['D4', 'residence_school'], ['E4', 'target_school']] as const) {
+    const rule = RULES.get(id)!.find((r) => r.ruleKey === key)!;
+    assert.equal(rule.fieldId, 'enrollment_status');
+    assert.deepEqual(rule.choices, ['예', '아니오', '모름']);
+  }
   // E4 나이는 모두에게 적용(학교 경로 나이 예외 반려)
   assert.equal(row(vary(c, {}, { age: 41 }), 'E4', 'age'), 'X');
 
