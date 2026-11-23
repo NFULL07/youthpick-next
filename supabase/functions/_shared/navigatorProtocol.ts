@@ -12,7 +12,8 @@ export const NAVIGATOR_STATUSES = ['대학 재학', '휴학', '졸업', '구직 
 export const NAVIGATOR_INTERESTS = ['일자리', '주거', '교육·직업훈련', '금융·복지·문화', '참여·기반'] as const;
 export const AGE_BANDS = ['15~19세', '20~24세', '25~29세', '30~34세', '35~39세', '40세 이상'] as const;
 export const MAX_QUERY_LENGTH = 100;
-export const MAX_RESULTS = 5;
+/** 화면에 보일 최대 공고 수. 3개로 줄여 응답 시간을 줄였다(2026-11-22 게이트웨이 측정) */
+export const MAX_RESULTS = 3;
 
 export interface NavigatorRequest {
   /** 주민등록 시·도 또는 '시·도 시·군' (예: '충청남도 천안시') */
@@ -115,7 +116,7 @@ export function buildPrompt(req: NavigatorRequest, today: string): { system: str
     '너는 천안·아산 생활권 청년의 지원 공고 탐색을 돕는 조사원이다.',
     '목표: 온통청년(youthcenter.go.kr)에 올라오는 정부·지자체 정책이 아닌 외부 공고(민간 재단, 기업, 대학, 공공기관 사업, 비영리단체의 장학금·지원금·교육·대외활동)를 웹 검색으로 찾는다.',
     '규칙:',
-    '1. 실제로 열어 본 공고 페이지만 쓴다. 주소(url)는 그 공고를 설명하는 페이지여야 한다. 지어낸 공고·주소·기간·금액을 쓰지 않는다.',
+    '1. 실제로 열어 본 공고 페이지만 쓴다. 주소(url)는 그 공고를 설명하는 페이지여야 하고, 검색 결과에서 연 주소를 줄이거나 바꾸지 말고 그대로 적는다. 지어낸 공고·주소·기간·금액을 쓰지 않는다.',
     '2. 정부·지자체 누리집(.go.kr) 공고와 온통청년에 있는 정책은 넣지 않는다.',
     `3. 오늘(${today}) 기준 접수 중이거나 접수 예정인 공고를 우선한다. 기간을 모르면 period를 빈 문자열로 둔다.`,
     '4. 자격이 된다고 단정하지 않는다. whyMatched에는 보낸 정보와 맞아 보이는 점만, checkConditions에는 신청 전에 공고에서 확인할 조건(나이, 거주, 학적, 소득, 성적, 중복 수혜 등)을 적는다.',
@@ -156,16 +157,86 @@ function cleanList(v: unknown, maxItems: number, maxLen: number): string[] {
   return Array.isArray(v) ? v.map((x) => cleanText(x, maxLen)).filter(Boolean).slice(0, maxItems) : [];
 }
 
+/** 검색 도구가 붙이는 추적용 값(utm_source=openai 등)을 뗀다 */
+function dropTracking(url: URL): URL {
+  for (const k of [...url.searchParams.keys()]) if (k.toLowerCase().startsWith('utm_')) url.searchParams.delete(k);
+  return url;
+}
+
 function safeUrl(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   try {
-    const url = new URL(v.trim());
+    const url = dropTracking(new URL(v.trim()));
     if (url.protocol !== 'https:') return null;
     if (url.hostname.endsWith('.go.kr') || url.hostname === 'go.kr') return null; // 정부 공고는 규칙 판정 쪽에서 다룬다
     return url.toString();
   } catch {
     return null;
   }
+}
+
+/**
+ * 주소 비교용 정리(같은 페이지를 다르게 적은 경우만 같게 본다):
+ * 추적용 값(utm_*), 뒤쪽 # 조각, 끝의 / 를 떼고, 앞의 www. 를 떼고, 쿼리 값 순서를 맞춘다. 주소가 아니면 null
+ */
+export function normalizeUrl(v: string): string | null {
+  try {
+    const url = dropTracking(new URL(v.trim()));
+    url.hash = '';
+    url.hostname = url.hostname.replace(/^www\./, '');
+    url.searchParams.sort();
+    const s = url.toString();
+    return s.endsWith('/') ? s.slice(0, -1) : s;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 웹 검색으로 실제로 나온 주소 모음.
+ * - web_search_tool_result 블록의 검색 결과 주소
+ * - 글 블록의 인용(citations) 주소
+ * 모델이 기억으로 쓴 주소는 여기에 없다(게이트웨이 시험 2026-11-22: 검색 없이도 그럴듯한 주소를 씀).
+ */
+export function collectSearchedUrls(blocks: unknown[]): Set<string> {
+  const out = new Set<string>();
+  const add = (v: unknown) => {
+    const n = typeof v === 'string' ? normalizeUrl(v) : null;
+    if (n) out.add(n);
+  };
+  for (const block of blocks) {
+    if (!isRecord(block)) continue;
+    if (block.type === 'web_search_tool_result' && Array.isArray(block.content)) {
+      for (const r of block.content) if (isRecord(r)) add(r.url);
+    }
+    if (block.type === 'text' && Array.isArray(block.citations)) {
+      for (const c of block.citations) if (isRecord(c)) add(c.url);
+    }
+  }
+  return out;
+}
+
+/**
+ * OpenAI 형식(chat/completions + web_search_options) 응답의 인용 주소 모음.
+ * message.annotations 의 { type: 'url_citation', url_citation: { url } }
+ */
+export function collectCitedUrls(annotations: unknown[]): Set<string> {
+  const out = new Set<string>();
+  for (const a of annotations) {
+    if (!isRecord(a) || a.type !== 'url_citation') continue;
+    const inner = isRecord(a.url_citation) ? a.url_citation.url : a.url;
+    const n = typeof inner === 'string' ? normalizeUrl(inner) : null;
+    if (n) out.add(n);
+  }
+  return out;
+}
+
+/** 검색 결과에 실제로 나온 주소의 공고만 남긴다 */
+export function keepSearchedOnly(items: ExternalNotice[], searched: Set<string>): ExternalNotice[] {
+  return items.filter((item) => {
+    const n = normalizeUrl(item.url);
+    return n !== null && searched.has(n);
+  });
 }
 
 /** 모델 결과 정리: 정해진 칸만 남기고, 출처 주소가 없거나 https가 아니면 버린다 */

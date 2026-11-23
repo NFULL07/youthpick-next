@@ -6,19 +6,25 @@
 // 지키는 것 (CLAUDE.md 2·3·5장)
 // - AI 키는 Edge Function 비밀값에만 둔다(supabase secrets set). 화면 코드에 넣지 않는다.
 // - 요청 내용을 저장하거나 로그에 쓰지 않는다. 로그에는 상태 코드와 걸린 시간만.
-// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 출처 주소가 있는 것만(sanitizeResult).
+// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 웹 검색 결과에 실제로 나온 주소만(keepSearchedOnly).
 // - 결과는 검수 전 정보다. 화면은 O/X 없이 'AI 추천 · 조건 확인 필요'로만 보여 준다.
 //
 // 비밀값 (이름만. 값은 저장소에 넣지 않는다)
-//   ANTHROPIC_API_KEY   AI 키 (없으면 503으로 '키 연결 전' 응답)
-//   AI_MODEL            모델 이름 (키를 받을 때 정한다. 없으면 503)
-//   AI_WEB_SEARCH_TOOL  웹 검색 도구 버전 (기본 web_search_20250305)
+//   AI_PROVIDER         'anthropic'(기본: Anthropic messages + web_search 도구)
+//                       'openai'(OpenAI 호환 chat/completions + web_search_options. 예: 모두의 AI 실험실 게이트웨이)
+//   AI_API_KEY          AI 키 (없으면 ANTHROPIC_API_KEY를 읽음. 둘 다 없으면 503으로 '키 연결 전' 응답)
+//   AI_API_URL          openai일 때 base URL (예: https://.../v1). anthropic이면 쓰지 않음
+//   AI_MODEL            모델 이름 (없으면 503)
+//   AI_WEB_SEARCH_TOOL  anthropic 웹 검색 도구 버전 (기본 web_search_20250305)
 //   AI_API_VERSION      anthropic-version 헤더 (기본 2023-06-01)
 //   ALLOWED_ORIGINS     화면 주소 목록, 쉼표로 구분 (기본 http://localhost:3000)
 
 import {
   buildPrompt,
+  collectCitedUrls,
+  collectSearchedUrls,
   extractJson,
+  keepSearchedOnly,
   sanitizeResult,
   validateRequest,
 } from '../_shared/navigatorProtocol.ts';
@@ -26,7 +32,8 @@ import {
 const MAX_BODY_BYTES = 2048;
 const MAX_SEARCHES = 5;
 const MAX_TURNS = 3;
-const TIMEOUT_MS = 90_000;
+/** 모델 응답 시간 제한. Edge Function 요청 한도(무료 플랜 150초) 안에서 여유를 둔다 */
+const TIMEOUT_MS = 140_000;
 /** 같은 함수 인스턴스 안에서 주소(IP)별로 1분에 몇 번까지 받을지 (간단한 남용 막기) */
 const PER_MINUTE = 5;
 const recent = new Map<string, number[]>();
@@ -69,12 +76,53 @@ interface ContentBlock {
   text?: string;
 }
 
-async function callModel(system: string, user: string): Promise<string> {
-  const key = env('ANTHROPIC_API_KEY');
+/** 모델의 답 글과, 웹 검색으로 실제로 나온 주소 모음 */
+interface ModelResult {
+  text: string;
+  searched: Set<string>;
+}
+
+function apiKey(): string {
+  return env('AI_API_KEY') || env('ANTHROPIC_API_KEY');
+}
+
+/** OpenAI 호환 chat/completions + web_search_options. 인용(url_citation) 주소만 검색 결과로 본다 */
+async function callOpenAICompatible(system: string, user: string): Promise<ModelResult> {
+  const base = env('AI_API_URL').replace(/\/+$/, '');
+  if (!base) throw new Error('AI_API_URL missing');
+  const res = await fetch(`${base}/chat/completions`, {
+    method: 'POST',
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+    headers: { authorization: `Bearer ${apiKey()}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: env('AI_MODEL'),
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+      web_search_options: {},
+      // 2026-11-22 게이트웨이 측정(gpt-6.1-sol, 1회씩): 기본 27.5초, reasoning_effort low 19.8초로 가장 빠름
+      reasoning_effort: 'low',
+      max_tokens: 1500,
+    }),
+  });
+  if (!res.ok) throw new Error(`model ${res.status}`);
+  const data = (await res.json()) as { choices?: { message?: { content?: unknown; annotations?: unknown } }[] };
+  const message = data.choices?.[0]?.message ?? {};
+  return {
+    text: typeof message.content === 'string' ? message.content : '',
+    searched: collectCitedUrls(Array.isArray(message.annotations) ? message.annotations : []),
+  };
+}
+
+/** Anthropic messages + web_search 도구. 모든 차례의 블록에서 검색 결과·인용 주소를 모은다 */
+async function callAnthropic(system: string, user: string): Promise<ModelResult> {
+  const key = apiKey();
   const model = env('AI_MODEL');
   const messages: { role: string; content: unknown }[] = [{ role: 'user', content: user }];
   const tool = { type: env('AI_WEB_SEARCH_TOOL', 'web_search_20250305'), name: 'web_search', max_uses: MAX_SEARCHES };
   let text = '';
+  const allBlocks: unknown[] = [];
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -89,6 +137,7 @@ async function callModel(system: string, user: string): Promise<string> {
     if (!res.ok) throw new Error(`model ${res.status}`);
     const data = (await res.json()) as { content?: ContentBlock[]; stop_reason?: string };
     const blocks = data.content ?? [];
+    allBlocks.push(...blocks);
     text = blocks
       .filter((b) => b.type === 'text' && typeof b.text === 'string')
       .map((b) => b.text)
@@ -97,7 +146,7 @@ async function callModel(system: string, user: string): Promise<string> {
     if (data.stop_reason !== 'pause_turn') break;
     messages.push({ role: 'assistant', content: blocks });
   }
-  return text;
+  return { text, searched: collectSearchedUrls(allBlocks) };
 }
 
 Deno.serve(async (req) => {
@@ -122,16 +171,19 @@ Deno.serve(async (req) => {
   const checked = validateRequest(body);
   if (!checked.ok) return json({ error: checked.error }, 400, origin);
 
-  if (!env('ANTHROPIC_API_KEY') || !env('AI_MODEL')) {
+  if (!apiKey() || !env('AI_MODEL')) {
     return json({ error: 'AI 키가 아직 연결되지 않았어요.', items: [] }, 503, origin);
   }
 
   const today = new Date().toISOString().slice(0, 10);
   const { system, user } = buildPrompt(checked.value, today);
   try {
-    const text = await callModel(system, user);
-    const items = sanitizeResult(extractJson(text));
-    console.log(`ai-navigator ok ${items.length} items ${Date.now() - started}ms`);
+    const call = env('AI_PROVIDER', 'anthropic') === 'openai' ? callOpenAICompatible : callAnthropic;
+    const { text, searched } = await call(system, user);
+    const parsed = sanitizeResult(extractJson(text));
+    // 웹 검색 결과에 실제로 나온 주소만 남긴다(모델이 기억으로 쓴 주소는 버림)
+    const items = keepSearchedOnly(parsed, searched);
+    console.log(`ai-navigator ok ${items.length}/${parsed.length} items ${Date.now() - started}ms`);
     return json({ items, searchedAt: new Date().toISOString() }, 200, origin);
   } catch (e) {
     // 오류 내용에 요청 값이 섞이지 않게 종류만 남긴다

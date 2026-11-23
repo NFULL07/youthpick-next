@@ -5,6 +5,9 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildPrompt,
+  collectCitedUrls,
+  collectSearchedUrls,
+  keepSearchedOnly,
   sanitizeResult,
   toAgeBand,
   validateRequest,
@@ -49,7 +52,7 @@ test('나이는 5세 단위 나이대로만, 지역은 시·군까지만 보냄'
   }
 });
 
-test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 5개, 정해진 칸만', () => {
+test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 3개, 정해진 칸만', () => {
   const items = sanitizeResult({
     items: [
       { title: 'A', url: 'https://example.org/a', organizer: 'o', summary: 's', whyMatched: ['x'], checkConditions: ['y'], period: '', secret: 'z' },
@@ -60,7 +63,7 @@ test('결과 정리: https 출처만, 정부(.go.kr) 제외, 최대 5개, 정해
       ...Array.from({ length: 8 }, (_, i) => ({ title: `F${i}`, url: `https://example.org/f${i}` })),
     ],
   });
-  assert.equal(items.length, 5);
+  assert.equal(items.length, 3);
   assert.equal(items[0].url, 'https://example.org/a');
   assert.ok(!('secret' in items[0]));
   assert.ok(items.every((i) => i.url.startsWith('https://') && !i.url.includes('.go.kr')));
@@ -118,4 +121,51 @@ test('AI 내비게이터 코드는 저장소에 값을 남기지 않고, 키를 
   }
   const fn = readFileSync(new URL('../../../supabase/functions/ai-navigator/index.ts', import.meta.url), 'utf-8');
   assert.ok(!/console\.log\([^)]*(raw|body|checked|user|system)\b/.test(fn), '요청 값을 로그에 쓰지 않음');
+});
+
+test('검색 결과에 실제로 나온 주소만 남김 (모델이 기억으로 쓴 주소는 버림)', () => {
+  const blocks = [
+    { type: 'server_tool_use', name: 'web_search', input: { query: '천안 청년 장학금' } },
+    { type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://found.example.org/notice/1', title: 'A' }] },
+    { type: 'text', text: '...', citations: [{ type: 'web_search_result_location', url: 'https://cited.example.org/b#top' }] },
+    { type: 'text', text: '{"items":[]}' },
+  ];
+  const searched = collectSearchedUrls(blocks);
+  assert.ok(searched.has('https://found.example.org/notice/1'));
+  assert.ok(searched.has('https://cited.example.org/b'));
+  const base = { organizer: '', summary: '', whyMatched: [], checkConditions: [], period: '' };
+  const items = [
+    { ...base, title: '검색에 나온 공고', url: 'https://found.example.org/notice/1/' },
+    { ...base, title: '인용된 공고', url: 'https://cited.example.org/b' },
+    { ...base, title: '지어낸 공고', url: 'https://made-up.example.org/view?id=1' },
+  ];
+  assert.deepEqual(keepSearchedOnly(items, searched).map((i) => i.title), ['검색에 나온 공고', '인용된 공고']);
+  // 검색을 안 했으면(게이트웨이 시험처럼 text 블록만) 아무것도 남지 않음
+  assert.equal(keepSearchedOnly(items, collectSearchedUrls([{ type: 'text', text: '{}' }])).length, 0);
+});
+
+test('OpenAI 형식 인용(url_citation) 주소만 남기고, 추적용 utm 값은 떼서 비교·표시', () => {
+  const annotations = [
+    { type: 'url_citation', url_citation: { url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40&utm_source=openai', title: 'A' } },
+    { type: 'file_citation', file_id: 'x' },
+  ];
+  const cited = collectCitedUrls(annotations);
+  assert.deepEqual([...cited], ['https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40']);
+  const items = sanitizeResult({ items: [
+    { title: '인용된 공고', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40&utm_source=openai' },
+    { title: '지어낸 공고', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=41' },
+  ] });
+  assert.equal(items[0].url, 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40', '표시 주소에서 utm 값을 뗌');
+  assert.deepEqual(keepSearchedOnly(items, cited).map((i) => i.title), ['인용된 공고']);
+  assert.equal(collectCitedUrls([]).size, 0);
+});
+
+test('주소 비교: www·쿼리 순서·끝 / 만 다른 같은 페이지는 같게 보고, 다른 글 번호는 다르게 봄', () => {
+  const cited = collectCitedUrls([{ type: 'url_citation', url_citation: { url: 'https://www.cayf.example.org/bbs/board.php?wr_id=40&bo_table=notice' } }]);
+  const base = { organizer: '', summary: '', whyMatched: [], checkConditions: [], period: '' };
+  const items = [
+    { ...base, title: '같은 글', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=40' },
+    { ...base, title: '다른 글', url: 'https://cayf.example.org/bbs/board.php?bo_table=notice&wr_id=41' },
+  ];
+  assert.deepEqual(keepSearchedOnly(items, cited).map((i) => i.title), ['같은 글']);
 });
