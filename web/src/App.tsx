@@ -15,6 +15,7 @@ import { PoliciesExplorePage } from './pages/PoliciesExplorePage';
 import { PolicyDetailPage } from './pages/PolicyDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { WalletPage } from './pages/WalletPage';
+import { PrivacyNotice } from './components/PrivacyNotice';
 import { PolicyItem, RouteId, UserProfile, WalletDocument } from './types/policy';
 import {
   sanitizeProfile,
@@ -482,6 +483,7 @@ export default function App() {
             <span className="ml-2">내 다음을, 가볍게 픽.</span>
           </div>
           <span className="font-mono-num tracking-wider">A NEXT:UP PROJECT</span>
+          <PrivacyNotice />
         </footer>
       </main>
       </VirtualWalletContext.Provider>

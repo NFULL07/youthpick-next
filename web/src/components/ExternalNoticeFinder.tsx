@@ -9,6 +9,7 @@ import {
   type NavigatorResult,
 } from '../ai/navigatorClient';
 import { MAX_QUERY_LENGTH } from '../../../supabase/functions/_shared/navigatorProtocol.ts';
+import { AI_COMPANY } from './PrivacyNotice';
 
 export const EXTERNAL_NOTICE_BADGE = 'AI 추천 · 조건 확인 필요';
 
@@ -58,7 +59,9 @@ export const ExternalNoticeFinder: React.FC<{ profile: UserProfile }> = ({ profi
       </div>
 
       <div className="rounded-xl border border-[#262A27]/20 bg-[#F7F5EE] p-3">
-        <p className="text-[12px] font-bold text-[#1F2421]">AI에 보내는 정보 (이것만 보내요)</p>
+        <p className="text-[12px] font-bold text-[#1F2421]">
+          {mode === 'live' ? 'AI에 보내는 정보 (이것만 보내요)' : 'AI 검색을 켜면 보내는 정보'}
+        </p>
         {preview.ok ? (
           <ul className="mt-1 space-y-0.5 text-[12px] font-semibold text-[#333333]">
             {describeRequest(preview.value).map((line) => (
@@ -69,7 +72,9 @@ export const ExternalNoticeFinder: React.FC<{ profile: UserProfile }> = ({ profi
           <p className="mt-1 text-[12px] font-semibold text-[#A33A1E]">{preview.error}</p>
         )}
         <p className="mt-1.5 text-[11px] font-medium text-[#4A4D49]">
-          정확한 나이, 학교 이름, 성적·소득 같은 직접 입력 값은 보내지 않아요. 결과와 질문은 저장하지 않아요.
+          {mode === 'live'
+            ? `위 정보만 Supabase(서버 함수)를 거쳐 ${AI_COMPANY}(AI)으로 보내 공고를 찾아요. 정확한 나이, 학교 이름, 성적·소득 같은 직접 입력 값은 보내지 않고, 결과와 질문은 저장하지 않아요. 자세한 내용은 맨 아래 '개인정보 처리 안내'에 있어요.`
+            : '지금은 예시 응답만 보여 줘요. 어떤 정보도 AI로 보내지 않아요.'}
         </p>
       </div>
 

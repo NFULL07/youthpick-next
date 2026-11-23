@@ -100,7 +100,9 @@ test('실제 호출은 Edge Function 주소로, 공개 키는 apikey 헤더로, 
 
 test('외부 공고 화면: 보내는 정보를 보여 주고 O/X 판정 표시는 없음', () => {
   const html = renderToStaticMarkup(createElement(ExternalNoticeFinder, { profile: { ...DEFAULT_USER_PROFILE, age: 23 } }));
-  assert.ok(html.includes('AI에 보내는 정보'));
+  // 시험 환경은 예시 모드: 켜면 보낼 정보를 보여 주되, 지금은 아무것도 보내지 않는다고 적는다
+  assert.ok(html.includes('AI 검색을 켜면 보내는 정보'));
+  assert.ok(html.includes('어떤 정보도 AI로 보내지 않아요'));
   assert.ok(html.includes('키 연결 전'));
   assert.ok(html.includes('20~24세'));
   assert.ok(!html.includes('충족 가능') && !html.includes('조건 불일치'));
