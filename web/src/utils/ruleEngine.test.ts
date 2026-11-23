@@ -305,3 +305,18 @@ test('특화 대상 질문은 질문 문구마다 입력 칸이 따로, 같은 �
   });
   assert.deepEqual(rows.map((r) => r.outcome.result), ['O', 'O', 'X']);
 });
+
+test('보기로 따로 묻는 학적은 내 정보의 학적 대신 직접 입력으로 판정', () => {
+  const detailed = rule({
+    fieldId: 'enrollment_status', operator: 'in', value: ['재학 중', '복학 예정'], label: '재학생·복학 예정자',
+    question: '학적은 어떤가요?', choices: ['재학 중', '복학 예정', '휴학 중', '모름'], failReason: '학적이 맞지 않아요.',
+  });
+  const plain = rule({ fieldId: 'enrollment_status', operator: 'in', value: ['재학'], label: '재학생', failReason: '학적이 맞지 않아요.', sortOrder: 2 });
+  assert.notEqual(inputKeyOf(detailed), 'enrollment_status');
+  assert.equal(inputKeyOf(plain), 'enrollment_status');
+  const profile = profileToInputs({ ...DEFAULT_USER_PROFILE, status: '대학 재학' });
+  const rows = evaluateRuleRows([detailed, plain], profile);
+  assert.deepEqual(rows.map((r) => r.outcome.result), ['?', 'O']);
+  const answered = evaluateRuleRows([detailed], { ...profile, [inputKeyOf(detailed)]: { kind: 'text', value: '휴학 중' } });
+  assert.equal(answered[0].outcome.result, 'X');
+});

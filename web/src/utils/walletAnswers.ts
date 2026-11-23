@@ -247,6 +247,8 @@ export function walletAnswer(
       return durationChoice(table[place], place);
     }
     case 'enrollment_status':
+      // 보기로 자세히 묻는 학적(학자금대출)은 보기에 맞춰 답한다
+      if (choices.some((c) => c.startsWith('신입·편입·재입학·복학 예정'))) return loanEnrollChoice(f, choices);
       return f.enrollment;
     case 'employment_status':
       return f.employment;

@@ -129,16 +129,20 @@ def build_rules(rows: list[dict], notice_policy: dict[str, str], fields: dict[st
             unknown = [c for c in value if c not in REGION_CODES]
             if unknown:
                 errors.append(f"{where}: region 표에 없는 지역 코드 {unknown}")
-        elif field_id in FIELD_VOCAB and operator in ("eq", "in", "not_in"):
-            used = value if isinstance(value, list) else [value]
-            bad = [v for v in used if v not in FIELD_VOCAB[field_id]]
-            if bad:
-                errors.append(f"{where}: {field_id} 값 {bad}는 쓸 수 없음. 가능한 값: {sorted(FIELD_VOCAB[field_id])}")
 
         choices = _json(r.get("선택지(JSON)"), where, errors)
         if choices is not None and not (isinstance(choices, list) and all(isinstance(c, str) for c in choices)):
             errors.append(f"{where}: 선택지는 문자열 배열이어야 함")
             choices = None
+
+        if field_id in FIELD_VOCAB and operator in ("eq", "in", "not_in") and _value_shape_ok(operator, value):
+            # '내 정보'에서 오는 값이면 정해진 값 이름만. 학적처럼 공고가 보기로 따로 묻는 규칙은
+            # 화면이 그 보기로 따로 입력받으므로(web inputKeyOf) 값이 보기 안에 있어야 한다
+            used = value if isinstance(value, list) else [value]
+            allowed = set(choices) if field_id == "enrollment_status" and choices else FIELD_VOCAB[field_id]
+            bad = [v for v in used if v not in allowed]
+            if bad:
+                errors.append(f"{where}: {field_id} 값 {bad}는 쓸 수 없음. 가능한 값: {sorted(allowed)}")
 
         status = STATUS.get((r.get("검수 상태") or "초안").strip())
         origin = ORIGIN.get((r.get("작성") or "직접").strip())

@@ -222,6 +222,17 @@ class RuleTableTest(unittest.TestCase):
         _, errors = rt.build_rules([rule_row(), rule_row()], notice_policy_map(), field_classes())
         self.assertTrue(any("두 번" in e for e in errors))
 
+    def test_enrollment_with_choices(self):
+        # 학적을 보기로 따로 묻는 규칙은 값이 보기 안에 있으면 된다(내 정보 값 이름이 아니어도)
+        ok = rule_row(**{"항목ID": "enrollment_status", "연산자": "in", "값(JSON)": '["재학 중", "복학 예정"]',
+                         "선택지(JSON)": '["재학 중", "복학 예정", "휴학", "모름"]'})
+        _, errors = rt.build_rules([ok], notice_policy_map(), field_classes())
+        self.assertEqual(errors, [])
+        bad = rule_row(**{"항목ID": "enrollment_status", "연산자": "in", "값(JSON)": '["재학"]',
+                          "선택지(JSON)": '["재학 중", "모름"]'})
+        _, errors = rt.build_rules([bad], notice_policy_map(), field_classes())
+        self.assertTrue(any("쓸 수 없음" in e for e in errors))
+
     def test_relationship_rules(self):
         base = {h: "" for h in rt.RELATION_HEADERS}
         base.update({"공고키 A": C3, "공고키 B": C1, "관계": "병행 가능", "검수 상태": "검수 완료",
