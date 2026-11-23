@@ -230,7 +230,7 @@ test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () =
 
 test('반려한 행은 시험용 판정에도 쓰지 않음', () => {
   const rejected = csv.filter((r) => r['검수 상태'] === '반려').map((r) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`);
-  assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment', 'E4.age_school']);
+  assert.deepEqual(rejected.sort(), ['A3.age', 'C3.existing_support', 'C4.age', 'C4.same_household', 'D3.age', 'D3.employment', 'D5.employment', 'E4.age_school']);
   assert.ok(!(RULES.get('D3') ?? []).some((r) => r.ruleKey === 'employment'));
 });
 
@@ -271,12 +271,32 @@ test('사람 검수 v2-1(2026-11-22 안준모): 수정 지시를 반영한 규�
   assert.equal(row(b, 'C2', 'existing_support'), '?', '전세대출 이용 중, 임차중도금 예외 여부 모름');
 });
 
-test('검수 완료 행은 v2-1(안준모) 5개 정책과 v2-2(이해찬) 9개 정책', () => {
+const V3_BY = 'Claude(원문 대조)·김주완 확정';
+
+test('검수 완료 행: v2-1(안준모) 5개, v2-2(이해찬) 9개, v3(Claude 원문 대조·주완 확정) 8개 정책', () => {
   const done = csv.filter((r) => r['검수 상태'] === '검수 완료');
   const by = (name: string) => new Set(done.filter((r) => r['검수자'] === name).map((r) => r['공고키'].split(':')[0]));
   assert.deepEqual([...by('안준모')].sort(), ['A1', 'A4', 'B3', 'C1', 'C2']);
   assert.deepEqual([...by('이해찬')].sort(), ['D4', 'E1', 'E3', 'E4', 'E5', 'F1', 'F2', 'G1', 'H1']);
-  assert.ok(done.every((r) => ['안준모', '이해찬'].includes(r['검수자']) && r['근거 원문 인용'] && r['근거 URL'] && r['검수일']));
+  assert.deepEqual([...by(V3_BY)].sort(), ['A2', 'B5', 'C3', 'D1', 'D2', 'D3', 'D5', 'G2']);
+  assert.ok(done.every((r) => ['안준모', '이해찬', V3_BY].includes(r['검수자']) && r['근거 원문 인용'] && r['근거 URL'] && r['검수일']));
+  // 확정 못 한 정책은 초안 그대로(근거가 2025 이전뿐, 원문을 못 엶, 규칙 구조를 먼저 고쳐야 함)
+  for (const id of ['A3', 'B1', 'B2', 'B4', 'C4', 'E2']) {
+    assert.ok(!done.some((r) => r['공고키'].startsWith(id + ':')), id);
+  }
+});
+
+test('v3 수정: D1 주 30시간 미만 근로자도 참여, D3 졸업 시점·참여 대학은 질문으로', () => {
+  const b = findPersona('persona-b')!;
+  const a = findPersona('persona-a')!;
+  const row = (p: WalletFacts, id: string, key: string) =>
+    verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
+  // D1: 재직 중이어도 주 30시간 미만이면 O, 36시간이면 X
+  assert.equal(row(vary(b, { weeklyHours: 20 }), 'D1', 'employment'), 'O');
+  assert.equal(row(vary(b, { weeklyHours: 40 }), 'D1', 'employment'), 'X');
+  // D3: 졸업 시점·참여 대학은 지갑이 몰라 ?(충남 대학이라는 이유만으로 O가 아님)
+  assert.equal(row(a, 'D3', 'campus'), '?');
+  assert.equal(row(a, 'D3', 'enrollment'), '?');
 });
 
 test('사람 검수 v2-2(2026-11-23 이해찬): 수정 지시를 반영한 규칙', () => {
