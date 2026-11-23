@@ -107,8 +107,26 @@ test('외부 공고 화면: 보내는 정보를 보여 주고 O/X 판정 표시�
   assert.ok(EXTERNAL_NOTICE_BADGE.includes('조건 확인 필요'));
 });
 
+test('외부 공고 화면: 바깥 상태로 받은 질문과 결과를 그대로 보여 줌(서랍을 닫았다 열어도 남음)', () => {
+  const state = {
+    query: 'IT 대외활동',
+    loading: false,
+    error: null,
+    result: {
+      mode: 'live' as const,
+      items: [{ title: '시험용 공고', organizer: '시험 기관', url: 'https://example.org/a', summary: '', whyMatched: [], checkConditions: [], period: '' }],
+    },
+  };
+  const html = renderToStaticMarkup(
+    createElement(ExternalNoticeFinder, { profile: { ...DEFAULT_USER_PROFILE, age: 23 }, state, onStateChange: () => {} })
+  );
+  assert.ok(html.includes('value="IT 대외활동"'));
+  assert.ok(html.includes('시험용 공고'));
+  assert.ok(html.includes('https://example.org/a'));
+});
+
 test('AI 내비게이터 코드는 저장소에 값을 남기지 않고, 키를 화면 코드에 두지 않음', () => {
-  for (const file of ['./navigatorClient.ts', '../components/ExternalNoticeFinder.tsx', '../../../supabase/functions/_shared/navigatorProtocol.ts', '../../../supabase/functions/ai-navigator/index.ts']) {
+  for (const file of ['./navigatorClient.ts', '../components/ExternalNoticeFinder.tsx', '../components/AiSherpaDrawer.tsx', '../../../supabase/functions/_shared/navigatorProtocol.ts', '../../../supabase/functions/ai-navigator/index.ts']) {
     const src = readFileSync(new URL(file, import.meta.url), 'utf-8');
     for (const banned of ['localStorage', 'sessionStorage', 'indexedDB', 'VITE_ANTHROPIC', 'sk-ant-']) {
       assert.ok(!src.includes(banned), `${file}: ${banned}`);
