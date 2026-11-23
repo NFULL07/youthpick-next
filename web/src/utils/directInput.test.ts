@@ -116,7 +116,7 @@ test('정해 둔 입력 방식이 있는 항목도 규칙의 질문을 보여줌
     sourceQuote: null, sourceLocator: null, sourceTitle: null, sourceUrl: null,
   };
   const item: RuleInputItem = {
-    number: 0, label: '기존 지원', fieldId: 'existing_support', storage: '공고별 일시 입력', docsLabel: '',
+    number: 0, label: '기존 지원', fieldId: 'existing_support', inputKey: 'existing_support', storage: '공고별 일시 입력', docsLabel: '',
     issuer: '', checkMethod: '', checkContent: '', caution: '', docIds: [], rules: [rule], docs: [], regionNames: {},
   };
   const spec = getInputSpec(item);

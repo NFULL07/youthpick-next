@@ -5,13 +5,14 @@ import {
   type RecruitmentStatus,
 } from '../types/policy';
 import { PROFILE_SUPPLIED_FIELDS } from '../utils/ruleEngine';
-import type {
-  ApiHint,
-  EligibilityRule,
-  PolicyRelation,
-  RelationKind,
-  RuleInputItem,
-  RuleOperator,
+import {
+  inputKeyOf,
+  type ApiHint,
+  type EligibilityRule,
+  type PolicyRelation,
+  type RelationKind,
+  type RuleInputItem,
+  type RuleOperator,
 } from '../utils/ruleTypes';
 import type {
   CatalogRows,
@@ -171,12 +172,15 @@ function buildInputItems(
   documents: Map<string, DocumentCatalogRow>,
   regionNames: Record<string, string>
 ): RuleInputItem[] {
-  const byField = new Map<string, EligibilityRule[]>();
+  // 입력 칸마다 규칙을 모은다(보통 항목ID별, 특화 대상은 질문별 · inputKeyOf)
+  const byKey = new Map<string, EligibilityRule[]>();
   for (const rule of rules) {
     if (PROFILE_SUPPLIED_FIELDS.includes(rule.fieldId)) continue;
-    byField.set(rule.fieldId, [...(byField.get(rule.fieldId) ?? []), rule]);
+    const key = inputKeyOf(rule);
+    byKey.set(key, [...(byKey.get(key) ?? []), rule]);
   }
-  return Array.from(byField.entries()).map(([fieldId, fieldRules]) => {
+  return Array.from(byKey.entries()).map(([inputKey, fieldRules]) => {
+    const fieldId = fieldRules[0].fieldId;
     const known = DIRECT_INPUT_ITEMS.find((item) => item.fieldId === fieldId);
     const field = fields.get(fieldId);
     const docIds = known?.docIds ?? field?.document_ids ?? [];
@@ -196,7 +200,7 @@ function buildInputItems(
       caution: field?.caution ?? '공고 원문의 기준을 확인해 주세요.',
       docIds,
     };
-    return { ...base, rules: fieldRules, docs, regionNames };
+    return { ...base, inputKey, rules: fieldRules, docs, regionNames };
   });
 }
 
