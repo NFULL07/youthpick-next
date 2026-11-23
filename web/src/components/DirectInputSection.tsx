@@ -8,6 +8,7 @@ import {
   getDirectInputResult,
   getDocsForItem,
   getInputSpec,
+  inputKeyOfItem,
 } from '../utils/directInput';
 
 interface DirectInputSectionProps {
@@ -66,10 +67,11 @@ export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy, 
       )}
 
       <ul className="mt-5 space-y-4">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <DirectInputRow
-            key={item.fieldId}
+            key={inputKeyOfItem(item)}
             policyId={policy.id}
+            index={index}
             item={item}
             values={values}
             onChange={setValue}
@@ -82,6 +84,8 @@ export const DirectInputSection: React.FC<DirectInputSectionProps> = ({ policy, 
 
 interface DirectInputRowProps {
   policyId: string;
+  /** 같은 항목ID가 두 칸 이상일 수 있어(특화 대상 질문별) 화면 id에 순번을 붙인다 */
+  index: number;
   item: DirectInputItem;
   values: Record<string, string>;
   onChange: (key: string, value: string) => void;
@@ -89,20 +93,22 @@ interface DirectInputRowProps {
 
 const DirectInputRow: React.FC<DirectInputRowProps> = ({
   policyId,
+  index,
   item,
   values,
   onChange,
 }) => {
   const spec = getInputSpec(item);
-  const inputId = `direct-${policyId}-${item.fieldId}`;
+  const key = inputKeyOfItem(item);
+  const inputId = `direct-${policyId}-${item.fieldId}-${index}`;
   const docs = getDocsForItem(item);
 
   const combinedValue =
     spec?.kind === 'monthRange'
-      ? [values[`${item.fieldId}.start`], values[`${item.fieldId}.end`]]
+      ? [values[`${key}.start`], values[`${key}.end`]]
           .filter(Boolean)
           .join(' ~ ')
-      : values[item.fieldId];
+      : values[key];
   const { result, label } = getDirectInputResult(combinedValue, item);
 
   return (
@@ -126,8 +132,8 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
         {spec?.kind === 'select' && (
           <select
             id={inputId}
-            value={values[item.fieldId] ?? ''}
-            onChange={(e) => onChange(item.fieldId, e.target.value)}
+            value={values[key] ?? ''}
+            onChange={(e) => onChange(key, e.target.value)}
             className="w-full rounded-xl border-[1.5px] border-[#262A27] bg-white px-3 py-2.5 text-[15px] text-[#1F2421] sm:max-w-sm"
           >
             <option value="">선택하세요</option>
@@ -146,10 +152,10 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
               type="text"
               inputMode="numeric"
               autoComplete="off"
-              value={values[item.fieldId] ?? ''}
+              value={values[key] ?? ''}
               onChange={(e) => {
                 const raw = e.target.value.replace(/[^\d]/g, '');
-                onChange(item.fieldId, raw);
+                onChange(key, raw);
               }}
               className="min-w-0 flex-1 bg-transparent text-[15px] text-[#1F2421] tabular-nums focus:outline-none"
             />
@@ -165,16 +171,16 @@ const DirectInputRow: React.FC<DirectInputRowProps> = ({
               id={inputId}
               type="month"
               aria-label={`${item.label} 시작 연월`}
-              value={values[`${item.fieldId}.start`] ?? ''}
-              onChange={(e) => onChange(`${item.fieldId}.start`, e.target.value)}
+              value={values[`${key}.start`] ?? ''}
+              onChange={(e) => onChange(`${key}.start`, e.target.value)}
               className="rounded-xl border-[1.5px] border-[#262A27] bg-white px-3 py-2 text-[15px]"
             />
             <span aria-hidden="true">~</span>
             <input
               type="month"
               aria-label={`${item.label} 종료 연월`}
-              value={values[`${item.fieldId}.end`] ?? ''}
-              onChange={(e) => onChange(`${item.fieldId}.end`, e.target.value)}
+              value={values[`${key}.end`] ?? ''}
+              onChange={(e) => onChange(`${key}.end`, e.target.value)}
               className="rounded-xl border-[1.5px] border-[#262A27] bg-white px-3 py-2 text-[15px]"
             />
           </div>

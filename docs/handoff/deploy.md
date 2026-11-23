@@ -7,7 +7,7 @@
 1. `feature/crosscheck-fixes` PR을 main에 병합 (PR #14 포함)
 2. 원격 DB 적재: `python pipeline/load_supabase.py --raw data_raw/policies_all.json --collected-on 2026-11-09 --prune`
    - `--prune`은 CSV에 없는 규칙(11/20에 넣은 API 초안 28행 가운데 지금 CSV에 없는 행)을 지운다
-   - 끝나면 규칙 153행(검수 완료 0)이라 화면의 O/X는 아직 안 나온다. 사람 검수 반영 뒤 다시 적재한다
+   - 끝나면 규칙 160행(검수 완료 43, 2026-11-23). 검수 완료 5개 정책(A1 A4 B3 C1 C2)만 화면에 O/X가 나온다
 
 ## 1. Cloudflare (Worker 프로젝트 `youthpick-next`, 대시보드)
 
