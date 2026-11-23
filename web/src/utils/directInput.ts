@@ -42,13 +42,14 @@ export function getDocsForItem(item: DirectInputItem): RequirementDoc[] {
  * 직접 입력 칸의 입력 방식. 정해 둔 방식이 없으면 규칙에서 만든다.
  * 정해 둔 방식(보기·단위)을 쓰더라도 규칙의 질문은 보여 준다.
  * 예: '기존 지원'은 정책마다 묻는 사업이 달라 질문이 없으면 무엇에 답하는지 알 수 없다.
+ * 규칙에 보기가 있으면 규칙의 보기를 쓴다(공고마다 나눠 묻는 기준이 달라서. 예: 등록금 대출 / 생활비 대출만).
  */
 export function getInputSpec(item: DirectInputItem): DirectInputSpec | undefined {
   const known = DIRECT_INPUT_SPECS[item.fieldId];
   if (!isRuleItem(item)) {
     return known;
   }
-  if (!known) {
+  if (!known || item.rules.some((rule) => rule.choices && rule.choices.length > 0)) {
     return inputSpecForRules(item.rules, item.regionNames);
   }
   const question = [...item.rules]

@@ -67,8 +67,9 @@ test('가상 지갑의 답은 규칙의 보기(또는 정해 둔 보기) 안에�
       for (const rule of rules) {
         const answer = walletAnswer(persona, rule, rules);
         if (answer === undefined) continue;
+        // 화면과 같은 순서: 규칙에 보기가 있으면 규칙 보기, 없으면 정해 둔 보기
         const fixed = DIRECT_INPUT_SPECS[rule.fieldId];
-        const options = fixed?.kind === 'select' ? fixed.options : rule.choices;
+        const options = rule.choices && rule.choices.length > 0 ? rule.choices : fixed?.kind === 'select' ? fixed.options : null;
         if (options && options.length > 0) {
           assert.ok(options.includes(answer), `${persona.id} ${policyId}.${rule.ruleKey}: '${answer}'`);
         }
@@ -188,7 +189,8 @@ test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () =
   assert.equal(row(vary(c, { householdHead: '세대원', shareHouse: true }), 'C2', 'head'), 'O');
   // C2 성년 세대원 가운데 기금대출 이용자가 있으면 X
   assert.equal(row(vary(c, { householdFundLoan: true }), 'C2', 'fund_household'), 'X');
-  assert.equal(row(b, 'C2', 'fund_household'), 'X', '버팀목 이용 중');
+  // 버팀목 이용 중: 임차중도금 중복 허용 예외(HF 보증·다른 물건지)에 해당하는지 지갑이 몰라 ?
+  assert.equal(row(b, 'C2', 'fund_household'), '?', '버팀목 이용 중, 예외 여부 모름');
   // C2 병역 연장은 중소·중견기업 재직자 등만: 창업 지원 여부를 모르면 ?
   assert.equal(row(vary(c, { militaryMonths: 21 }, { age: 37 }), 'C2', 'age'), 'X', '1년 빼도 만 36세');
   assert.equal(row(vary(c, { militaryMonths: 36 }, { age: 37 }), 'C2', 'age'), '?');
@@ -224,4 +226,47 @@ test('반려한 행은 시험용 판정에도 쓰지 않음', () => {
   const rejected = csv.filter((r) => r['검수 상태'] === '반려').map((r) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`);
   assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment']);
   assert.ok(!(RULES.get('D3') ?? []).some((r) => r.ruleKey === 'employment'));
+});
+
+test('사람 검수 v2-1(2026-11-22 안준모): 수정 지시를 반영한 규칙', () => {
+  const a = findPersona('persona-a')!;
+  const b = findPersona('persona-b')!;
+  const c = findPersona('persona-c')!;
+  const row = (p: WalletFacts, id: string, key: string) =>
+    verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
+
+  // A1 대학원생은 만 40세까지, 학부생은 선취업 후진학자 등만 만 45세까지
+  assert.equal(row(vary(a, { enrollment: '대학원' }, { age: 38 }), 'A1', 'age'), 'O');
+  assert.equal(row(vary(a, { enrollment: '대학원' }, { age: 41 }), 'A1', 'age'), 'X');
+  assert.equal(row(vary(a, { enrollment: '재학' }, { age: 38 }), 'A1', 'age'), 'X');
+  assert.equal(row(vary(a, { enrollment: '재학', specialGroups: ['선취업 후진학자'] }, { age: 44 }), 'A1', 'age'), 'O');
+  // A1 휴학생은 복학 예정 여부를 몰라 ?(일괄 X가 아님), 졸업생은 X
+  assert.equal(row(vary(a, { enrollment: '휴학' }), 'A1', 'enrollment'), '?');
+  assert.equal(row(vary(a, { enrollment: '졸업' }), 'A1', 'enrollment'), 'X');
+  assert.equal(row(a, 'A1', 'enrollment'), 'O');
+
+  // A4 등록금 대출이 없으면 X
+  assert.equal(row(vary(a, { studentLoan: '없음' }), 'A4', 'loan'), 'X');
+  assert.equal(row(a, 'A4', 'loan'), 'O');
+
+  // B3 휴학·졸업은 X, 재학·졸업예정은 O
+  assert.equal(row(a, 'B3', 'enrollment'), 'O');
+  assert.equal(row(vary(a, { enrollment: '휴학' }), 'B3', 'enrollment'), 'X');
+
+  // C2 쉐어하우스 여부와 공공임대 거주는 따로 묻는다
+  assert.equal(row(vary(c, { householdHead: '세대원', shareHouse: true }), 'C2', 'head'), 'O');
+  assert.equal(row(vary(c, { shareHouse: true, areaM2: 100 }), 'C2', 'area'), 'O');
+  assert.equal(row(vary(c, { rental: '공공임대주택 거주' }), 'C2', 'public_rental'), '?');
+  assert.equal(row(c, 'C2', 'public_rental'), 'O');
+  // C2 집이 있으면 X
+  assert.equal(row(vary(c, { homeOwner: true }), 'C2', 'home'), 'X');
+  // C2 전세대출을 안 쓰면 임차중도금 예외와 무관하게 기존 대출 행 O
+  assert.equal(row(c, 'C2', 'existing_support'), 'O');
+  assert.equal(row(b, 'C2', 'existing_support'), '?', '전세대출 이용 중, 임차중도금 예외 여부 모름');
+});
+
+test('검수 완료 행은 v2-1의 5개 정책(A1 A4 B3 C1 C2)뿐', () => {
+  const reviewed = new Set(csv.filter((r) => r['검수 상태'] === '검수 완료').map((r) => r['공고키'].split(':')[0]));
+  assert.deepEqual([...reviewed].sort(), ['A1', 'A4', 'B3', 'C1', 'C2']);
+  assert.ok(csv.filter((r) => r['검수 상태'] === '검수 완료').every((r) => r['검수자'] === '안준모' && r['근거 원문 인용']));
 });

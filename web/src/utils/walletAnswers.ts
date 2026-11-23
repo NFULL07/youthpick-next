@@ -70,6 +70,13 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
     return f.employment === '미취업' ? true : undefined;
   }
   if (q.includes('한시 특별지원을 24개월')) return hadSupport(f, '한시 특별지원 24개월');
+  if (q.includes('채권양도협약기관 소유 쉐어하우스')) return f.shareHouse;
+  if (q.includes('임차중도금')) {
+    // 주택도시기금 임차중도금 중복 허용 예외: 본인이 전세대출을 쓰지 않으면 예외에 해당할 일이 없다(아니오).
+    // 쓰고 있으면 HF 보증 여부·다른 물건지 임차중도금 여부를 지갑이 몰라 답하지 않는다
+    if (f.housingLoan === undefined) return undefined;
+    return f.housingLoan === '없음' ? false : undefined;
+  }
   if (q.includes('재능키움')) return hadSupport(f, '재능키움', '충남평생교육진흥원');
   if (q.includes('종합소득이 6,300만원')) {
     // 총급여·연매출 경로가 안 될 때의 길. 비과세 육아휴직급여·병 급여가 있으면 예, 소득이 아예 없으면 아니오
@@ -107,6 +114,32 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
     return f.canMoveTo === undefined ? false : f.canMoveTo.includes(city ?? '');
   }
   return undefined;
+}
+
+/** 학자금대출 연령 예외 보기(대학원 만 40세 / 선취업 후진학자 등 만 45세). 만 35세 이하는 나이 행으로 충족 */
+function loanAgeChoice(f: WalletFacts, choices: string[]): string | undefined {
+  const none = choices.find((c) => c === '위에 해당 없음');
+  if (f.profile.age <= 35) return none;
+  if (f.enrollment === undefined) return undefined;
+  if (f.enrollment === '대학원') return f.profile.age <= 40 ? choices.find((c) => c.startsWith('대학원생')) : none;
+  if (f.specialGroups === undefined) return undefined;
+  return f.specialGroups.includes('선취업 후진학자') && f.profile.age <= 45
+    ? choices.find((c) => c.startsWith('만 36~45세 학부생'))
+    : none;
+}
+
+/** 학자금대출 학적 보기. 휴학생의 복학 예정, 졸업유예의 졸업요건 충족 여부는 지갑이 몰라 답하지 않는다 */
+function loanEnrollChoice(f: WalletFacts, choices: string[]): string | undefined {
+  switch (f.enrollment) {
+    case '재학':
+    case '졸업예정':
+    case '대학원':
+      return choices.find((c) => c.startsWith('재학 중'));
+    case '졸업':
+      return choices.find((c) => c.startsWith('학생 아님'));
+    default:
+      return undefined;
+  }
 }
 
 /** 아산 청년내일카드 참여 대상 기업 보기 (회사 규모·형태와 상시근로자 수로 고른다) */
@@ -199,9 +232,15 @@ export function walletAnswer(
       return value?.toString();
     }
     case 'academic_year': {
+      if (q.includes('1차는 2~4학년')) {
+        // 재능키움: 공고일 현재 대학교 재학생(1차 2~4학년, 2차 1학년). 휴학·수료·졸업유예·졸업·대학원은 아니오
+        if (f.enrollment === undefined) return undefined;
+        return yesNo(f.enrollment === '재학' || f.enrollment === '졸업예정');
+      }
       // 질문: 졸업학년이거나 소속 대학 최소 이수학점 이상인가. 대학별 최소 학점은 지갑이 모르므로 졸업학년일 때만 답한다
       if (!q.includes('졸업학년')) return undefined;
       if (q.includes('장애인') && f.specialGroups?.includes('장애')) return YES;
+      if (q.includes('대학원생') && f.enrollment === '대학원') return YES;
       const finalYear = f.enrollment === '졸업예정' || (f.yearsToGraduation !== undefined && f.yearsToGraduation <= 1);
       return finalYear ? YES : undefined;
     }
@@ -222,6 +261,11 @@ export function walletAnswer(
     case 'aid_band_value':
       return f.aidBand === undefined ? undefined : `${f.aidBand}구간`;
     case 'student_loan_status':
+      if (choices.includes('등록금 대출 있음(생활비 대출 동시 보유 포함)')) {
+        // 아산 이자 지원: 등록금 대출 / 생활비 대출만 / 없음. 지갑의 대출 종류는 등록금 대출 기준
+        if (f.studentLoan === undefined) return undefined;
+        return f.studentLoan === '없음' ? '해당 없음' : '등록금 대출 있음(생활비 대출 동시 보유 포함)';
+      }
       return f.studentLoan;
     case 'health_insurance_type':
       return q.includes('당시') ? f.healthInsuranceAtExam : f.healthInsurance;
@@ -248,16 +292,16 @@ export function walletAnswer(
     case 'independent_residence':
       return yesNo(f.independent);
     case 'homeownership_status':
-      return f.homeOwner === undefined ? undefined : f.homeOwner ? '주택 소유(분양권·입주권 포함)' : '무주택';
+      if (f.homeOwner === undefined) return undefined;
+      if (choices.includes('세대원 전원 무주택')) return f.homeOwner ? '주택 소유자 있음' : '세대원 전원 무주택';
+      return f.homeOwner ? '주택 소유(분양권·입주권 포함)' : '무주택';
     case 'household_head_status':
       return f.householdHead;
     case 'rental_situation': {
-      const share = choices.find((c) => c.includes('쉐어하우스'));
-      if (share) {
-        // 주택도시기금: 대출받아 들어갈 집(쉐어하우스 여부)과 지금 공공임대주택 거주 여부를 한 질문으로 묻는다
-        if (f.shareHouse === true) return share;
-        if (f.rental === undefined || f.shareHouse === undefined || f.rental === '공공임대주택 거주') return undefined;
-        return choices.find((c) => c.startsWith('일반 주택 임차'));
+      if (choices.includes('공공임대주택에 입주 중이 아님')) {
+        // 주택도시기금: 공공임대 거주 여부와 예외(그 집이 목적물·퇴거). 공공임대 거주자의 예외는 지갑이 몰라 답하지 않는다
+        if (f.rental === undefined) return undefined;
+        return f.rental === '공공임대주택 거주' ? undefined : '공공임대주택에 입주 중이 아님';
       }
       if (!f.rental) return undefined;
       if (f.rental === '공공임대주택 거주') return choices.find((c) => c.startsWith('공공임대')) ?? undefined;
@@ -319,6 +363,8 @@ export function walletAnswer(
       return '아니오';
     case 'special_target_status':
       // 보기로 묻는 질문(아산 청년내일카드 참여 대상 기업)과 예·아니오 질문
+      if (choices.some((c) => c.startsWith('대학원생(전문기술석사 포함)'))) return loanAgeChoice(f, choices);
+      if (choices.some((c) => c.startsWith('신입·편입·재입학·복학 예정'))) return loanEnrollChoice(f, choices);
       if (choices.length > 0) return employerChoice(f, choices);
       return yesNo(specialTarget(f, q));
     default:
