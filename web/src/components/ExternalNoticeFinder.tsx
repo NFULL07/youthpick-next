@@ -13,30 +13,49 @@ import { AI_COMPANY } from './PrivacyNotice';
 
 export const EXTERNAL_NOTICE_BADGE = 'AI 추천 · 조건 확인 필요';
 
+/** 질문·결과 상태. 화면 메모리에만 둔다(브라우저 저장소에 쓰지 않음, 새로고침하면 지워짐) */
+export interface ExternalSearchState {
+  query: string;
+  loading: boolean;
+  result: NavigatorResult | null;
+  error: string | null;
+}
+
+export const EMPTY_EXTERNAL_SEARCH: ExternalSearchState = { query: '', loading: false, result: null, error: null };
+
+interface ExternalNoticeFinderProps {
+  profile: UserProfile;
+  /**
+   * 바깥(AI 내비게이터 서랍)이 상태를 들고 있으면 넘긴다. 서랍을 닫거나 다른 화면에 다녀오거나 탭을 바꿔
+   * 이 화면이 사라져도 질문과 결과가 남는다. 없으면 이 화면 안에서만 들고 있는다.
+   */
+  state?: ExternalSearchState;
+  onStateChange?: React.Dispatch<React.SetStateAction<ExternalSearchState>>;
+}
+
 /**
  * 외부 공고 찾기 (AI). 온통청년 밖의 민간·재단·기업·대학 공고를 AI가 웹에서 찾는다.
  * 결과는 검수 전 정보라 O/X로 판정하지 않고 '?'로만 보여 준다. 결과와 질문은 저장하지 않는다.
  */
-export const ExternalNoticeFinder: React.FC<{ profile: UserProfile }> = ({ profile }) => {
-  const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<NavigatorResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export const ExternalNoticeFinder: React.FC<ExternalNoticeFinderProps> = ({ profile, state, onStateChange }) => {
+  const [ownState, setOwnState] = useState<ExternalSearchState>(EMPTY_EXTERNAL_SEARCH);
+  const current = state ?? ownState;
+  const update = onStateChange ?? setOwnState;
+  const { query, loading, result, error } = current;
+  const setQuery = (next: string) => update((s) => ({ ...s, query: next }));
   const mode = getNavigatorMode();
   const preview = buildNavigatorRequest(profile, query);
 
   const handleSearch = async () => {
     const req = buildNavigatorRequest(profile, query);
     if (!req.ok) {
-      setError(req.error);
+      update((s) => ({ ...s, error: req.error }));
       return;
     }
-    setError(null);
-    setLoading(true);
+    update((s) => ({ ...s, error: null, loading: true }));
+    // 기다리는 동안 서랍을 닫아도 결과는 바깥 상태에 들어간다
     const next = await searchExternalNotices(req.value);
-    setResult(next);
-    setError(next.error ?? null);
-    setLoading(false);
+    update((s) => ({ ...s, result: next, error: next.error ?? null, loading: false }));
   };
 
   return (

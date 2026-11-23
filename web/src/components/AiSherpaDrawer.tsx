@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowUpRight, Compass, RotateCcw, Send, X } from 'lucide-react';
 import { PolicyItem, RouteId, UserProfile } from '../types/policy';
-import { ExternalNoticeFinder } from './ExternalNoticeFinder';
+import { EMPTY_EXTERNAL_SEARCH, ExternalNoticeFinder, type ExternalSearchState } from './ExternalNoticeFinder';
 import {
   SherpaMessage,
   generateDeterministicSherpaReply,
@@ -43,6 +43,8 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
   const [inputValue, setInputValue] = useState('');
   // 'guide': 규칙형 안내(외부 호출 없음) / 'external': 외부 공고 찾기(AI)
   const [tab, setTab] = useState<'guide' | 'external'>('guide');
+  // 외부 공고 찾기의 질문·결과. 서랍은 늘 붙어 있으므로 여기 두면 서랍을 닫거나 다른 화면에 다녀와도 남는다(메모리만, 새로고침하면 지워짐)
+  const [externalSearch, setExternalSearch] = useState<ExternalSearchState>(EMPTY_EXTERNAL_SEARCH);
 
   const suggestedPrompts = getSuggestedPrompts(route);
 
@@ -139,7 +141,7 @@ export const AiSherpaDrawer: React.FC<AiSherpaDrawerProps> = ({
 
           {tab === 'external' && (
             <div className="flex-1 overflow-y-auto px-4 py-3">
-              <ExternalNoticeFinder profile={profile} />
+              <ExternalNoticeFinder profile={profile} state={externalSearch} onStateChange={setExternalSearch} />
             </div>
           )}
 
