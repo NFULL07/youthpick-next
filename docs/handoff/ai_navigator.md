@@ -25,8 +25,8 @@
   - Anthropic 형식: `web_search_tool_result` 결과와 `citations` 주소
   - OpenAI 형식: `message.annotations`의 `url_citation` 주소. 검색 도구가 붙이는 `utm_*` 값은 떼고 비교·표시
 - 공급사 두 가지를 비밀값 `AI_PROVIDER`로 고른다(코드는 같음)
-  - `openai`: OpenAI 호환 chat/completions + `web_search_options`. **모두의 AI 실험실 게이트웨이 + `gpt-6.1-sol`** (주완 결정 2026-11-22: 실험실 크레딧만 쓰기)
-  - `anthropic`(기본): Anthropic messages + `web_search` 도구. 개인 Anthropic 키가 있을 때
+  - `openai`: OpenAI 호환 chat/completions + `web_search_options`. 모두의 AI 실험실 게이트웨이 + `gpt-6.1-sol`(11-22 결정이었으나 Supabase에서 연결되지 않아 노트북 시험용으로만 씀)
+  - `anthropic`(기본): Anthropic messages + `web_search` 도구. **배포는 이쪽, 개인 Anthropic 키**(주완 결정 2026-11-23)
 - 실험실 게이트웨이 시험(VS Code, 2026-11-22, 모델 31개)
   - `gpt-6.1-sol` + `web_search_options`: 200, `url_citation` 있음(주소 끝에 `utm_source=openai`) → 실제 웹 검색
   - `claude-opus-5-5` + `web_search_options` 또는 messages `web_search` 도구: 200이지만 검색 흔적 없음, 모델이 기억으로 쓴 주소를 냄

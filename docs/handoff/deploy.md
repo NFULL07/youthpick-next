@@ -30,19 +30,20 @@
 
 ## 2. Supabase 비밀값 (대시보드: Edge Functions > Secrets)
 
-실험실 크레딧으로 쓸 때 (주완 결정 2026-11-22)
+배포: 개인 Anthropic 키 (주완 결정 2026-11-23. 화면의 개인정보 안내도 받는 곳을 Anthropic으로 적는다)
 
 | 이름 | 값 |
 |---|---|
-| `AI_PROVIDER` | `openai` |
-| `AI_API_URL` | `https://gateway.aitestbed.kr/v1` |
-| `AI_API_KEY` | 실험실 팀 공유 키 (채팅·저장소에 붙여 넣지 않는다) |
-| `AI_MODEL` | `gpt-6.1-sol` (이 게이트웨이에서 웹 검색이 되는 모델. Claude·Gemini는 검색이 안 됨) |
+| `AI_PROVIDER` | `anthropic` |
+| `AI_API_KEY` | 개인 Anthropic 키 (채팅·저장소에 붙여 넣지 않는다) |
+| `AI_MODEL` | `claude-sonnet-5-5` |
 | `ALLOWED_ORIGINS` | `https://<배포 주소>,http://localhost:3000` (끝에 / 없이) |
+| `AI_API_URL` | **지운다** (게이트웨이 주소. anthropic이면 쓰지 않음) |
 
-개인 Anthropic 키로 쓸 때: `AI_PROVIDER`를 빼거나 `anthropic`, `AI_API_KEY`(또는 `ANTHROPIC_API_KEY`) = Anthropic 키, `AI_MODEL` = `claude-sonnet-5-5` 또는 `claude-opus-5-5`, `AI_API_URL`은 쓰지 않음
+- 실험실 게이트웨이(`AI_PROVIDER=openai`, `AI_API_URL=https://gateway.aitestbed.kr/v1`, `AI_MODEL=gpt-6.1-sol`)는 Supabase 서버에서 연결되지 않아(2026-11-23 진단, `ai_navigator.md`) 배포에 쓰지 않는다. 노트북 개발·시험용으로만 둔다
+- 공급사를 바꾸면 `web/src/components/PrivacyNotice.tsx`의 `AI_COMPANY`도 같이 바꾼다(화면 문구의 받는 곳)
 
-- **AI 키를 넣기 전에** 사용 한도를 먼저 정한다(실험실 크레딧은 크레딧 자체가 상한, Anthropic 키는 콘솔 월 한도). 팀 공유 키라 남이 부르면 팀 크레딧이 줄어든다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
+- **AI 키를 넣기 전에** Anthropic 콘솔에서 월 사용 한도를 먼저 정한다(크레딧을 넣은 만큼이 상한). 함수 주소를 누가 부르든 이 키의 비용이 나간다. 함수 주소는 누구나 부를 수 있고(JWT 검사 꺼짐), ALLOWED_ORIGINS는 브라우저 밖의 요청을 막지 못한다. 함수 안의 제한은 주소(IP)별 분당 5회뿐
 
 ## 3. 확인
 
