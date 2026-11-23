@@ -120,16 +120,31 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
   }
   if (q.includes('공무원')) return f.publicServant;
   if (q.includes('중소·중견')) return f.employerSize === undefined ? undefined : ['중소', '중견', '사회적기업 등'].includes(f.employerSize);
-  if (q.includes('졸업예정자(4학년 2학기')) {
+  if (q.includes('졸업예정증명서를 발급')) {
+    // 천안형 채용연계 타지역 거주자 경로(사람 검수 v2-2: 4학년 2학기 재학이 아니라 졸업예정증명서로 판단).
+    // 지갑의 학적 '졸업예정'은 졸업예정증명서에서 읽은 사실이다
     const city = q.match(/([가-힣]+시) 관내 대학/)?.[1];
-    if (f.enrollment === undefined) return undefined;
     // '타지역에 거주하면서'를 묻는 질문이면 그 시에 사는 사람은 아니오
     if (q.includes('타지역에 거주') && city && f.profile.residence.includes(city)) return false;
-    return f.enrollment === '졸업예정' && f.campusCity === city;
+    if (f.enrollment === undefined) return undefined;
+    if (f.enrollment !== '졸업예정') return false;
+    return f.campusCity === undefined ? undefined : f.campusCity === city;
   }
   if (q.includes('대학이나 고등학교에 다니고')) {
     const city = q.match(/([가-힣]+시)에 있는/)?.[1];
     return (enrolledNow(f) && f.campusCity === city) || (f.highSchoolEnrolled === true && f.highSchoolCity === city);
+  }
+  if (q.includes('캠퍼스 대학(교)의 재학증명서')) {
+    // 아산 정장 대여 학교 경로(사람 검수 v2-2: 증명서로 판단). 대학은 재학·졸업, 고등학교는 졸업만.
+    // 휴학생은 재학증명서가 나오는지 몰라 답하지 않는다
+    const city = q.match(/([가-힣]+시) 관내 캠퍼스/)?.[1];
+    if (!city) return undefined;
+    const campus =
+      f.campusCity === undefined ? undefined : f.campusCity !== city ? false : f.enrollment === '휴학' ? undefined : true;
+    const high =
+      f.highSchoolCity === undefined ? undefined : f.highSchoolCity === city && f.highSchoolEnrolled !== true;
+    if (campus || high) return true;
+    return campus === false && high === false ? false : undefined;
   }
   if (q.includes('나이 제한이 없다고 확인')) {
     // 아산 정장 대여 학교 경로의 나이: 학교 경로가 아니면 아니오, 학교 경로면 운영기관 확인 여부를 몰라 답하지 않는다
@@ -195,16 +210,15 @@ function graduationChoice(f: WalletFacts, choices: string[]): string | undefined
     if (f.graduatedYearsAgo > 2) return '졸업 후 2년 초과';
     return f.employment === '미취업' ? '졸업 후 2년 이내 · 미취업' : '졸업 후 2년 이내 · 취업';
   }
-  if (choices.includes('졸업까지 2년 미만 남음')) {
-    // 고등학생은 학년을 몰라 답하지 않는다(고등학교 1~2학년은 제외 대상)
-    if (choices.includes('고등학교 1~2학년') && f.highSchoolEnrolled) return undefined;
+  if (choices.includes('대학·대학원 졸업까지 2년 미만')) {
+    // 국민내일배움카드 학생 제외(사람 검수 v2-2 보기). 고등학생은 학년을 몰라 답하지 않는다(고등학교 1~2학년은 제외 대상)
+    if (f.highSchoolEnrolled) return undefined;
     if (f.enrollment === undefined) return undefined;
-    if (!enrolledNow(f) || f.enrollment === '휴학') {
-      if (f.enrollment === '휴학') return f.yearsToGraduation === undefined ? undefined : f.yearsToGraduation < 2 ? '졸업까지 2년 미만 남음' : '졸업까지 2년 이상 남음';
-      return '재학생 아님(졸업·수료·미진학 등)';
-    }
+    if (f.enrollment === '졸업') return '학생 아님';
+    // 수료·졸업유예는 남은 수업연한이 없어 '2년 미만'(통과 보기)
+    if (f.enrollment === '수료·졸업유예') return '대학·대학원 졸업까지 2년 미만';
     if (f.yearsToGraduation === undefined) return undefined;
-    return f.yearsToGraduation < 2 ? '졸업까지 2년 미만 남음' : '졸업까지 2년 이상 남음';
+    return f.yearsToGraduation < 2 ? '대학·대학원 졸업까지 2년 미만' : '대학·대학원 졸업까지 2년 이상';
   }
   return undefined;
 }
@@ -313,6 +327,8 @@ export function walletAnswer(
     case 'welfare_status':
       return f.welfare;
     case 'household_income_amount': {
+      // 맞벌이 2인 가구(본인·배우자 2인, 둘 다 소득 확인) 여부는 지갑에 가구 구성 사실이 없어 답하지 않는다
+      if (q.includes('맞벌이')) return undefined;
       const pcts = percentsIn(q);
       if (pcts.length === 0 || f.householdMedianPct === undefined) return undefined;
       if (q.includes('원가구') && pcts.length >= 2) {
@@ -385,6 +401,12 @@ export function walletAnswer(
     case 'weekly_work_hours':
       return f.weeklyHours?.toString();
     case 'personal_income_amount': {
+      if (rule.operator === 'is_true') {
+        // 청년내일저축계좌(사람 검수 v2-2): "현재 일해서 버는 소득이 월 10만 원 이상인가요?"
+        const man = Number(q.match(/월 ([\d,]+)만 원 이상/)?.[1]?.replace(/,/g, ''));
+        if (!Number.isFinite(man) || f.monthlyIncomeWon === undefined) return undefined;
+        return yesNo(f.monthlyIncomeWon >= man * 10000);
+      }
       const monthly = q.includes('한 달') || q.includes('월평균');
       return (monthly ? f.monthlyIncomeWon : f.annualIncomeWon)?.toString();
     }
