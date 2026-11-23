@@ -67,10 +67,13 @@ export interface ApiHint {
  * '특화 대상 해당 여부'는 한 정책에 서로 다른 질문이 여러 개 있을 수 있어(예: 쉐어하우스 여부, 예외 대상 여부)
  * 질문 문구마다 칸을 따로 둔다. 질문이 같으면 같은 칸을 쓴다(같은 답을 여러 묶음에서 씀).
  */
-export function inputKeyOf(rule: Pick<EligibilityRule, 'fieldId' | 'question'>): string {
-  return rule.fieldId === 'special_target_status' && rule.question
-    ? `${rule.fieldId}::${rule.question}`
-    : rule.fieldId;
+export function inputKeyOf(rule: Pick<EligibilityRule, 'fieldId' | 'question' | 'choices'>): string {
+  if (rule.fieldId === 'special_target_status' && rule.question) return `${rule.fieldId}::${rule.question}`;
+  // 학적은 보통 '내 정보'에서 오지만, 공고가 보기로 자세히 묻는 경우(예: 복학 예정, 졸업유예)는 직접 입력으로 따로 받는다
+  if (rule.fieldId === 'enrollment_status' && rule.choices && rule.choices.length > 0) {
+    return `${rule.fieldId}::${rule.question ?? ''}`;
+  }
+  return rule.fieldId;
 }
 
 /** 직접 입력 항목에 규칙을 붙인 것. 입력값은 화면 메모리에서만 쓴다 */

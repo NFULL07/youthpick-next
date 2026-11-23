@@ -175,8 +175,9 @@ function buildInputItems(
   // 입력 칸마다 규칙을 모은다(보통 항목ID별, 특화 대상은 질문별 · inputKeyOf)
   const byKey = new Map<string, EligibilityRule[]>();
   for (const rule of rules) {
-    if (PROFILE_SUPPLIED_FIELDS.includes(rule.fieldId)) continue;
     const key = inputKeyOf(rule);
+    // '내 정보'로 채우는 항목은 직접 입력에 넣지 않는다(보기로 따로 묻는 학적은 예외 · inputKeyOf)
+    if (PROFILE_SUPPLIED_FIELDS.includes(rule.fieldId) && key === rule.fieldId) continue;
     byKey.set(key, [...(byKey.get(key) ?? []), rule]);
   }
   return Array.from(byKey.entries()).map(([inputKey, fieldRules]) => {
