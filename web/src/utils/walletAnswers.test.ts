@@ -163,10 +163,10 @@ test('팀 결정(2026-11-21): 예외 조건이 X·O를 틀리게 만들지 않�
   assert.equal(verdict(vary(b, { birthYear: 1986 }, { age: 40 }), 'C3').result, 'O');
   assert.equal(verdict(vary(b, { birthYear: 1985 }, { age: 40 }), 'C3').result, 'X');
 
-  // E4 나이는 아산 주소로 신청할 때만: 40대 아산 주민(학교 조건 없음)은 X.
-  // 40대 아산 캠퍼스 졸업생은 학교 경로의 나이 제한이 공고에 없어 ?(Claude 재검수 2026-11-23: 자동 통과하지 않음)
+  // E4 40대 아산 주민(학교 조건 없음)은 X.
+  // 학교 경로의 나이 예외는 사람 검수(이해찬 2026-11-23)에서 반려 → 운영기관 확인 전까지 나이 조건은 모두에게 적용(40대 아산 캠퍼스 졸업생도 X)
   assert.equal(verdict(vary(b, { campusCity: '천안시', highSchoolCity: '천안시' }, { age: 45 }), 'E4').result, 'X');
-  assert.equal(verdict(vary(b, { campusCity: '아산시' }, { age: 45, residence: '충청남도 천안시' }), 'E4').result, '?');
+  assert.equal(verdict(vary(b, { campusCity: '아산시' }, { age: 45, residence: '충청남도 천안시' }), 'E4').result, 'X');
 });
 
 test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () => {
@@ -225,7 +225,7 @@ test('교차검증(2026-11-22): 원문 예외·단서를 반영한 규칙', () =
 
 test('반려한 행은 시험용 판정에도 쓰지 않음', () => {
   const rejected = csv.filter((r) => r['검수 상태'] === '반려').map((r) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`);
-  assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment']);
+  assert.deepEqual(rejected.sort(), ['A3.age', 'C4.age', 'D3.age', 'D3.employment', 'E4.age_school']);
   assert.ok(!(RULES.get('D3') ?? []).some((r) => r.ruleKey === 'employment'));
 });
 
@@ -266,29 +266,58 @@ test('사람 검수 v2-1(2026-11-22 안준모): 수정 지시를 반영한 규�
   assert.equal(row(b, 'C2', 'existing_support'), '?', '전세대출 이용 중, 임차중도금 예외 여부 모름');
 });
 
-test('검수 완료 행은 v2-1의 5개 정책(A1 A4 B3 C1 C2)뿐', () => {
-  const reviewed = new Set(csv.filter((r) => r['검수 상태'] === '검수 완료').map((r) => r['공고키'].split(':')[0]));
-  assert.deepEqual([...reviewed].sort(), ['A1', 'A4', 'B3', 'C1', 'C2']);
-  assert.ok(csv.filter((r) => r['검수 상태'] === '검수 완료').every((r) => r['검수자'] === '안준모' && r['근거 원문 인용']));
+test('검수 완료 행은 v2-1(안준모) 5개 정책과 v2-2(이해찬) 9개 정책', () => {
+  const done = csv.filter((r) => r['검수 상태'] === '검수 완료');
+  const by = (name: string) => new Set(done.filter((r) => r['검수자'] === name).map((r) => r['공고키'].split(':')[0]));
+  assert.deepEqual([...by('안준모')].sort(), ['A1', 'A4', 'B3', 'C1', 'C2']);
+  assert.deepEqual([...by('이해찬')].sort(), ['D4', 'E1', 'E3', 'E4', 'E5', 'F1', 'F2', 'G1', 'H1']);
+  assert.ok(done.every((r) => ['안준모', '이해찬'].includes(r['검수자']) && r['근거 원문 인용'] && r['근거 URL'] && r['검수일']));
 });
 
-test('Claude 재검수(2026-11-23, v2-2): 초안에 반영한 수정', () => {
+test('사람 검수 v2-2(2026-11-23 이해찬): 수정 지시를 반영한 규칙', () => {
   const a = findPersona('persona-a')!;
   const b = findPersona('persona-b')!;
   const c = findPersona('persona-c')!;
   const row = (p: WalletFacts, id: string, key: string) =>
     verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
 
-  // D4 미취업은 천안 거주 경로에만. 천안에 사는 재직자는 X, 타지역에 사는 천안 관내 대학 졸업예정자는 재직 중이어도 미취업 줄 O
+  // D4 미취업은 두 경로 모두에 적용(이해찬 '맞음': 기존 초안 그대로)
   assert.equal(row(a, 'D4', 'employment'), 'O');
   assert.equal(row(vary(a, { employment: '재직' }), 'D4', 'employment'), 'X');
-  assert.equal(row(vary(a, { employment: '재직' }, { residence: '충청남도 아산시' }), 'D4', 'employment'), 'O');
+  assert.equal(row(vary(a, { employment: '재직' }, { residence: '충청남도 아산시' }), 'D4', 'employment'), 'X');
+  // D4 타지역 거주자는 졸업예정증명서(지갑의 학적 '졸업예정')로 판단: 4학년 재학만으로는 X
+  const away = { residence: '충청남도 아산시' };
+  assert.equal(row(vary(a, {}, away), 'D4', 'residence_school'), 'O');
+  assert.equal(row(vary(a, { enrollment: '재학', yearsToGraduation: 0.5 }, away), 'D4', 'residence_school'), 'X');
+  assert.equal(row(vary(a, { campusCity: undefined }, away), 'D4', 'residence_school'), '?');
 
-  // E5 그 밖의 제외 대상: 대기업 월 300만원 이상·만 45세 미만 근로자는 X
+  // E4 학교 경로는 증명서로 판단: 아산 캠퍼스 재학·졸업생 O, 아산 고교 재학 중(졸업 전)은 X, 모르면 ?
+  const outside = { residence: '충청남도 천안시' };
+  assert.equal(row(vary(c, { campusCity: '아산시' }, outside), 'E4', 'target_school'), 'O');
+  assert.equal(row(vary(c, { campusCity: '천안시', highSchoolCity: '아산시', highSchoolEnrolled: true }, outside), 'E4', 'target_school'), 'X');
+  assert.equal(row(vary(c, { campusCity: undefined }, outside), 'E4', 'target_school'), '?');
+  // E4 나이는 모두에게 적용(학교 경로 나이 예외 반려)
+  assert.equal(row(vary(c, {}, { age: 41 }), 'E4', 'age'), 'X');
+
+  // E5 학생 보기: 졸업은 학생 아님 O, 졸업까지 2년 이상 X
+  assert.equal(row(c, 'E5', 'student'), 'O');
+  assert.equal(row(vary(a, { enrollment: '재학', yearsToGraduation: 3 }), 'E5', 'student'), 'X');
+  assert.equal(row(vary(a, { enrollment: '재학', yearsToGraduation: 1 }), 'E5', 'student'), 'O');
+
+  // F1 가구 소득: 200% 이하 O. 200% 초과면 맞벌이 2인 가구 여부를 몰라 ?
+  assert.equal(row(a, 'F1', 'household'), 'O');
+  assert.equal(row(vary(a, { householdMedianPct: 230 }), 'F1', 'household'), '?');
+
+  // F2 일해서 버는 소득 월 10만원 이상: 예·아니오로 판정
+  assert.equal(row(b, 'F2', 'work_income'), 'O');
+  assert.equal(row(c, 'F2', 'work_income'), 'X');
+  assert.equal(row(vary(b, { monthlyIncomeWon: undefined }), 'F2', 'work_income'), '?');
+
+  // E5 그 밖의 제외 대상(초안): 대기업 월 300만원 이상·만 45세 미만 근로자는 X
   assert.equal(row(b, 'E5', 'other_exclusions'), 'O');
   assert.equal(row(vary(b, { employerSize: '대기업', monthlyIncomeWon: 3_500_000 }), 'E5', 'other_exclusions'), 'X');
 
-  // F1 이번 회차 출생일 범위: 경계 연도(1991년생)는 생일을 몰라 ?, 범위 밖은 X
+  // F1 이번 회차 출생일 범위(초안): 경계 연도(1991년생)는 생일을 몰라 ?, 범위 밖은 X
   assert.equal(row(vary(c, { birthYear: 1991, militaryMonths: 0 }, { age: 35 }), 'F1', 'age'), '?');
   assert.equal(row(vary(c, { birthYear: 1990, militaryMonths: 0 }, { age: 36 }), 'F1', 'age'), 'X');
 
@@ -300,11 +329,14 @@ test('Claude 재검수(2026-11-23, v2-2): 초안에 반영한 수정', () => {
   assert.equal(row(b, 'H1', 'employer_excluded'), 'O');
 });
 
-test('v2-2 9개 정책은 아직 검수 완료가 아님(사람 확인 전)', () => {
+test('v2-2 9개 정책: 사람 검수(이해찬) 41행 검수 완료, 반려 1행, 검수표에 없던 2행은 초안', () => {
   const v22 = ['D4', 'E1', 'E3', 'E4', 'E5', 'F1', 'F2', 'G1', 'H1'];
   const rows = csv.filter((r) => v22.includes(r['공고키'].split(':')[0]));
-  assert.ok(rows.every((r) => r['검수 상태'] !== '검수 완료'));
-  assert.ok(rows.filter((r) => r['메모'].includes('Claude 재검수(2026-11-23')).length >= 39);
+  const key = (r: Record<string, string>) => `${r['공고키'].split(':')[0]}.${r['규칙키']}`;
+  assert.equal(rows.filter((r) => r['검수 상태'] === '검수 완료' && r['검수자'] === '이해찬').length, 41);
+  assert.deepEqual(rows.filter((r) => r['검수 상태'] === '반려').map(key), ['E4.age_school']);
+  assert.deepEqual(rows.filter((r) => r['검수 상태'] === '초안').map(key).sort(), ['E5.other_exclusions', 'F1.age_birth']);
+  assert.ok(!rows.some((r) => r['규칙키'] === 'employment_school'), 'D4 미취업 분리는 사람 검수에서 맞음(기존 초안) → 넣지 않음');
 });
 
 test('가상 지갑은 모르는 사실을 아니오로 채우지 않음(CLAUDE.md 4장)', () => {
