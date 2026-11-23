@@ -94,15 +94,35 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
     const upTo7500 = f.specialGroups.includes('신혼') && f.annualIncomeWon <= 75_000_000;
     return upTo6000 || upTo7500;
   }
+  if (q.includes('대규모 기업 근로자')) {
+    // 국민내일배움카드의 그 밖의 제외 대상. 특고·법인대표·부정수급 여부는 지갑이 모르므로 사업자가 없고
+    // 대기업 고임금·생계급여에 해당하지 않으면 아니오로 본다(가상 인물 기준)
+    if (f.employment === undefined || f.welfare === undefined || f.businessRevenueWon === undefined) return undefined;
+    const bigCompany = f.employerSize === '대기업' && (f.monthlyIncomeWon ?? 0) >= 3_000_000 && f.profile.age < 45;
+    if (bigCompany || f.welfare.includes('생계급여') || f.profile.age >= 75) return true;
+    return f.businessRevenueWon === null ? false : undefined;
+  }
+  if (q.includes('소비향락업')) {
+    // 아산 청년내일카드 제외 업종·기관. 지갑의 '공공'은 공공기관·공기업으로 본다
+    return f.employerSize === undefined ? undefined : f.employerSize === '공공';
+  }
   if (q.includes('공무원')) return f.publicServant;
   if (q.includes('중소·중견')) return f.employerSize === undefined ? undefined : ['중소', '중견', '사회적기업 등'].includes(f.employerSize);
   if (q.includes('졸업예정자(4학년 2학기')) {
     const city = q.match(/([가-힣]+시) 관내 대학/)?.[1];
-    return f.enrollment === undefined ? undefined : f.enrollment === '졸업예정' && f.campusCity === city;
+    if (f.enrollment === undefined) return undefined;
+    // '타지역에 거주하면서'를 묻는 질문이면 그 시에 사는 사람은 아니오
+    if (q.includes('타지역에 거주') && city && f.profile.residence.includes(city)) return false;
+    return f.enrollment === '졸업예정' && f.campusCity === city;
   }
   if (q.includes('대학이나 고등학교에 다니고')) {
     const city = q.match(/([가-힣]+시)에 있는/)?.[1];
     return (enrolledNow(f) && f.campusCity === city) || (f.highSchoolEnrolled === true && f.highSchoolCity === city);
+  }
+  if (q.includes('나이 제한이 없다고 확인')) {
+    // 아산 정장 대여 학교 경로의 나이: 학교 경로가 아니면 아니오, 학교 경로면 운영기관 확인 여부를 몰라 답하지 않는다
+    const city = q.match(/([가-힣]+시) 관내 캠퍼스/)?.[1];
+    return f.campusCity === city || f.highSchoolCity === city ? undefined : false;
   }
   if (q.includes('캠퍼스의 대학 재학·졸업생')) {
     const city = q.match(/([가-힣]+시)에 있는 캠퍼스/)?.[1];
@@ -146,7 +166,7 @@ function loanEnrollChoice(f: WalletFacts, choices: string[]): string | undefined
 function employerChoice(f: WalletFacts, choices: string[]): string | undefined {
   const sme = choices.find((c) => c.startsWith('중소·중견기업(상시근로자 5인 이상)'));
   if (!sme || f.employerSize === undefined) return undefined;
-  if (f.employerSize === '공공') return choices.find((c) => c.startsWith('제외 대상'));
+  if (f.employerSize === '공공') return choices.find((c) => c.startsWith('제외 대상')) ?? choices.find((c) => c === '그 밖의 기업');
   if (f.employerSize === '대기업') return choices.find((c) => c === '그 밖의 기업');
   if (f.employerHeadcount === undefined) return undefined;
   if (f.employerSize === '사회적기업 등') return f.employerHeadcount >= 1 ? choices.find((c) => c.startsWith('사회적기업')) : undefined;
@@ -245,9 +265,15 @@ export function walletAnswer(
       return finalYear ? YES : undefined;
     }
     case 'birth_date': {
-      const range = q.match(/(\d{4})년 1월 1일~(\d{4})년 12월 31일/);
+      // 질문: "1991년 11월 17일~2007년 11월 27일 사이에 태어났나요?" 지갑은 출생연도만 안다.
+      // 경계 연도에 걸리면(1월 1일·12월 31일 경계가 아니면) 생일을 몰라 답하지 않는다
+      const range = q.match(/(\d{4})년 (\d{1,2})월 (\d{1,2})일~(\d{4})년 (\d{1,2})월 (\d{1,2})일/);
       if (!range || f.birthYear === undefined) return undefined;
-      return yesNo(f.birthYear >= Number(range[1]) && f.birthYear <= Number(range[2]));
+      const [from, fromM, fromD, to, toM, toD] = range.slice(1).map(Number);
+      if (f.birthYear < from || f.birthYear > to) return NO;
+      if (f.birthYear === from && !(fromM === 1 && fromD === 1)) return undefined;
+      if (f.birthYear === to && !(toM === 12 && toD === 31)) return undefined;
+      return YES;
     }
     case 'household_size':
       // 질문: 단독세대주인가. 세대주가 아니면 '아니오', 세대주면 세대원 수를 몰라 답하지 않는다
@@ -331,6 +357,11 @@ export function walletAnswer(
     case 'business_registration_status': {
       if (f.businessRevenueWon === undefined) return undefined;
       if (f.businessRevenueWon === null) return '없음';
+      const smallBiz = choices.find((c) => c.startsWith('있음(모든 사업장 연매출 합계 3억원 이하'));
+      if (smallBiz) {
+        // 청년미래적금: 3억원 이하라도 소상공인확인서·융자제외 업종 여부는 지갑이 몰라 답하지 않는다
+        return f.businessRevenueWon <= 300000000 ? undefined : choices.find((c) => c.startsWith('있음(연매출 3억원 초과'));
+      }
       if (choices.includes('있음(연매출 3억원 이하)')) {
         return f.businessRevenueWon <= 300000000 ? '있음(연매출 3억원 이하)' : '있음(연매출 3억원 초과)';
       }
