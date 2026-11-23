@@ -165,7 +165,7 @@ test('팀 결정(2026-11-21): 예외 조건이 X·O를 틀리게 만들지 않�
 
   // E4 나이는 아산 주소로 신청할 때만: 40대 아산 주민(학교 조건 없음)은 X.
   // 40대 아산 캠퍼스 졸업생은 학교 경로의 나이 제한이 공고에 없어 ?(Claude 재검수 2026-11-23: 자동 통과하지 않음)
-  assert.equal(verdict(vary(b, {}, { age: 45 }), 'E4').result, 'X');
+  assert.equal(verdict(vary(b, { campusCity: '천안시', highSchoolCity: '천안시' }, { age: 45 }), 'E4').result, 'X');
   assert.equal(verdict(vary(b, { campusCity: '아산시' }, { age: 45, residence: '충청남도 천안시' }), 'E4').result, '?');
 });
 
@@ -305,4 +305,22 @@ test('v2-2 9개 정책은 아직 검수 완료가 아님(사람 확인 전)', ()
   const rows = csv.filter((r) => v22.includes(r['공고키'].split(':')[0]));
   assert.ok(rows.every((r) => r['검수 상태'] !== '검수 완료'));
   assert.ok(rows.filter((r) => r['메모'].includes('Claude 재검수(2026-11-23')).length >= 39);
+});
+
+test('가상 지갑은 모르는 사실을 아니오로 채우지 않음(CLAUDE.md 4장)', () => {
+  const b = findPersona('persona-b')!;
+  const c = findPersona('persona-c')!;
+  const row = (p: WalletFacts, id: string, key: string) =>
+    verdict(p, id).rows.find((r) => r.rules.some((x) => x.ruleKey === key))!.outcome.result;
+  // 사실이 있으면 판정, 없으면 ?
+  assert.equal(row(b, 'H1', 'employer_excluded'), 'O');
+  assert.equal(row(vary(b, { excludedWorkplace: undefined }), 'H1', 'employer_excluded'), '?');
+  assert.equal(row(b, 'E5', 'other_exclusions'), 'O');
+  assert.equal(row(vary(b, { trainingCardExcluded: undefined }), 'E5', 'other_exclusions'), '?');
+  // 모르는 사실이 있어도 확인된 제외 사유(대기업 고임금)가 있으면 X
+  assert.equal(row(vary(b, { trainingCardExcluded: undefined, employerSize: '대기업', monthlyIncomeWon: 3_500_000 }), 'E5', 'other_exclusions'), 'X');
+  // 이사 계획: 빈 목록은 '계획 없음'(아니오), 사실이 없으면 ?
+  assert.equal(row(vary(b, {}, { residence: '충청남도 천안시' }), 'H1', 'res_city'), 'X');
+  assert.equal(row(vary(b, { canMoveTo: undefined }, { residence: '충청남도 천안시' }), 'H1', 'res_city'), '?');
+  assert.equal(walletAnswer(vary(c, { canMoveTo: undefined }), RULES.get('H1')!.find((r) => r.ruleKey === 'res_move')!), undefined);
 });

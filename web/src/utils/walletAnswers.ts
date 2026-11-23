@@ -40,7 +40,9 @@ function amountsInManwon(question: string): number[] {
   });
 }
 
-function supportStatus(f: WalletFacts, question: string): string {
+function supportStatus(f: WalletFacts, question: string): string | undefined {
+  // 지원 목록이 사실로 없으면 모름
+  if (f.currentSupports === undefined && f.pastSupports === undefined) return undefined;
   const q = squash(question);
   const hit = (list?: string[]) => (list ?? []).some((k) => q.includes(squash(k)));
   if (hit(f.currentSupports)) return '참여·수급 중';
@@ -53,6 +55,16 @@ function hadSupport(f: WalletFacts, ...words: string[]): boolean | undefined {
   if (f.currentSupports === undefined && f.pastSupports === undefined) return undefined;
   const all = [...(f.currentSupports ?? []), ...(f.pastSupports ?? [])];
   return all.some((s) => words.some((w) => s.includes(w)));
+}
+
+/**
+ * 대학 캠퍼스·고등학교 소재지 가운데 city가 있는가. 둘 중 하나라도 사실이 없으면서 맞는 것도 없으면 모름.
+ * (학교 사실이 비어 있는 것을 '그 시 학교 아님'으로 채우지 않는다)
+ */
+function schoolIn(f: WalletFacts, city: string | undefined): boolean | undefined {
+  const known = [f.campusCity, f.highSchoolCity];
+  if (city && known.includes(city)) return true;
+  return known.every((v) => v !== undefined) ? false : undefined;
 }
 
 function enrolledNow(f: WalletFacts): boolean {
@@ -95,16 +107,16 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
     return upTo6000 || upTo7500;
   }
   if (q.includes('대규모 기업 근로자')) {
-    // 국민내일배움카드의 그 밖의 제외 대상. 특고·법인대표·부정수급 여부는 지갑이 모르므로 사업자가 없고
-    // 대기업 고임금·생계급여에 해당하지 않으면 아니오로 본다(가상 인물 기준)
-    if (f.employment === undefined || f.welfare === undefined || f.businessRevenueWon === undefined) return undefined;
-    const bigCompany = f.employerSize === '대기업' && (f.monthlyIncomeWon ?? 0) >= 3_000_000 && f.profile.age < 45;
-    if (bigCompany || f.welfare.includes('생계급여') || f.profile.age >= 75) return true;
-    return f.businessRevenueWon === null ? false : undefined;
+    // 국민내일배움카드의 그 밖의 제외 대상. 지갑 사실로 '예'가 확인되면 예(대기업 월 300만원 이상·만 45세 미만, 생계급여, 75세 이상).
+    // 그 밖에는 서류에서 읽은 사실(trainingCardExcluded)만 쓴다. 없으면 모름(CLAUDE.md 4장: 모르는 값을 채우지 않음)
+    const bigCompany = f.employerSize === '대기업' && f.monthlyIncomeWon !== undefined && f.monthlyIncomeWon >= 3_000_000 && f.profile.age < 45;
+    if (bigCompany || f.welfare?.includes('생계급여') || f.profile.age >= 75) return true;
+    return f.trainingCardExcluded;
   }
   if (q.includes('소비향락업')) {
-    // 아산 청년내일카드 제외 업종·기관. 지갑의 '공공'은 공공기관·공기업으로 본다
-    return f.employerSize === undefined ? undefined : f.employerSize === '공공';
+    // 아산 청년내일카드 제외 업종·기관. 지갑의 '공공'은 공공기관·공기업이라 예. 그 밖에는 서류에서 읽은 사실만(없으면 모름)
+    if (f.employerSize === '공공') return true;
+    return f.excludedWorkplace;
   }
   if (q.includes('공무원')) return f.publicServant;
   if (q.includes('중소·중견')) return f.employerSize === undefined ? undefined : ['중소', '중견', '사회적기업 등'].includes(f.employerSize);
@@ -122,16 +134,17 @@ function specialTarget(f: WalletFacts, q: string): boolean | undefined {
   if (q.includes('나이 제한이 없다고 확인')) {
     // 아산 정장 대여 학교 경로의 나이: 학교 경로가 아니면 아니오, 학교 경로면 운영기관 확인 여부를 몰라 답하지 않는다
     const city = q.match(/([가-힣]+시) 관내 캠퍼스/)?.[1];
-    return f.campusCity === city || f.highSchoolCity === city ? undefined : false;
+    return schoolIn(f, city) === false ? false : undefined;
   }
   if (q.includes('캠퍼스의 대학 재학·졸업생')) {
     const city = q.match(/([가-힣]+시)에 있는 캠퍼스/)?.[1];
-    return f.campusCity === city || f.highSchoolCity === city;
+    return schoolIn(f, city);
   }
   if (q.includes('봉사·다자녀·다문화·새터민')) return f.specialGroups === undefined ? undefined : f.specialGroups.length > 0;
   if (q.includes('전입할 수 있나요')) {
     const city = q.match(/([가-힣]+시)로 전입/)?.[1];
-    return f.canMoveTo === undefined ? false : f.canMoveTo.includes(city ?? '');
+    // 이사 계획이 사실로 없으면 모름(빈 목록이면 '계획 없음'이라 아니오)
+    return f.canMoveTo === undefined ? undefined : f.canMoveTo.includes(city ?? '');
   }
   return undefined;
 }

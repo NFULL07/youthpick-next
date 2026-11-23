@@ -53,6 +53,10 @@ export interface WalletFacts {
   businessRevenueWon?: number | null;
   employerCity?: string;
   employerSize?: '중소' | '중견' | '대기업' | '공공' | '사회적기업 등';
+  /** 다니는 곳이 소비향락업·공공기관·공기업·초중고·대학교·출자·출연기관인가 (재직증명서·사업자등록증) */
+  excludedWorkplace?: boolean;
+  /** 국민내일배움카드의 그 밖의 발급 제외 대상(특고·법인대표·자영업·비영리 대표·생계급여·부정수급 등)에 해당하는가 */
+  trainingCardExcluded?: boolean;
   /** 직장의 상시근로자 수 */
   employerHeadcount?: number;
   monthsSinceHire?: number;
@@ -117,8 +121,10 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     },
     selfYears: { 천안시: 4, 충청남도: 4 },
     parentYears: { 천안시: 12, 충청남도: 12 },
+    canMoveTo: [],
     enrollment: '졸업예정',
     campusCity: '천안시',
+    highSchoolCity: '천안시',
     yearsToGraduation: 0.5,
     creditsLastTerm: 18,
     gpaLastTerm45: 3.6,
@@ -134,6 +140,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     annualIncomeWon: 0,
     businessRevenueWon: null,
     publicServant: false,
+    trainingCardExcluded: false,
     interview: '면접 예정',
     examDate: '2026-03-14',
     examAfterMoveIn: true,
@@ -173,6 +180,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     },
     selfYears: { 아산시: 2, 충청남도: 2 },
     parentYears: {},
+    canMoveTo: [],
     enrollment: '졸업',
     graduatedYearsAgo: 1,
     studentLoan: '없음',
@@ -186,8 +194,10 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     employerCity: '아산시',
     employerSize: '중소',
     employerHeadcount: 30,
+    excludedWorkplace: false,
     monthsSinceHire: 3,
     publicServant: false,
+    trainingCardExcluded: false,
     interview: '해당 없음',
     militaryMonths: 18,
     birthYear: 1999,
@@ -227,8 +237,11 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     },
     selfYears: { 천안시: 6, 충청남도: 6 },
     parentYears: { 천안시: 6, 충청남도: 6 },
+    canMoveTo: [],
     enrollment: '졸업',
     graduatedYearsAgo: 1,
+    campusCity: '천안시',
+    highSchoolCity: '천안시',
     aidBand: 6,
     studentLoan: '일반상환',
     employment: '미취업',
@@ -239,6 +252,7 @@ export const VIRTUAL_PERSONAS: readonly WalletFacts[] = [
     annualIncomeWon: 4000000,
     businessRevenueWon: null,
     publicServant: false,
+    trainingCardExcluded: false,
     interview: '면접 예정',
     examDate: '2026-05-23',
     examAfterMoveIn: true,
