@@ -1,6 +1,6 @@
 import type { WalletFacts } from '../data/virtualWallet';
 import { parseRawInput, PROFILE_SUPPLIED_FIELDS } from './ruleEngine';
-import type { EligibilityRule, RuleInputItem, RuleInputs } from './ruleTypes';
+import { inputKeyOf, type EligibilityRule, type RuleInputItem, type RuleInputs } from './ruleTypes';
 
 /**
  * 가상 지갑의 '사실'을 규칙 질문의 '답'으로 바꾼다.
@@ -333,13 +333,14 @@ export function walletAnswer(
 export function walletInputs(f: WalletFacts, rules: EligibilityRule[]): RuleInputs {
   const inputs: RuleInputs = {};
   for (const rule of rules) {
-    if (inputs[rule.fieldId]) continue;
+    const key = inputKeyOf(rule);
+    if (inputs[key]) continue;
     const regionField = PROFILE_SUPPLIED_FIELDS.includes(rule.fieldId) && rule.fieldId !== 'enrollment_status';
     if (regionField || rule.fieldId === 'employer_info') continue;
     const raw = walletAnswer(f, rule, rules);
     if (raw === undefined) continue;
     const parsed = parseRawInput(rule, raw);
-    if (parsed) inputs[rule.fieldId] = parsed;
+    if (parsed) inputs[key] = parsed;
   }
   return inputs;
 }
@@ -354,7 +355,7 @@ export function walletPresetValues(
   for (const item of items) {
     const sorted = [...item.rules].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
     const raw = sorted.length > 0 ? walletAnswer(f, sorted[0], allRules) : undefined;
-    if (raw !== undefined) values[item.fieldId] = raw;
+    if (raw !== undefined) values[item.inputKey] = raw;
   }
   return values;
 }

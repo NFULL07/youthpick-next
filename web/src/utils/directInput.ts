@@ -9,6 +9,11 @@ function isRuleItem(item: DirectInputItem | undefined): item is RuleInputItem {
   return Boolean(item) && Array.isArray((item as Partial<RuleInputItem>).rules);
 }
 
+/** 직접 입력 칸의 값 이름. 규칙이 붙은 항목은 inputKey(특화 대상은 질문별), 아니면 항목ID */
+export function inputKeyOfItem(item: DirectInputItem): string {
+  return isRuleItem(item) ? item.inputKey : item.fieldId;
+}
+
 export const DIRECT_INPUT_NOTICE =
   '입력한 값은 저장되지 않아요. 새로고침하거나 다른 화면으로 가면 지워져요.';
 

@@ -62,8 +62,21 @@ export interface ApiHint {
   maxAge?: number;
 }
 
+/**
+ * 규칙의 입력값을 담는 칸 이름. 보통은 항목ID와 같다.
+ * '특화 대상 해당 여부'는 한 정책에 서로 다른 질문이 여러 개 있을 수 있어(예: 쉐어하우스 여부, 예외 대상 여부)
+ * 질문 문구마다 칸을 따로 둔다. 질문이 같으면 같은 칸을 쓴다(같은 답을 여러 묶음에서 씀).
+ */
+export function inputKeyOf(rule: Pick<EligibilityRule, 'fieldId' | 'question'>): string {
+  return rule.fieldId === 'special_target_status' && rule.question
+    ? `${rule.fieldId}::${rule.question}`
+    : rule.fieldId;
+}
+
 /** 직접 입력 항목에 규칙을 붙인 것. 입력값은 화면 메모리에서만 쓴다 */
 export interface RuleInputItem extends DirectInputItem {
+  /** 입력값 칸 이름(inputKeyOf). 화면 값·가상 지갑 값도 이 이름으로 담는다 */
+  inputKey: string;
   rules: EligibilityRule[];
   /** 이 항목을 확인할 서류(발급처·경로 안내용) */
   docs: RequirementDoc[];

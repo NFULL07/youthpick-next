@@ -10,12 +10,13 @@ import {
   type UserProfile,
 } from '../types/policy';
 import { compareRegion } from './regionMatch';
-import type {
-  EligibilityRule,
-  PolicyRelation,
-  PolicyRuleSet,
-  RuleInput,
-  RuleInputs,
+import {
+  inputKeyOf,
+  type EligibilityRule,
+  type PolicyRelation,
+  type PolicyRuleSet,
+  type RuleInput,
+  type RuleInputs,
 } from './ruleTypes';
 
 /**
@@ -308,7 +309,7 @@ export function evaluateRuleRows(
 
   const usedNames = new Map<string, number>();
   return groups.map((members) => {
-    const outcomes = members.map((rule) => evaluateRule(rule, inputs[rule.fieldId], regionNames));
+    const outcomes = members.map((rule) => evaluateRule(rule, inputs[inputKeyOf(rule)], regionNames));
     let outcome: RuleOutcome;
     if (members.length === 1) {
       outcome = outcomes[0];
@@ -395,13 +396,13 @@ const API_BASIS = '온통청년 API 값 · 원문 대조 전이라 판정에 쓰
 
 /** 정책 상세의 '공고 기준과 나의 조건' 표 줄을 만든다 */
 export function buildCriteriaRows(ruleSet: PolicyRuleSet, inputs: RuleInputs): PolicyCriteriaRow[] {
-  const inputFields = new Set(ruleSet.inputItems.map((item) => item.fieldId));
+  const inputKeys = new Set(ruleSet.inputItems.map((item) => item.inputKey));
   const rows: PolicyCriteriaRow[] = evaluateRuleRows(ruleSet.rules, inputs, ruleSet.regionNames).map(
     (ruleRow) => {
-      const missing = ruleRow.rules.filter((rule) => inputs[rule.fieldId] === undefined);
+      const missing = ruleRow.rules.filter((rule) => inputs[inputKeyOf(rule)] === undefined);
       let note = ruleRow.outcome.note;
       if (ruleRow.outcome.result === '?' && missing.length === ruleRow.rules.length) {
-        note = missing.some((rule) => inputFields.has(rule.fieldId))
+        note = missing.some((rule) => inputKeys.has(inputKeyOf(rule)))
           ? '아래 직접 입력에서 넣으면 그 자리에서 확인돼요'
           : '내 정보에 입력하면 확인돼요';
       }

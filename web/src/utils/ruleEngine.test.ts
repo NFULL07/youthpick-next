@@ -13,7 +13,7 @@ import {
   profileToInputs,
   scenarioToInputs,
 } from './ruleEngine';
-import type { EligibilityRule, PolicyRuleSet, RuleInput } from './ruleTypes';
+import { inputKeyOf, type EligibilityRule, type PolicyRuleSet, type RuleInput } from './ruleTypes';
 
 const REGIONS: Record<string, string> = {
   '44': '충청남도',
@@ -218,7 +218,7 @@ test('조건표: 규칙이 없으면 ? 한 줄, API 값은 참고로만, 관계�
 
 test('조건표: 미입력 항목은 어디서 입력하는지 알려 줌', () => {
   const rent = rule({ fieldId: 'monthly_rent_amount', fieldName: '월세액', operator: 'lte', value: 700000, sortOrder: 2 });
-  const item = { number: 44, label: '월세액', fieldId: 'monthly_rent_amount', storage: '', docsLabel: '', issuer: '', checkMethod: '', checkContent: '', caution: '', docIds: [], rules: [rent], docs: [], regionNames: REGIONS };
+  const item = { number: 44, label: '월세액', fieldId: 'monthly_rent_amount', inputKey: 'monthly_rent_amount', storage: '', docsLabel: '', issuer: '', checkMethod: '', checkContent: '', caution: '', docIds: [], rules: [rent], docs: [], regionNames: REGIONS };
   const rows = buildCriteriaRows(ruleSet({ rules: [rule({}), rent], inputItems: [item] }), {});
   assert.ok(rows[0].userMatchNote.includes('내 정보'));
   assert.ok(rows[1].userMatchNote.includes('직접 입력'));
@@ -287,4 +287,21 @@ test('생활변화: 검수 완료 규칙의 판정이 달라지는지만 말한�
   // 프리랜서·창업은 둘 중 무엇인지 몰라 판정하지 않는다
   const freelance = scenarioToInputs(DEFAULT_USER_PROFILE, { ...scenario, employmentStatus: '프리랜서·창업' });
   assert.deepEqual(freelance.employment_status, { kind: 'unknown' });
+});
+
+test('특화 대상 질문은 질문 문구마다 입력 칸이 따로, 같은 질문은 한 칸', () => {
+  const share = rule({ fieldId: 'special_target_status', operator: 'is_true', question: '쉐어하우스인가요?', anyOfGroup: 'head', label: '쉐어하우스' });
+  const head = rule({ fieldId: 'household_head_status', operator: 'in', value: ['세대주'], anyOfGroup: 'head', label: '세대주' });
+  const shareArea = rule({ fieldId: 'special_target_status', operator: 'is_true', question: '쉐어하우스인가요?', anyOfGroup: 'area', label: '쉐어하우스(면적)', sortOrder: 2 });
+  const area = rule({ fieldId: 'housing_area', operator: 'lte', value: 85, anyOfGroup: 'area', label: '85㎡ 이하', sortOrder: 2 });
+  const rental = rule({ fieldId: 'special_target_status', operator: 'is_false', question: '공공임대주택에 사나요?', label: '공공임대 아님', sortOrder: 3 });
+  assert.equal(inputKeyOf(share), inputKeyOf(shareArea));
+  assert.notEqual(inputKeyOf(share), inputKeyOf(rental));
+  assert.equal(inputKeyOf(head), 'household_head_status');
+  const rows = evaluateRuleRows([share, head, shareArea, area, rental], {
+    [inputKeyOf(share)]: { kind: 'boolean', value: true },
+    [inputKeyOf(rental)]: { kind: 'boolean', value: true },
+    household_head_status: { kind: 'text', value: '세대원' },
+  });
+  assert.deepEqual(rows.map((r) => r.outcome.result), ['O', 'O', 'X']);
 });
