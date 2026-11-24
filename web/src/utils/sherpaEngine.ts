@@ -122,7 +122,7 @@ export function generateDeterministicSherpaReply(
   return {
     id: `ast-${Date.now()}`,
     sender: 'assistant',
-    text: `입력하신 조건(만 ${ctx.profile.age}세 · ${ctx.profile.status} · 거주 ${residence} · 학교 ${school})을 바탕으로 안내해 드려요.\n\n현재 관심 분야는 [${ctx.profile.interests.length > 0 ? ctx.profile.interests.join(', ') : '미선택'}]이며, 모집 중인 정책은 ${openCount}건이 있습니다.\n\n주거 조건, 필요 서류, 졸업/이사 시 생활변화 비교 중 궁금한 주제를 선택하거나 아래 질문 버튼을 눌러보세요.`,
+    text: `입력하신 조건(만 ${ctx.profile.age}세 · ${ctx.profile.status} · 거주 ${residence} · 학교 ${school})을 바탕으로 안내해 드려요.\n\n현재 관심 분야는 [${ctx.profile.interests.length > 0 ? ctx.profile.interests.join(', ') : '미선택'}]이며, 모집 중인 정책은 ${openCount}건이 있습니다.\n\n주거 조건, 필요 서류, 졸업·이사 비교 중 궁금한 주제를 아래 입력칸에 적어 보세요(예: "필요한 서류 알려줘"). 처음 질문 목록은 위의 '새로 시작'을 누르면 다시 볼 수 있어요.`,
     actionLabel: '맞춤 정책 찾아보기',
     targetRoute: 'policies',
   };

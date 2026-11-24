@@ -251,3 +251,25 @@ test('나의 보드 "주거 지원, 내 생활권도 인정될까?": 지역 조�
   const home = readFileSync(new URL('../pages/HomeBoardPage.tsx', import.meta.url), 'utf-8');
   assert.ok(!home.includes("onNavigate('detail', '1')"));
 });
+
+test('근거 링크 이름: 출처 제목이 없으면 "근거 자료"(기사일 수도 있어 "근거 원문"이라 하지 않음), 조건표 링크는 "출처 열기" (2026-11-25)', () => {
+  const rows = fixture();
+  const { policies } = build(rows);
+  const labels = policies.flatMap((p) => [
+    ...(p.officialLinks ?? []).map((l) => l.label),
+    ...evaluatePolicyCriteria(p, DEFAULT_USER_PROFILE).flatMap((r) => (r.sources ?? []).map((l) => l.label)),
+  ]);
+  assert.ok(labels.length > 0);
+  assert.ok(!labels.includes('근거 원문'));
+  // 제목을 지운 규칙 출처는 '근거 자료'로
+  for (const d of rows.source_document) d.title = null;
+  const c1 = find('C1', rows);
+  const ruleLinks = (c1.officialLinks ?? []).filter((l) => l.label !== '신청 페이지' && l.label !== '안내 페이지');
+  assert.ok(ruleLinks.length > 0 && ruleLinks.every((l) => l.label === '근거 자료'));
+  const html = renderToStaticMarkup(createElement(PolicyDetailPage, {
+    policy: c1, profile: DEFAULT_USER_PROFILE, isSaved: false,
+    onToggleSave: () => {}, onNavigate: () => {}, onStartPreparation: () => {}, onAskSherpaAboutPolicy: () => {},
+  }));
+  assert.ok(html.includes('출처 열기'));
+  assert.ok(!html.includes('원문 열기'));
+});

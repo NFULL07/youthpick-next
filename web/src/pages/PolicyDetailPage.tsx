@@ -16,7 +16,7 @@ interface PolicyDetailPageProps {
   onAskSherpaAboutPolicy: (policy: PolicyItem) => void;
 }
 
-/** 근거 원문 링크(새 창). 표와 휴대폰 카드에서 같이 쓴다 */
+/** 판단 근거의 출처 링크(새 창). 표와 휴대폰 카드에서 같이 쓴다. 출처가 기사일 수도 있어 "원문"이라 부르지 않는다 */
 const SourceLinks: React.FC<{ links?: OfficialLink[] }> = ({ links }) =>
   links && links.length > 0 ? (
     <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
@@ -28,7 +28,7 @@ const SourceLinks: React.FC<{ links?: OfficialLink[] }> = ({ links }) =>
           rel="noopener noreferrer"
           className="inline-flex items-center gap-0.5 font-bold text-[#1F2421] underline underline-offset-2"
         >
-          원문 열기
+          출처 열기
           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="sr-only">: {link.label} (새 창)</span>
         </a>

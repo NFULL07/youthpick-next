@@ -305,10 +305,10 @@ export function buildPolicies(rows: CatalogRows, now: Date): { policies: PolicyI
       : [];
     const hasAgeRule = rules.some((r) => r.operator === 'age_between');
     // 공식 링크: 대표 공고의 신청·안내 주소, 그다음 검수 규칙이 근거로 쓴 원문(없으면 이 정책의 출처 문서)
-    const ruleSourceLinks = rules.map((r) => ({ label: r.sourceTitle ?? '근거 원문', url: r.sourceUrl }));
+    const ruleSourceLinks = rules.map((r) => ({ label: r.sourceTitle ?? '근거 자료', url: r.sourceUrl }));
     const policySourceLinks = rows.source_document
       .filter((d) => d.policy_id === policy.id)
-      .map((d) => ({ label: d.title ?? '근거 원문', url: d.url }));
+      .map((d) => ({ label: d.title ?? '근거 자료', url: d.url }));
     const officialLinks = uniqueLinks([
       { label: '신청 페이지', url: notice?.apply_url },
       { label: '안내 페이지', url: notice?.ref_url },
