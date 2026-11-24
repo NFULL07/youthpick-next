@@ -60,9 +60,13 @@ test('읽기에 성공하면 Supabase 데이터를 쓰고 공개 데이터 사�
   const catalog = await loadPolicyCatalog(deps({ storage }));
   assert.equal(catalog.source, 'supabase');
   assert.equal(catalog.policies.length, 7);
-  assert.ok(catalog.notice.includes('정책 7건') && catalog.notice.includes('검수한 규칙 13건만'));
-  assert.ok(catalog.notice.includes('공고 원문과 대조하지 않았어요'));
+  assert.ok(catalog.notice.includes('정책 7건으로 시범 운영') && catalog.notice.includes('검수한 규칙 13건만'));
+  assert.ok(catalog.notice.includes('공식 공고를 확인'));
   assert.ok(!catalog.notice.includes('검수 전 데이터')); // 검수한 규칙과 말이 엇갈리지 않게
+  // 펼치면 보이는 설명: 자동 갱신은 '예정'으로만, 기준일은 데이터 수집일에서
+  assert.ok(catalog.noticeDetail?.includes('자동 갱신할 예정'));
+  assert.ok(!catalog.noticeDetail?.includes('자동 갱신해요'));
+  assert.equal(catalog.stats?.collectedOn ? catalog.noticeDetail?.includes(`기준일 ${catalog.stats.collectedOn}`) : true, true);
   const cached = JSON.parse(storage.data.get(CATALOG_CACHE_KEY)!);
   assert.equal(cached.savedAt, '2026-11-17');
   assert.equal(cached.rows.policy.length, rows().policy.length);
@@ -77,6 +81,7 @@ test('읽기에 실패하면 받아 둔 사본, 사본도 없으면 예시 데�
   assert.equal(fromCache.source, 'cache');
   assert.equal(fromCache.policies.length, 7);
   assert.ok(fromCache.notice.includes('2026-11-17에 받아 둔 데이터'));
+  assert.ok(fromCache.noticeDetail?.includes('자동 갱신할 예정'));
 
   const noCache = await loadPolicyCatalog(deps({ fetchRows: fail }));
   assert.equal(noCache.source, 'demo');

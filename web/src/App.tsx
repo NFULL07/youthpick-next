@@ -363,7 +363,7 @@ export default function App() {
         본문으로 이동
       </a>
 
-      <DemoDataBanner notice={catalog.notice} />
+      <DemoDataBanner notice={catalog.notice} detail={catalog.noticeDetail} />
       {virtualWallet && (
         <VirtualWalletBanner wallet={virtualWallet} onTurnOff={() => setVirtualPersonaId(null)} />
       )}
