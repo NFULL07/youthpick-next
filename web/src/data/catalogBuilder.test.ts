@@ -8,6 +8,9 @@ import { DEFAULT_USER_PROFILE } from './policies';
 import { getDirectInputItemsForPolicy, getDirectInputResult, getDocsForItem, getInputSpec } from '../utils/directInput';
 import { analyzeLifeChangeImpacts, evaluatePolicyCriteria, getRecommendedPoliciesForProfile } from '../utils/policyEngine';
 import { buildPolicies, buildRegionNames, noticeStatus, toDateKey } from './catalogBuilder';
+import { PolicyDetailPage } from '../pages/PolicyDetailPage';
+import { pickHousingCheckPolicy } from '../pages/HomeBoardPage';
+import { safeLinkUrl, uniqueLinks } from '../utils/officialLinks';
 import type { CatalogRows, NoticeRow } from './catalogTypes';
 
 /**
@@ -178,4 +181,73 @@ test('생활변화와 추천도 Supabase 정책에서 동작한다', () => {
   assert.ok(last.impactSummary.includes('검수한 판정 규칙이 아직 없어') || last.policy.ruleSet!.rules.length > 0);
   assert.ok(impacts.every((i) => !i.impactSummary.includes('우선 지원') && !i.impactSummary.includes('연계 가능')));
   assert.equal(getRecommendedPoliciesForProfile(policies, DEFAULT_USER_PROFILE, 3).length, 3);
+});
+
+test('공식 링크: 대표 공고의 신청·안내 주소가 먼저, 그다음 검수 규칙의 근거 원문. http(s)만, 같은 주소는 한 번만 (2026-11-24 점검)', () => {
+  const rows = fixture();
+  const built = find('C1', rows);
+  // 대표 공고를 찾아 주소를 넣는다
+  const notice = rows.policy_notice.filter((n) => n.policy_id === 'C1');
+  for (const n of notice) Object.assign(n, { apply_url: 'https://apply.example.go.kr/c1', ref_url: 'javascript:alert(1)' });
+  const c1 = find('C1', rows);
+  assert.equal(c1.officialLinks![0].label, '신청 페이지');
+  assert.equal(c1.officialLinks![0].url, 'https://apply.example.go.kr/c1');
+  assert.ok(c1.officialLinks!.every((l) => /^https?:/.test(l.url)), 'javascript: 주소는 버림');
+  const ruleUrls = c1.ruleSet!.rules.map((r) => r.sourceUrl).filter(Boolean);
+  if (ruleUrls.length > 0) assert.ok(c1.officialLinks!.some((l) => l.url === new URL(ruleUrls[0]!).toString()), '근거 원문도 링크로');
+  assert.ok(built.officialLinks, '주소가 없어도 목록은 있음(빈 목록 또는 근거 원문)');
+
+  assert.equal(safeLinkUrl('javascript:alert(1)'), null);
+  assert.equal(safeLinkUrl('data:text/html,x'), null);
+  assert.equal(safeLinkUrl('/relative'), null);
+  assert.equal(safeLinkUrl(''), null);
+  assert.equal(safeLinkUrl('https://a.example.org/x'), 'https://a.example.org/x');
+  assert.deepEqual(
+    uniqueLinks([{ label: 'a', url: 'https://a.example.org' }, { label: 'b', url: 'https://a.example.org' }, { label: 'c', url: null }]).map((l) => l.label),
+    ['a']
+  );
+});
+
+test('정책 상세: 공식 안내 링크(새 창), 조건표 근거 원문 링크, 휴대폰용 카드 목록 (2026-11-24 점검)', () => {
+  const rows = fixture();
+  for (const n of rows.policy_notice.filter((n) => n.policy_id === 'C1')) Object.assign(n, { apply_url: 'https://apply.example.go.kr/c1' });
+  const c1 = find('C1', rows);
+  const html = renderToStaticMarkup(
+    createElement(PolicyDetailPage, {
+      policy: c1,
+      profile: DEFAULT_USER_PROFILE,
+      isSaved: false,
+      onToggleSave: () => {},
+      onNavigate: () => {},
+      onStartPreparation: () => {},
+      onAskSherpaAboutPolicy: () => {},
+    })
+  );
+  assert.ok(html.includes('공식 안내 (새 창)'));
+  assert.match(html, /<a href="https:\/\/apply\.example\.go\.kr\/c1" target="_blank" rel="noopener noreferrer"/);
+  // 휴대폰(md 미만)은 카드 목록, 표는 md 이상에서만
+  assert.match(html, /<ul class="space-y-3 md:hidden" aria-label="공고 기준과 나의 조건">/);
+  assert.match(html, /class="hidden overflow-x-auto[^"]*md:block"/);
+  const cards = html.split('md:hidden" aria-label="공고 기준과 나의 조건">')[1].split('</ul>')[0];
+  assert.ok(/충족 가능|조건 불일치|추가 확인/.test(cards), '카드 안에 확인 결과가 보임');
+  // 공식 링크가 없으면 안내 문구
+  const bare = { ...c1, officialLinks: [] };
+  const html2 = renderToStaticMarkup(createElement(PolicyDetailPage, {
+    policy: bare, profile: DEFAULT_USER_PROFILE, isSaved: false,
+    onToggleSave: () => {}, onNavigate: () => {}, onStartPreparation: () => {}, onAskSherpaAboutPolicy: () => {},
+  }));
+  assert.ok(html2.includes('등록된 공식 링크가 아직 없어요'));
+});
+
+test('나의 보드 "주거 지원, 내 생활권도 인정될까?": 지역 조건 규칙이 있는 주거 정책을 연다(시연 id 1 고정 버그)', () => {
+  const policies = build().policies;
+  const picked = pickHousingCheckPolicy(policies);
+  assert.ok(picked);
+  assert.equal(picked.category, '주거');
+  const housing = policies.filter((p) => p.category === '주거');
+  const withRegion = housing.filter((p) => (p.ruleSet?.rules ?? []).some((r) => r.operator === 'region_in'));
+  if (withRegion.length > 0) assert.ok(withRegion.includes(picked));
+  assert.equal(pickHousingCheckPolicy(policies.filter((p) => p.category !== '주거')), undefined, '주거 정책이 없으면 undefined');
+  const home = readFileSync(new URL('../pages/HomeBoardPage.tsx', import.meta.url), 'utf-8');
+  assert.ok(!home.includes("onNavigate('detail', '1')"));
 });

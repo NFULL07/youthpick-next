@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Calendar, Check, ClipboardList, RotateCcw, Trash2 } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Calendar, Check, ClipboardList, RotateCcw, Trash2 } from 'lucide-react';
 import type { RemovedPrepPolicySnapshot } from '../App';
 import { PolicyItem, RouteId } from '../types/policy';
 
@@ -202,18 +202,32 @@ export const ApplyReadyPage: React.FC<ApplyReadyPageProps> = ({
       {/* Main Split: Checklist + Target Date */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         <section className="card-soft rounded-3xl bg-white p-6 sm:p-8 lg:col-span-8">
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-2xl font-extrabold text-[#1F2421]">
               나의 준비 노트
             </h2>
-            <button
-              type="button"
-              onClick={() => onNavigate('detail', activePolicy.id)}
-              className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px]"
-            >
-              <span>조건 표 보기</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {activePolicy.officialLinks?.[0] && (
+                <a
+                  href={activePolicy.officialLinks[0].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary-outline inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px]"
+                >
+                  <span>공식 안내 열기</span>
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="sr-only">: {activePolicy.officialLinks[0].label} (새 창)</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => onNavigate('detail', activePolicy.id)}
+                className="btn-secondary-outline inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px]"
+              >
+                <span>조건 표 보기</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           <div className="divide-y divide-[#ECE8DC]">

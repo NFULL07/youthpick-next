@@ -7,6 +7,8 @@ interface TopNavProps {
   onNavigate: (route: RouteId) => void;
   activePrepCount: number;
   livingZoneLabel: string;
+  /** 지금 목록에서 '모집 중'인 정책 수 (알림 팝업에 표시) */
+  openPolicyCount: number;
 }
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -14,6 +16,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   onNavigate,
   activePrepCount,
   livingZoneLabel,
+  openPolicyCount,
 }) => {
   const [showAlerts, setShowAlerts] = useState(false);
 
@@ -130,9 +133,9 @@ export const TopNav: React.FC<TopNavProps> = ({
               <ul className="space-y-2.5 text-[13px] leading-relaxed text-[#333333]">
                 <li className="rounded-xl bg-[#F7F5EE] p-2.5">
                   <strong className="block font-bold text-[#1F2421]">
-                    모집 중 정책 5건 확인 가능
+                    {openPolicyCount > 0 ? `모집 중 정책 ${openPolicyCount}건` : '지금 모집 중인 정책이 없어요'}
                   </strong>
-                  <span>정책 찾기 우측 필터에서 모집 중 정책만 바로 모아볼 수 있어요.</span>
+                  <span>정책 찾기의 '모집 상태' 필터에서 모집 중 정책만 바로 모아볼 수 있어요.</span>
                 </li>
                 <li className="rounded-xl bg-[#F7F5EE] p-2.5">
                   <strong className="block font-bold text-[#1F2421]">

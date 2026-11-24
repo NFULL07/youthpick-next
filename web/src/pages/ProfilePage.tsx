@@ -469,7 +469,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                   내 브라우저에만 저장해요
                 </strong>
                 <span>
-                  입력 정보는 현재 기기 브라우저에 안전하게 보관됩니다.
+                  입력 정보는 이 기기의 브라우저에만 보관돼요(서버로 보내지 않아요).
                 </span>
               </li>
             </ul>

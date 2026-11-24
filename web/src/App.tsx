@@ -95,7 +95,8 @@ export default function App() {
   // 화면 판정에 쓰는 내 정보. 가상 지갑을 켜면 가상 인물의 정보(저장하지 않음)
   const viewProfile = virtualWallet?.profile ?? profile;
   const [storedSavedIds, setSavedIds] = useState<string[]>(() =>
-    sanitizeStringList(loadJson<unknown>(STORAGE_KEY_SAVED, null), ['1'])
+    // 기본값은 빈 목록(예전 기본값 '1'은 시연 데이터 id라 실제 데이터에서 저장값에 쓰레기로 남았다)
+    sanitizeStringList(loadJson<unknown>(STORAGE_KEY_SAVED, null), [])
   );
   // 지금 목록에 없는 정책(예: 예시 데이터에서 저장한 것)은 세지 않는다. 저장값 자체는 지우지 않는다
   const savedIds = storedSavedIds.filter((id) => policies.some((p) => p.id === id));
@@ -330,7 +331,8 @@ export default function App() {
     prepPolicies,
     completedChecklistIds
   );
-  const detailPolicy = policies.find((p) => p.id === detailPolicyId) ?? policies[0];
+  // 없는 정책 주소(#detail/없는값)면 첫 정책을 대신 보여 주지 않고 '찾을 수 없음'을 보여 준다(2026-11-24 점검)
+  const detailPolicy = policies.find((p) => p.id === detailPolicyId);
   // 예시 서류가 지금 목록에 없는 정책(시연용 예시 정책)을 가리키면 그 이름을 보여 주지 않는다
   const shownWalletDocs = walletDocs.map((doc) =>
     policies.some((p) => p.id === doc.linkedPolicyId)
@@ -373,6 +375,7 @@ export default function App() {
         onNavigate={(r) => handleNavigate(r)}
         activePrepCount={checkedPrepCount}
         livingZoneLabel={livingZoneLabel}
+        openPolicyCount={policies.filter((p) => p.recruitmentStatus === '모집 중').length}
       />
 
       <VirtualWalletContext.Provider value={virtualWallet}>
@@ -415,7 +418,23 @@ export default function App() {
           />
         )}
 
-        {route === 'detail' && (
+        {route === 'detail' && !detailPolicy && (
+          <section className="card-soft rounded-3xl bg-white p-8 text-center" aria-live="polite">
+            <h1 className="text-2xl font-extrabold text-[#1F2421]">이 주소의 정책을 찾을 수 없어요</h1>
+            <p className="mt-2 text-[15px] text-[#333333]">
+              주소가 바뀌었거나 지금 목록에 없는 정책이에요. 정책 찾기에서 다시 골라 주세요.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleNavigate('policies')}
+              className="btn-primary-lime mt-5 inline-flex cursor-pointer items-center gap-2 rounded-2xl px-5 py-3 text-[15px]"
+            >
+              정책 찾기로 가기
+            </button>
+          </section>
+        )}
+
+        {route === 'detail' && detailPolicy && (
           <PolicyDetailPage
             policy={detailPolicy}
             profile={viewProfile}

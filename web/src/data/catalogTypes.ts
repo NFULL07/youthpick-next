@@ -35,6 +35,9 @@ export interface NoticeRow {
   api_summary: string | null;
   current_year_unconfirmed: boolean;
   collected_on: string | null;
+  /** 온통청년 API의 신청 주소·참고 주소. 없으면 null 또는 빈 문자열 */
+  apply_url?: string | null;
+  ref_url?: string | null;
 }
 
 export interface RuleRow {

@@ -1,4 +1,5 @@
 import type { DirectInputSpec } from '../data/directInputSpec';
+import { uniqueLinks } from './officialLinks';
 import {
   CRITERIA_STATUS_LABEL,
   type AcademicWorkStatus,
@@ -358,9 +359,15 @@ function row(
   userMatchNote: string,
   result: CriteriaResult,
   basis: string,
-  reason?: string
+  reason?: string,
+  sources: PolicyCriteriaRow['sources'] = []
 ): PolicyCriteriaRow {
-  return { item, officialRule, userMatchNote, result, status: CRITERIA_STATUS_LABEL[result], reason, basis };
+  return { item, officialRule, userMatchNote, result, status: CRITERIA_STATUS_LABEL[result], reason, basis, sources };
+}
+
+/** 근거 원문 링크(같은 주소는 한 번만, http(s)만) */
+function sourceLinksOf(parts: { sourceTitle: string | null; sourceUrl: string | null }[]): PolicyCriteriaRow['sources'] {
+  return uniqueLinks(parts.map((p) => ({ label: p.sourceTitle ?? '근거 원문', url: p.sourceUrl })), 3);
 }
 
 const RELATION_NOTE: Record<PolicyRelation['relation'], string> = {
@@ -388,7 +395,9 @@ function relationRow(relation: PolicyRelation, index: number): PolicyCriteriaRow
     official,
     result === 'O' ? '따로 확인할 것 없음' : '그 정책을 받고 있는지 확인해 주세요',
     result,
-    basisOf(relation)
+    basisOf(relation),
+    undefined,
+    sourceLinksOf([relation])
   );
 }
 
@@ -407,7 +416,7 @@ export function buildCriteriaRows(ruleSet: PolicyRuleSet, inputs: RuleInputs): P
           : '내 정보에 입력하면 확인돼요';
       }
       const basis = Array.from(new Set(ruleRow.rules.map(basisOf))).join(' / ');
-      return row(ruleRow.item, ruleRow.label, note, ruleRow.outcome.result, basis, ruleRow.outcome.reason);
+      return row(ruleRow.item, ruleRow.label, note, ruleRow.outcome.result, basis, ruleRow.outcome.reason, sourceLinksOf(ruleRow.rules));
     }
   );
 
