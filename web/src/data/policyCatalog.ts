@@ -37,8 +37,8 @@ export const DEMO_CATALOG: PolicyCatalog = {
 };
 
 export function liveNotice(stats: CatalogStats): string {
-  const collected = stats.collectedOn ? `${stats.collectedOn} 수집, ` : '';
-  return `공고 원문 검수 전 데이터예요(${collected}정책 ${stats.policyCount}건, 검수한 판정 규칙 ${stats.reviewedRuleCount}건). 신청 전에 공식 공고를 확인해 주세요.`;
+  const collected = stats.collectedOn ? `${stats.collectedOn} 수집` : '수집';
+  return `정책 ${stats.policyCount}건의 소개·지원 내용·접수기간은 ${collected} 자료로, 공고 원문과 대조하지 않았어요. 조건 판정에는 검수한 규칙 ${stats.reviewedRuleCount}건만 써요. 신청 전에 공식 공고를 확인해 주세요.`;
 }
 
 export function cacheNotice(savedAt: string): string {
