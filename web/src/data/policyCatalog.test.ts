@@ -60,8 +60,9 @@ test('읽기에 성공하면 Supabase 데이터를 쓰고 공개 데이터 사�
   const catalog = await loadPolicyCatalog(deps({ storage }));
   assert.equal(catalog.source, 'supabase');
   assert.equal(catalog.policies.length, 7);
-  assert.ok(catalog.notice.includes('정책 7건') && catalog.notice.includes('검수한 판정 규칙 13건'));
-  assert.ok(catalog.notice.includes('공고 원문 검수 전'));
+  assert.ok(catalog.notice.includes('정책 7건') && catalog.notice.includes('검수한 규칙 13건만'));
+  assert.ok(catalog.notice.includes('공고 원문과 대조하지 않았어요'));
+  assert.ok(!catalog.notice.includes('검수 전 데이터')); // 검수한 규칙과 말이 엇갈리지 않게
   const cached = JSON.parse(storage.data.get(CATALOG_CACHE_KEY)!);
   assert.equal(cached.savedAt, '2026-11-17');
   assert.equal(cached.rows.policy.length, rows().policy.length);
