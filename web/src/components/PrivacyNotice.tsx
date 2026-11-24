@@ -10,6 +10,9 @@ import { getNavigatorMode, type NavigatorMode } from '../ai/navigatorClient';
 /** 서버 함수(ai-navigator)가 쓰는 AI 회사. Supabase 비밀값 AI_PROVIDER를 바꾸면 이 이름도 바꾼다 */
 export const AI_COMPANY = 'Anthropic';
 
+/** 문의처(2026-11-24 주완 결정): 팀 연락처 대신 공개 저장소의 Issues */
+export const PRIVACY_CONTACT = { label: 'GitHub 저장소 Issues', url: 'https://github.com/NFULL07/youthpick-next/issues' };
+
 export const NAVIGATOR_FIELDS = '주민등록 시·군, 학교 시·군, 현재 상태, 나이대(5세 단위), 관심 분야, 직접 적은 짧은 질문';
 
 export function privacyItems(mode: NavigatorMode): string[] {
@@ -28,8 +31,11 @@ export function privacyItems(mode: NavigatorMode): string[] {
   ];
 }
 
-export const PrivacyNotice: React.FC<{ mode?: NavigatorMode }> = ({ mode = getNavigatorMode() }) => {
-  const [open, setOpen] = useState(false);
+export const PrivacyNotice: React.FC<{ mode?: NavigatorMode; defaultOpen?: boolean }> = ({
+  mode = getNavigatorMode(),
+  defaultOpen = false,
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="w-full">
       <button
@@ -49,6 +55,17 @@ export const PrivacyNotice: React.FC<{ mode?: NavigatorMode }> = ({ mode = getNa
           {privacyItems(mode).map((item) => (
             <li key={item}>{item}</li>
           ))}
+          <li>
+            문의:{' '}
+            <a
+              href={PRIVACY_CONTACT.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-[#1F2421] underline underline-offset-2"
+            >
+              {PRIVACY_CONTACT.label}
+            </a>
+          </li>
         </ol>
       )}
     </div>
