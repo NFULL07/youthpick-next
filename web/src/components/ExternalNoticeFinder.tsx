@@ -114,7 +114,7 @@ export const ExternalNoticeFinder: React.FC<ExternalNoticeFinderProps> = ({ prof
             maxLength={MAX_QUERY_LENGTH}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="예: 생활비 장학금, IT 대외활동"
+            placeholder="예: 생활비 장학금, IT 공모전, 여름방학 인턴"
             className="min-w-0 flex-1 bg-transparent text-[13px] text-[#1F2421] placeholder:text-[#5C5F5B] focus:outline-none"
           />
           <button
@@ -142,7 +142,7 @@ export const ExternalNoticeFinder: React.FC<ExternalNoticeFinderProps> = ({ prof
 
       {result && !error && result.items.length === 0 && (
         <p className="rounded-xl bg-white px-3 py-2 text-[12px] font-semibold text-[#333333]">
-          맞는 외부 공고를 찾지 못했어요. 청년 대상 장학금·지원금·교육·대외활동 공고만 찾아요. 질문을 바꿔 다시 찾아보세요.
+          맞는 외부 공고를 찾지 못했어요. 청년이 신청·참여할 수 있는 기회(장학금·교육·대외활동·공모전·인턴 등)를 찾아요. 질문을 바꿔 다시 찾아보세요.
         </p>
       )}
 

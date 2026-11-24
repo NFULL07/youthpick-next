@@ -26,7 +26,8 @@ import {
 import { unmetCriteriaReasons } from '../utils/recruitmentBadge';
 import { useVirtualWallet } from '../utils/virtualWalletContext';
 
-const ITEMS_PER_PAGE = 10;
+/** 12개: 2열(md)·3열(lg) 모두 줄이 꽉 찬다(10개면 3열에서 3+3+3+1) */
+const ITEMS_PER_PAGE = 12;
 
 interface PoliciesExplorePageProps {
   profile: UserProfile;
