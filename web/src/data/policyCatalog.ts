@@ -36,9 +36,18 @@ export const DEMO_CATALOG: PolicyCatalog = {
   stats: null,
 };
 
+/** 배너에 늘 보이는 한 줄 */
 export function liveNotice(stats: CatalogStats): string {
-  const collected = stats.collectedOn ? `${stats.collectedOn} 수집` : '수집';
-  return `정책 ${stats.policyCount}건의 소개·지원 내용·접수기간은 ${collected} 자료로, 공고 원문과 대조하지 않았어요. 조건 판정에는 검수한 규칙 ${stats.reviewedRuleCount}건만 써요. 신청 전에 공식 공고를 확인해 주세요.`;
+  return `지금은 정책 ${stats.policyCount}건으로 시범 운영 중이에요. 조건 판정에는 검수한 규칙 ${stats.reviewedRuleCount}건만 쓰니, 신청 전에 공식 공고를 확인해 주세요.`;
+}
+
+/**
+ * 배너를 펼치면 보이는 설명. 자동 갱신은 아직 하지 않은 일이라 '예정'으로만 쓴다(2026-11-24 주완 결정).
+ * 기준일은 공고 데이터 수집일 중 가장 늦은 날이라, 다시 수집·적재하면 저절로 바뀐다.
+ */
+export function liveNoticeDetail(stats: CatalogStats): string {
+  const basis = stats.collectedOn ? ` (공고 정보 기준일 ${stats.collectedOn})` : '';
+  return `검수 과정을 보강한 뒤 온통청년 API로 새 공고를 자동 갱신할 예정이에요.${basis}`;
 }
 
 export function cacheNotice(savedAt: string): string {
@@ -128,7 +137,7 @@ export async function loadPolicyCatalog(deps: CatalogDeps): Promise<PolicyCatalo
     if (!cached) return null;
     const { policies, stats } = buildPolicies(cached.rows, deps.now());
     return policies.length > 0
-      ? { source: 'cache', policies, notice: cacheNotice(cached.savedAt), stats }
+      ? { source: 'cache', policies, notice: cacheNotice(cached.savedAt), noticeDetail: liveNoticeDetail(stats), stats }
       : null;
   };
 
@@ -143,7 +152,7 @@ export async function loadPolicyCatalog(deps: CatalogDeps): Promise<PolicyCatalo
     const { policies, stats } = buildPolicies(settled.value, deps.now());
     if (policies.length > 0) {
       writeCache(deps.storage, settled.value, toDateKey(deps.now()));
-      return { source: 'supabase', policies, notice: liveNotice(stats), stats };
+      return { source: 'supabase', policies, notice: liveNotice(stats), noticeDetail: liveNoticeDetail(stats), stats };
     }
     failure = 'Supabase에 정책 데이터가 아직 없어요.';
   } else if (settled.status === 'timeout') {

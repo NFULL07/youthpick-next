@@ -153,7 +153,9 @@ export type CatalogSource = 'demo' | 'supabase' | 'cache';
 export interface PolicyCatalog {
   source: CatalogSource;
   policies: PolicyItem[];
-  /** 화면 맨 위 안내 문구 */
+  /** 화면 맨 위 안내 문구 (늘 보이는 한 줄) */
   notice: string;
+  /** 안내를 펼치면 보이는 설명. 없으면 접기 버튼 없음 */
+  noticeDetail?: string;
   stats: CatalogStats | null;
 }
