@@ -301,3 +301,15 @@ test('getComparedPoliciesForTab and clearCompareIdsForTab scope compare bar & cl
 });
 
 
+
+// 2026-11-24 점검 10번: 첫 질문 뒤에는 질문 버튼이 사라지므로 '아래 질문 버튼'을 가리키지 않는다
+test('정책 안내 기본 답변은 사라진 질문 버튼 대신 입력칸과 새로 시작을 안내', () => {
+  const reply = generateDeterministicSherpaReply('안녕하세요', {
+    route: 'home',
+    profile: DEFAULT_USER_PROFILE,
+    policies: POLICIES_DATA,
+  });
+  assert.ok(!reply.text.includes('질문 버튼'));
+  assert.ok(reply.text.includes('입력칸'));
+  assert.ok(reply.text.includes("'새로 시작'"));
+});

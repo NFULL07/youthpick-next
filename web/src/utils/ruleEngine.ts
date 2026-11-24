@@ -367,7 +367,7 @@ function row(
 
 /** 근거 원문 링크(같은 주소는 한 번만, http(s)만) */
 function sourceLinksOf(parts: { sourceTitle: string | null; sourceUrl: string | null }[]): PolicyCriteriaRow['sources'] {
-  return uniqueLinks(parts.map((p) => ({ label: p.sourceTitle ?? '근거 원문', url: p.sourceUrl })), 3);
+  return uniqueLinks(parts.map((p) => ({ label: p.sourceTitle ?? '근거 자료', url: p.sourceUrl })), 3);
 }
 
 const RELATION_NOTE: Record<PolicyRelation['relation'], string> = {
