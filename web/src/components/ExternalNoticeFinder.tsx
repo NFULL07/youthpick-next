@@ -142,7 +142,7 @@ export const ExternalNoticeFinder: React.FC<ExternalNoticeFinderProps> = ({ prof
 
       {result && !error && result.items.length === 0 && (
         <p className="rounded-xl bg-white px-3 py-2 text-[12px] font-semibold text-[#333333]">
-          맞는 외부 공고를 찾지 못했어요. 질문을 바꿔 다시 찾아보세요.
+          맞는 외부 공고를 찾지 못했어요. 청년 대상 장학금·지원금·교육·대외활동 공고만 찾아요. 질문을 바꿔 다시 찾아보세요.
         </p>
       )}
 
