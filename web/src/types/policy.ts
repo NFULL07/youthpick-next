@@ -70,6 +70,14 @@ export interface PolicyCriteriaRow {
   /** X일 때 불일치 이유 */
   reason?: string;
   basis: string;
+  /** 판단 근거 원문 주소(검수 규칙·관계의 출처). 화면에서 새 창 링크로 보여 준다 */
+  sources?: OfficialLink[];
+}
+
+/** 화면에 거는 바깥 링크. url은 http(s)만 (utils/officialLinks.ts에서 거름) */
+export interface OfficialLink {
+  label: string;
+  url: string;
 }
 
 export interface PolicyItem {
@@ -96,6 +104,8 @@ export interface PolicyItem {
   dataSource?: 'demo' | 'supabase';
   /** Supabase 정책의 검수 완료 규칙·관계. 있으면 판정은 utils/ruleEngine.ts가 한다 */
   ruleSet?: PolicyRuleSet;
+  /** 공식 신청·안내 페이지와 근거 원문 링크(대표 공고 기준). 없으면 빈 목록 */
+  officialLinks?: OfficialLink[];
   checklist: {
     id: string;
     title: string;

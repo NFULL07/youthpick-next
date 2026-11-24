@@ -103,7 +103,7 @@ export function generateDeterministicSherpaReply(
     return {
       id: `ast-${Date.now()}`,
       sender: 'assistant',
-      text: `청년픽 NEXT는 온통청년 기준 5대 분야(일자리, 주거, 교육·직업훈련, 금융·복지·문화, 참여·기반)로 정책을 분류해요.\n\n현재 등록된 정책 중 즉시 지원 가능한 '모집 중' 상태는 ${openCount}건이에요. <정책 찾기> 목록 상단 우측의 '모집 상태' 필터에서 모집 중 / 마감 / 공고 확인 필요를 바로 골라볼 수 있어요.`,
+      text: `청년픽 NEXT는 온통청년 기준 5대 분야(일자리, 주거, 교육·직업훈련, 금융·복지·문화, 참여·기반)로 정책을 분류해요.\n\n현재 등록된 정책 중 '모집 중' 상태는 ${openCount}건이에요(모집 중이어도 자격은 조건표로 따로 확인해야 해요). <정책 찾기>의 '모집 상태' 필터에서 모집 중 / 마감 / 공고 확인 필요를 바로 골라볼 수 있어요.`,
       actionLabel: '정책 찾기 이동',
       targetRoute: 'policies',
     };

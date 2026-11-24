@@ -1,6 +1,6 @@
 import React from 'react';
-import { ArrowLeft, ArrowRight, Bookmark, MessageCircle } from 'lucide-react';
-import { CRITERIA_RESULT_STYLE, PolicyItem, RouteId, UserProfile } from '../types/policy';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, MessageCircle } from 'lucide-react';
+import { CRITERIA_RESULT_STYLE, OfficialLink, PolicyItem, RouteId, UserProfile } from '../types/policy';
 import { evaluatePolicyCriteria } from '../utils/policyEngine';
 import { DirectInputSection } from '../components/DirectInputSection';
 import { useVirtualWallet } from '../utils/virtualWalletContext';
@@ -15,6 +15,26 @@ interface PolicyDetailPageProps {
   onStartPreparation: (policyId: string) => void;
   onAskSherpaAboutPolicy: (policy: PolicyItem) => void;
 }
+
+/** 근거 원문 링크(새 창). 표와 휴대폰 카드에서 같이 쓴다 */
+const SourceLinks: React.FC<{ links?: OfficialLink[] }> = ({ links }) =>
+  links && links.length > 0 ? (
+    <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+      {links.map((link) => (
+        <a
+          key={link.url}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-0.5 font-bold text-[#1F2421] underline underline-offset-2"
+        >
+          원문 열기
+          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="sr-only">: {link.label} (새 창)</span>
+        </a>
+      ))}
+    </span>
+  ) : null;
 
 export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
   policy,
@@ -83,6 +103,31 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
             </strong>
           </div>
         </div>
+
+        <div className="mt-5 border-t border-dashed border-[#262A27]/30 pt-5">
+          <span className="block text-[13px] font-bold text-[#4A4D49]">공식 안내 (새 창)</span>
+          {policy.officialLinks && policy.officialLinks.length > 0 ? (
+            <ul className="mt-2 flex flex-wrap gap-2" aria-label="공식 안내 링크">
+              {policy.officialLinks.map((link) => (
+                <li key={link.url}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-xl border-[1.5px] border-[#262A27] bg-white px-3.5 py-2 text-[14px] font-bold text-[#1F2421] hover:bg-[#FAF8F2]"
+                  >
+                    <span>{link.label}</span>
+                    <ArrowUpRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-[14px] text-[#333333]">
+              등록된 공식 링크가 아직 없어요. 운영기관 누리집에서 공고를 확인해 주세요.
+            </p>
+          )}
+        </div>
       </section>
 
       {/* Main Split: Generously Padded Criteria Table + Action Sidebar */}
@@ -101,8 +146,52 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
             아니에요. 주민등록상 거주지, 학교·근무지 기준을 표에서 항목별로 대조해 보세요.
           </p>
 
+          {/* 휴대폰(md 미만): 표가 좁은 화면에서 '확인 결과' 열을 밀어내서(11/24 점검) 항목별 카드로 보여 준다 */}
+          <ul className="space-y-3 md:hidden" aria-label="공고 기준과 나의 조건">
+            {criteriaRows.map((row) => (
+              <li key={row.item} className="rounded-2xl border border-[#DCD7C9] p-4 break-keep">
+                <div className="flex items-start justify-between gap-3">
+                  <strong className="text-[15px] font-bold text-[#1F2421]">{row.item}</strong>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-bold ${CRITERIA_RESULT_STYLE[row.result]}`}
+                  >
+                    <span aria-hidden="true" className="font-mono-num">
+                      {row.result}
+                    </span>
+                    <span>{row.status}</span>
+                  </span>
+                </div>
+                <dl className="mt-3 space-y-2 text-[14px] leading-relaxed text-[#333333]">
+                  <div>
+                    <dt className="text-[12px] font-bold text-[#4A4D49]">공고 기준</dt>
+                    <dd>{row.officialRule}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[12px] font-bold text-[#4A4D49]">내 정보</dt>
+                    <dd className="font-semibold text-[#1F2421]">
+                      {row.userMatchNote}
+                      {row.result === 'X' && row.reason && (
+                        <span className="mt-1 block font-bold text-[#A33A1E]">
+                          <span aria-hidden="true">! </span>
+                          {row.reason}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[12px] font-bold text-[#4A4D49]">판단 근거</dt>
+                    <dd className="text-[13px]">
+                      {row.basis}
+                      <SourceLinks links={row.sources} />
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
           {/* Table with generous padding (px-5 py-5) and break-keep for clean Korean readability */}
-          <div className="overflow-x-auto rounded-2xl border border-[#DCD7C9]">
+          <div className="hidden overflow-x-auto rounded-2xl border border-[#DCD7C9] md:block">
             <table className="w-full min-w-[680px] border-collapse text-left break-keep">
               <thead>
                 <tr className="border-b-[1.5px] border-[#262A27]/25 bg-[#F7F5EE] text-[14px] font-extrabold text-[#1F2421]">
@@ -144,6 +233,7 @@ export const PolicyDetailPage: React.FC<PolicyDetailPageProps> = ({
                     </td>
                     <td className="px-5 py-5 text-[14px] text-[#333333] align-top">
                       {row.basis}
+                      <SourceLinks links={row.sources} />
                     </td>
                   </tr>
                 ))}

@@ -25,6 +25,14 @@ interface HomeBoardPageProps {
   onStartPreparation: (policyId: string) => void;
 }
 
+/** 생활권(주민등록·학교 지역) 확인에 쓸 주거 정책. 없으면 undefined */
+export function pickHousingCheckPolicy(policies: PolicyItem[]): PolicyItem | undefined {
+  const housing = policies.filter((p) => p.category === '주거');
+  const hasRegionRule = (p: PolicyItem) => (p.ruleSet?.rules ?? []).some((r) => r.operator === 'region_in');
+  const score = (p: PolicyItem) => (hasRegionRule(p) ? 2 : 0) + (p.recruitmentStatus === '모집 중' ? 1 : 0);
+  return [...housing].sort((a, b) => score(b) - score(a))[0];
+}
+
 export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   profile,
   policies,
@@ -39,6 +47,10 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
   onClearCompare,
   onStartPreparation,
 }) => {
+  // '주거 지원, 내 생활권도 인정될까?'에서 열 정책: 지역 조건 규칙이 있는 주거 정책 > 모집 중 > 첫 주거 정책.
+  // 예전에는 시연 데이터 id '1'로 고정돼 실제 데이터에서는 학자금대출(A1)이 열렸다(2026-11-24 점검)
+  const housingCheckPolicy = pickHousingCheckPolicy(policies);
+
   const wallet = useVirtualWallet();
   const boardPolicies = getRecommendedPoliciesForProfile(policies, profile, 3);
   const comparedPolicies = getComparedPoliciesForTab(
@@ -209,7 +221,9 @@ export const HomeBoardPage: React.FC<HomeBoardPageProps> = ({
               </div>
               <button
                 type="button"
-                onClick={() => onNavigate('detail', '1')}
+                onClick={() =>
+                  housingCheckPolicy ? onNavigate('detail', housingCheckPolicy.id) : onNavigate('policies')
+                }
                 className="btn-secondary-outline inline-flex w-fit shrink-0 cursor-pointer items-center justify-center gap-1.5 self-start whitespace-nowrap break-keep rounded-xl px-4 py-2 text-center text-[14px] sm:self-auto"
               >
                 <span>조건 확인</span>
