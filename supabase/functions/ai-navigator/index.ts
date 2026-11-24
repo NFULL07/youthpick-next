@@ -6,7 +6,8 @@
 // 지키는 것 (CLAUDE.md 2·3·5장)
 // - AI 키는 Edge Function 비밀값에만 둔다(supabase secrets set). 화면 코드에 넣지 않는다.
 // - 요청 내용을 저장하거나 로그에 쓰지 않는다. 로그에는 상태 코드와 걸린 시간만.
-// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 웹 검색 결과에 실제로 나온 주소만(keepSearchedOnly).
+// - 정해진 칸 말고는 받지 않는다(validateRequest). 결과는 웹 검색 결과에 실제로 나온 주소만(keepSearchedOnly),
+//   그중 검색 결과 제목·인용 문장이 공고처럼 보이는 것만(keepNoticeSources. 질문에 다른 지시를 넣는 경우 대비).
 // - 결과는 검수 전 정보다. 화면은 O/X 없이 'AI 추천 · 조건 확인 필요'로만 보여 준다.
 //
 // 비밀값 (이름만. 값은 저장소에 넣지 않는다)
@@ -24,8 +25,10 @@ import {
   collectCitedUrls,
   collectSearchedUrls,
   extractJson,
+  keepNoticeSources,
   keepSearchedOnly,
   sanitizeResult,
+  type SearchedSources,
   validateRequest,
 } from '../_shared/navigatorProtocol.ts';
 
@@ -79,7 +82,7 @@ interface ContentBlock {
 /** 모델의 답 글과, 웹 검색으로 실제로 나온 주소 모음 */
 interface ModelResult {
   text: string;
-  searched: Set<string>;
+  searched: SearchedSources;
 }
 
 function apiKey(): string {
@@ -182,8 +185,11 @@ Deno.serve(async (req) => {
     const { text, searched } = await call(system, user);
     const parsed = sanitizeResult(extractJson(text));
     // 웹 검색 결과에 실제로 나온 주소만 남긴다(모델이 기억으로 쓴 주소는 버림)
-    const items = keepSearchedOnly(parsed, searched);
-    console.log(`ai-navigator ok ${items.length}/${parsed.length} items ${Date.now() - started}ms`);
+    const inSearch = keepSearchedOnly(parsed, searched);
+    // 그중 검색 엔진이 준 제목·인용 문장이 공고처럼 보이는 것만(모델이 쓴 제목은 보지 않음)
+    const items = keepNoticeSources(inSearch, searched);
+    const dropped = `unsearched ${parsed.length - inSearch.length}, not-notice ${inSearch.length - items.length}`;
+    console.log(`ai-navigator ok ${items.length}/${parsed.length} items (${dropped}) ${Date.now() - started}ms`);
     return json({ items, searchedAt: new Date().toISOString() }, 200, origin);
   } catch (e) {
     // 오류 내용에 요청 값이 섞이지 않게 종류만 남긴다
